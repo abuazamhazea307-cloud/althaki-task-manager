@@ -72,4 +72,8 @@
     <string name="bottom_sheet_edit">Edit</string>
     <string name="bottom_sheet_delete">Delete</string>
     <string name="bottom_sheet_cancel">Cancel</string>
+    <string name="ringtone_default">Default Alarm Ringtone</string>
+    <string name="ringtone_label">Alarm Ringtone</string>
+    <string name="alarm_stop_btn">Stop</string>
+    <string name="alarm_snooze_btn">Snooze (10m)</string>
 </resources>

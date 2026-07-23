@@ -106,6 +106,7 @@ object ReminderScheduler {
             putExtra("task_id", task.id)
             putExtra("task_title", task.title)
             putExtra("task_start_time", task.startTime)
+            putExtra("ringtone_uri", task.ringtoneUri)
         }
 
         val pendingIntentFlags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -135,6 +136,58 @@ object ReminderScheduler {
             }
         } catch (e: SecurityException) {
             // Fallback in case exact alarm permission was denied / revoked at runtime
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, alarmTime, pendingIntent)
+            } else {
+                alarmManager.set(AlarmManager.RTC_WAKEUP, alarmTime, pendingIntent)
+            }
+        }
+    }
+
+    fun scheduleSnooze(
+        context: Context,
+        taskId: String,
+        taskTitle: String,
+        taskStartTime: String,
+        ringtoneUriStr: String?
+    ) {
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val intent = Intent(context, ReminderReceiver::class.java).apply {
+            action = "com.example.ACTION_SHOW_REMINDER"
+            putExtra("task_id", taskId)
+            putExtra("task_title", taskTitle)
+            putExtra("task_start_time", taskStartTime)
+            putExtra("ringtone_uri", ringtoneUriStr)
+        }
+
+        val pendingIntentFlags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        } else {
+            PendingIntent.FLAG_UPDATE_CURRENT
+        }
+
+        val pendingIntent = PendingIntent.getBroadcast(
+            context,
+            taskId.hashCode(),
+            intent,
+            pendingIntentFlags
+        )
+
+        val alarmTime = System.currentTimeMillis() + 10 * 60 * 1000 // 10 minutes
+
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                if (alarmManager.canScheduleExactAlarms()) {
+                    alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, alarmTime, pendingIntent)
+                } else {
+                    alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, alarmTime, pendingIntent)
+                }
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, alarmTime, pendingIntent)
+            } else {
+                alarmManager.setExact(AlarmManager.RTC_WAKEUP, alarmTime, pendingIntent)
+            }
+        } catch (e: SecurityException) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, alarmTime, pendingIntent)
             } else {
@@ -174,62 +227,46 @@ object ReminderScheduler {
  */
 class ReminderReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action == "com.example.ACTION_SHOW_REMINDER") {
+        val action = intent.action
+        if (action == "com.example.ACTION_SHOW_REMINDER") {
             val taskId = intent.getStringExtra("task_id") ?: return
             val taskTitle = intent.getStringExtra("task_title") ?: return
             val taskStartTime = intent.getStringExtra("task_start_time") ?: ""
+            val ringtoneUri = intent.getStringExtra("ringtone_uri")
 
-            // Make sure the notification channel is created
-            createNotificationChannel(context)
-
-            // Intent to open MainActivity when the notification is tapped
-            val launchIntent = Intent(context, MainActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            // SAFETY: Never trigger completed, deleted, or reminder disabled tasks
+            val localStore = TaskLocalStore(context)
+            val task = localStore.loadTasks()?.find { it.id == taskId }
+            if (task == null || task.isCompleted || !task.reminderEnabled) {
+                return
             }
 
-            val pendingIntentFlags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            // Start AlarmService to trigger persistent notification, sound, vibration, and full-screen intent
+            val serviceIntent = Intent(context, AlarmService::class.java).apply {
+                this.action = AlarmService.ACTION_START
+                putExtra(AlarmService.EXTRA_TASK_ID, taskId)
+                putExtra(AlarmService.EXTRA_TASK_TITLE, taskTitle)
+                putExtra(AlarmService.EXTRA_TASK_START_TIME, taskStartTime)
+                putExtra(AlarmService.EXTRA_RINGTONE_URI, ringtoneUri)
+            }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(serviceIntent)
             } else {
-                PendingIntent.FLAG_UPDATE_CURRENT
+                context.startService(serviceIntent)
             }
-
-            val pendingIntent = PendingIntent.getActivity(
-                context,
-                taskId.hashCode(),
-                launchIntent,
-                pendingIntentFlags
-            )
-
-            val displayTime = if (taskStartTime.isNotBlank()) {
-                val locale = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                    context.resources.configuration.locales.get(0)
-                } else {
-                    context.resources.configuration.locale
-                }
-                formatStartTimeForDisplay(taskStartTime, locale)
-            } else {
-                ""
+        } else if (action == Intent.ACTION_BOOT_COMPLETED ||
+            action == Intent.ACTION_MY_PACKAGE_REPLACED ||
+            action == Intent.ACTION_TIME_CHANGED ||
+            action == "android.intent.action.TIME_SET" ||
+            action == Intent.ACTION_TIMEZONE_CHANGED
+        ) {
+            // Re-register all alarms on system events
+            val localStore = TaskLocalStore(context)
+            val tasks = localStore.loadTasks() ?: emptyList()
+            for (task in tasks) {
+                ReminderScheduler.scheduleReminder(context, task)
             }
-
-            val notifTitle = context.getString(R.string.reminder_notif_title)
-            val notifContent = if (displayTime.isNotBlank()) {
-                "$taskTitle ($displayTime)"
-            } else {
-                taskTitle
-            }
-
-            val notification = NotificationCompat.Builder(context, "task_reminders_channel")
-                .setSmallIcon(R.mipmap.ic_launcher)
-                .setContentTitle(notifTitle)
-                .setContentText(notifContent)
-                .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setCategory(NotificationCompat.CATEGORY_REMINDER)
-                .setContentIntent(pendingIntent)
-                .setAutoCancel(true)
-                .build()
-
-            val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.notify(taskId.hashCode(), notification)
         }
     }
 }

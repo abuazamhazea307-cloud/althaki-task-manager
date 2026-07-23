@@ -27,5 +27,6 @@ data class Task(
     val startTime: String? = null,
     val reminderEnabled: Boolean = false,
     val isCompleted: Boolean = false,
-    val completedAt: Long? = null
+    val completedAt: Long? = null,
+    val ringtoneUri: String? = null
 )

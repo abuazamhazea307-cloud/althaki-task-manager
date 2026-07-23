@@ -21,6 +21,8 @@ import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsActive
+import androidx.compose.material.icons.filled.Audiotrack
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -70,6 +72,23 @@ fun AddTaskDialog(
   var startTime by remember { mutableStateOf(taskToEdit?.startTime ?: "") }
   var enableReminder by remember { mutableStateOf(taskToEdit?.reminderEnabled ?: false) }
   var selectedCategory by remember { mutableStateOf(taskToEdit?.category ?: "work") } // Default to 'work'
+
+  var selectedRingtoneUri by remember { mutableStateOf(taskToEdit?.ringtoneUri) }
+  var selectedRingtoneName by remember { mutableStateOf("") }
+  val context = androidx.compose.ui.platform.LocalContext.current
+
+  LaunchedEffect(selectedRingtoneUri) {
+    selectedRingtoneName = getRingtoneName(context, selectedRingtoneUri)
+  }
+
+  val ringtonePickerLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+    contract = androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()
+  ) { result ->
+    if (result.resultCode == android.app.Activity.RESULT_OK) {
+      val uri = result.data?.getParcelableExtra<android.net.Uri>(android.media.RingtoneManager.EXTRA_RINGTONE_PICKED_URI)
+      selectedRingtoneUri = uri?.toString()
+    }
+  }
   
   var showTimePickerDialog by remember { mutableStateOf(false) }
 
@@ -251,6 +270,66 @@ fun AddTaskDialog(
           )
         }
 
+        // Custom Ringtone Selector
+        if (enableReminder) {
+          Row(
+            modifier = Modifier
+              .fillMaxWidth()
+              .clip(RoundedCornerShape(12.dp))
+              .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.03f))
+              .clickable {
+                val intent = android.content.Intent(android.media.RingtoneManager.ACTION_RINGTONE_PICKER).apply {
+                  putExtra(android.media.RingtoneManager.EXTRA_RINGTONE_TYPE, android.media.RingtoneManager.TYPE_ALARM)
+                  putExtra(android.media.RingtoneManager.EXTRA_RINGTONE_TITLE, context.getString(R.string.ringtone_label))
+                  putExtra(android.media.RingtoneManager.EXTRA_RINGTONE_EXISTING_URI, selectedRingtoneUri?.let { android.net.Uri.parse(it) })
+                  putExtra(android.media.RingtoneManager.EXTRA_RINGTONE_SHOW_DEFAULT, true)
+                  putExtra(android.media.RingtoneManager.EXTRA_RINGTONE_SHOW_SILENT, false)
+                }
+                ringtonePickerLauncher.launch(intent)
+              }
+              .padding(horizontal = 16.dp, vertical = 12.dp)
+              .testTag("ringtone_selector_row"),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+          ) {
+            Row(
+              modifier = Modifier.weight(1f),
+              verticalAlignment = Alignment.CenterVertically,
+              horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+              Icon(
+                imageVector = Icons.Default.Audiotrack,
+                contentDescription = stringResource(R.string.ringtone_label),
+                tint = MaterialTheme.colorScheme.primary
+              )
+              Column {
+                Text(
+                  text = stringResource(R.string.ringtone_label),
+                  style = MaterialTheme.typography.bodyMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                  )
+                )
+                Text(
+                  text = selectedRingtoneName,
+                  style = MaterialTheme.typography.bodySmall.copy(
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                  ),
+                  maxLines = 1,
+                  overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                  modifier = Modifier.testTag("selected_ringtone_name")
+                )
+              }
+            }
+
+            Icon(
+              imageVector = Icons.Default.ChevronRight,
+              contentDescription = "Navigate",
+              tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+            )
+          }
+        }
+
         // Category Tag Selection
         Text(
           text = stringResource(R.string.label_task_category),
@@ -329,7 +408,8 @@ fun AddTaskDialog(
                     description = description,
                     category = selectedCategory,
                     startTime = startTime.ifBlank { null },
-                    reminderEnabled = enableReminder
+                    reminderEnabled = enableReminder,
+                    ringtoneUri = selectedRingtoneUri
                   )
                 } else {
                   Task(
@@ -338,7 +418,8 @@ fun AddTaskDialog(
                     category = selectedCategory,
                     startTime = startTime.ifBlank { null },
                     reminderEnabled = enableReminder,
-                    isCompleted = false
+                    isCompleted = false,
+                    ringtoneUri = selectedRingtoneUri
                   )
                 }
                 onAddTask(updatedTask)
@@ -450,5 +531,16 @@ fun AddTaskDialog(
         }
       }
     }
+  }
+}
+
+fun getRingtoneName(context: android.content.Context, uriString: String?): String {
+  if (uriString.isNullOrBlank()) return context.getString(R.string.ringtone_default)
+  return try {
+    val uri = android.net.Uri.parse(uriString)
+    val ringtone = android.media.RingtoneManager.getRingtone(context, uri)
+    ringtone?.getTitle(context) ?: context.getString(R.string.ringtone_default)
+  } catch (e: Exception) {
+    context.getString(R.string.ringtone_default)
   }
 }
