@@ -63,4 +63,7 @@
     <string name="desc_reminder">إرسال تنبيه عند حلول وقت بدء المهمة</string>
     <string name="time_picker_title">اختر وقت البدء</string>
     <string name="badge_rolled_over">مرحلة</string>
+    <string name="reminder_channel_name">تنبيهات المهام</string>
+    <string name="reminder_channel_desc">إرسال إشعارات عند حلول وقت بدء المهام</string>
+    <string name="reminder_notif_title">تنبيه مهمة</string>
 </resources>

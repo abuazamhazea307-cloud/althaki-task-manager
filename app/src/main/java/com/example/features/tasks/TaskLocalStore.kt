@@ -8,7 +8,7 @@ import com.squareup.moshi.Types
  * Modern, lightweight, and thread-safe local persistence layer for Task data.
  * Wraps SharedPreferences and handles serialization seamlessly using Moshi codegen.
  */
-class TaskLocalStore(context: Context) {
+class TaskLocalStore(private val context: Context) {
     private val sharedPreferences = context.getSharedPreferences("tasks_prefs", Context.MODE_PRIVATE)
     private val moshi = Moshi.Builder().build()
     private val taskListType = Types.newParameterizedType(List::class.java, Task::class.java)
@@ -18,8 +18,38 @@ class TaskLocalStore(context: Context) {
      * Saves the entire list of tasks to SharedPreferences in an asynchronous manner.
      */
     fun saveTasks(tasks: List<Task>) {
+        val oldTasks = loadTasks() ?: emptyList()
+        val oldTasksMap = oldTasks.associateBy { it.id }
+
         val json = jsonAdapter.toJson(tasks)
         sharedPreferences.edit().putString("saved_tasks", json).apply()
+
+        // Sync reminders based on the changes
+        val newIds = tasks.map { it.id }.toSet()
+        for (oldTask in oldTasks) {
+            if (oldTask.id !in newIds) {
+                ReminderScheduler.cancelReminder(context, oldTask.id)
+            }
+        }
+
+        for (task in tasks) {
+            val oldTask = oldTasksMap[task.id]
+            if (oldTask == null) {
+                ReminderScheduler.scheduleReminder(context, task)
+            } else {
+                if (task.isCompleted != oldTask.isCompleted ||
+                    task.reminderEnabled != oldTask.reminderEnabled ||
+                    task.startTime != oldTask.startTime ||
+                    task.targetDate != oldTask.targetDate
+                ) {
+                    if (task.isCompleted) {
+                        ReminderScheduler.cancelReminder(context, task.id)
+                    } else {
+                        ReminderScheduler.scheduleReminder(context, task)
+                    }
+                }
+            }
+        }
     }
 
     /**

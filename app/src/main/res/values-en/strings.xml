@@ -63,4 +63,7 @@
     <string name="desc_reminder">Send a reminder when task start time arrives</string>
     <string name="time_picker_title">Select Start Time</string>
     <string name="badge_rolled_over">Rolled Over</string>
+    <string name="reminder_channel_name">Task Reminders</string>
+    <string name="reminder_channel_desc">Send notifications when a task is scheduled to start</string>
+    <string name="reminder_notif_title">Task Reminder</string>
 </resources>
