@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AssignmentTurnedIn
 import androidx.compose.material3.CircularProgressIndicator
@@ -24,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -33,17 +35,28 @@ import androidx.compose.ui.res.stringResource
 import com.example.R
 import com.example.navigation.Screen
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun SplashScreen(navController: NavController) {
-  val scale = remember { Animatable(0f) }
+  val scale = remember { Animatable(0.85f) }
+  val alpha = remember { Animatable(0f) }
 
-  LaunchedEffect(key1 = true) {
-    scale.animateTo(
-      targetValue = 1f,
-      animationSpec = tween(durationMillis = 800)
-    )
-    delay(1800) // Beautiful cinematic delay
+  LaunchedEffect(Unit) {
+    // Elegant simultaneous Fade + Scale
+    launch {
+      scale.animateTo(
+        targetValue = 1f,
+        animationSpec = tween(durationMillis = 1000)
+      )
+    }
+    launch {
+      alpha.animateTo(
+        targetValue = 1f,
+        animationSpec = tween(durationMillis = 1000)
+      )
+    }
+    delay(2000) // Beautiful automatic navigation after splash
     navController.navigate(Screen.Home.route) {
       popUpTo(Screen.Splash.route) { inclusive = true }
     }
@@ -66,23 +79,29 @@ fun SplashScreen(navController: NavController) {
     Column(
       horizontalAlignment = Alignment.CenterHorizontally,
       verticalArrangement = Arrangement.Center,
-      modifier = Modifier.scale(scale.value)
+      modifier = Modifier.graphicsLayer(
+        scaleX = scale.value,
+        scaleY = scale.value,
+        alpha = alpha.value
+      )
     ) {
-      // Premium icon container representing organized progress
+      // Elegant Series Logo Container
       Box(
         modifier = Modifier
           .size(110.dp)
           .background(
-            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-            shape = CircleShape
+            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+            shape = RoundedCornerShape(24.dp)
           ),
         contentAlignment = Alignment.Center
       ) {
-        Icon(
-          imageVector = Icons.Default.AssignmentTurnedIn,
-          contentDescription = stringResource(R.string.splash_logo_desc),
-          tint = MaterialTheme.colorScheme.primary,
-          modifier = Modifier.size(56.dp)
+        Text(
+          text = "◈",
+          style = MaterialTheme.typography.displayMedium.copy(
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.Bold,
+            fontSize = 54.sp
+          )
         )
       }
 

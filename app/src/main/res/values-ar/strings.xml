@@ -1,8 +1,8 @@
 <resources>
     <string name="app_name">الذكي | مدير المهام</string>
     <string name="splash_logo_desc">الذكي لوجو</string>
-    <string name="splash_title">الـذ كـي</string>
-    <string name="splash_subtitle">مدير المهام الاحترافي الذكي</string>
+    <string name="splash_title">الذكي</string>
+    <string name="splash_subtitle">مدير المهام الذكي</string>
     <string name="nav_home">الرئيسية</string>
     <string name="nav_tasks">المهام</string>
     <string name="welcome_title">أهلاً بك، مستخدمنا العزيز 👋</string>

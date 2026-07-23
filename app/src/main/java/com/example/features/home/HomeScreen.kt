@@ -111,48 +111,7 @@ fun HomeScreen(navController: NavController) {
         .padding(20.dp),
       verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-      // Custom RTL Header with Welcome greeting
-      Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-      ) {
-        Column {
-          Text(
-            text = stringResource(R.string.welcome_title),
-            style = MaterialTheme.typography.titleLarge.copy(
-              fontWeight = FontWeight.Bold,
-              color = MaterialTheme.colorScheme.onBackground
-            )
-          )
-          Spacer(modifier = Modifier.height(4.dp))
-          Text(
-            text = stringResource(R.string.welcome_subtitle),
-            style = MaterialTheme.typography.bodyLarge.copy(
-              fontSize = 13.sp,
-              color = MaterialTheme.colorScheme.secondary
-            )
-          )
-        }
 
-        // Circular initials placeholder for profile
-        Box(
-          modifier = Modifier
-            .size(48.dp)
-            .clip(CircleShape)
-            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)),
-          contentAlignment = Alignment.Center
-        ) {
-          Text(
-            text = stringResource(R.string.avatar_letter),
-            style = MaterialTheme.typography.titleMedium.copy(
-              fontWeight = FontWeight.Bold,
-              color = MaterialTheme.colorScheme.primary,
-              fontSize = 20.sp
-            )
-          )
-        }
-      }
 
       // Elegant Day, Date and Time Card (M-002)
       Card(
@@ -276,55 +235,7 @@ fun HomeScreen(navController: NavController) {
         }
       }
 
-      // Decorative Premium Banner
-      Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary)
-      ) {
-        Box(
-          modifier = Modifier
-            .fillMaxWidth()
-            .background(
-              brush = Brush.horizontalGradient(
-                colors = listOf(
-                  MaterialTheme.colorScheme.primary,
-                  MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
-                )
-              )
-            )
-            .padding(20.dp)
-        ) {
-          Column {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-              Icon(
-                imageVector = Icons.Default.Star,
-                contentDescription = stringResource(R.string.star_icon_desc),
-                tint = Color(0xFFFBBF24), // Elegant gold star
-                modifier = Modifier.size(20.dp)
-              )
-              Spacer(modifier = Modifier.width(8.dp))
-              Text(
-                text = stringResource(R.string.banner_title),
-                style = MaterialTheme.typography.titleMedium.copy(
-                  fontWeight = FontWeight.Bold,
-                  color = Color.White,
-                  fontSize = 14.sp
-                )
-              )
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-              text = stringResource(R.string.banner_body),
-              style = MaterialTheme.typography.bodyLarge.copy(
-                fontSize = 13.sp,
-                color = Color.White.copy(alpha = 0.9f),
-                lineHeight = 20.sp
-              )
-            )
-          }
-        }
-      }
+
 
       // Statistics Section Title
       Text(

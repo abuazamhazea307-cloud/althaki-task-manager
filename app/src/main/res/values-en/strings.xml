@@ -2,7 +2,7 @@
     <string name="app_name">Al-Dhaki | Task Manager</string>
     <string name="splash_logo_desc">Al-Dhaki Logo</string>
     <string name="splash_title">Al-Dhaki</string>
-    <string name="splash_subtitle">Smart Professional Task Manager</string>
+    <string name="splash_subtitle">Smart Task Manager</string>
     <string name="nav_home">Home</string>
     <string name="nav_tasks">Tasks</string>
     <string name="welcome_title">Welcome, dear user! 👋</string>
