@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Al-Dhaki | Task Manager</string>
+    <string name="app_name">Task Manager</string>
     <string name="splash_logo_desc">Al-Dhaki Logo</string>
     <string name="splash_title">Al-Dhaki</string>
     <string name="splash_subtitle">Smart Task Manager</string>
