@@ -1,0 +1,6 @@
+{
+  "name": "الذكي | مدير المهام",
+  "description": "تطبيق مدير المهام الذكي بتصميم احترافي حديث يدعم اللغة العربية بالكامل",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
