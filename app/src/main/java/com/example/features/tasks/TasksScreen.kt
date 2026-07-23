@@ -7,9 +7,11 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -29,18 +31,29 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.HourglassEmpty
 import androidx.compose.material.icons.filled.List
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -76,6 +89,7 @@ fun getYesterdayDateString(): String {
   return sdf.format(cal.time)
 }
 
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun TasksScreen(navController: NavController) {
   val context = androidx.compose.ui.platform.LocalContext.current
@@ -97,6 +111,15 @@ fun TasksScreen(navController: NavController) {
   }
 
   var showAddDialog by remember { mutableStateOf(false) }
+
+  var showBottomSheet by remember { mutableStateOf(false) }
+  var selectedTaskForSheet by remember { mutableStateOf<Task?>(null) }
+
+  var showEditDialog by remember { mutableStateOf(false) }
+  var taskToEdit by remember { mutableStateOf<Task?>(null) }
+
+  var showDeleteConfirm by remember { mutableStateOf(false) }
+  var taskToDelete by remember { mutableStateOf<Task?>(null) }
 
   // Coroutine scope and map to track active jobs for pending completion
   val coroutineScope = rememberCoroutineScope()
@@ -254,6 +277,10 @@ fun TasksScreen(navController: NavController) {
                     pendingTasks[toggledTask.id] = job
                   }
                 }
+              },
+              onLongClick = { clickedTask ->
+                selectedTaskForSheet = clickedTask
+                showBottomSheet = true
               }
             )
           }
@@ -272,13 +299,200 @@ fun TasksScreen(navController: NavController) {
       }
     )
   }
+
+  // Edit Task Dialog Overlay
+  if (showEditDialog && taskToEdit != null) {
+    AddTaskDialog(
+      onDismiss = {
+        showEditDialog = false
+        taskToEdit = null
+      },
+      taskToEdit = taskToEdit,
+      onAddTask = { updatedTask ->
+        val index = tasks.indexOfFirst { it.id == updatedTask.id }
+        if (index != -1) {
+          tasks[index] = updatedTask
+        }
+        showEditDialog = false
+        taskToEdit = null
+      }
+    )
+  }
+
+  // Delete Task Confirmation Dialog Overlay
+  if (showDeleteConfirm && taskToDelete != null) {
+    AlertDialog(
+      onDismissRequest = {
+        showDeleteConfirm = false
+        taskToDelete = null
+      },
+      title = {
+        Text(
+          text = stringResource(R.string.delete_confirm_title),
+          style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+        )
+      },
+      text = {
+        Text(
+          text = stringResource(R.string.delete_confirm_desc),
+          style = MaterialTheme.typography.bodyMedium
+        )
+      },
+      confirmButton = {
+        Button(
+          onClick = {
+            val task = taskToDelete
+            if (task != null) {
+              // Cancel alarm first
+              ReminderScheduler.cancelReminder(context, task.id)
+              // Delete task
+              tasks.removeIf { it.id == task.id }
+            }
+            showDeleteConfirm = false
+            taskToDelete = null
+          },
+          colors = ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.error
+          ),
+          modifier = Modifier.testTag("confirm_delete_button")
+        ) {
+          Text(
+            text = stringResource(R.string.bottom_sheet_delete),
+            color = Color.White
+          )
+        }
+      },
+      dismissButton = {
+        TextButton(
+          onClick = {
+            showDeleteConfirm = false
+            taskToDelete = null
+          },
+          modifier = Modifier.testTag("cancel_delete_button")
+        ) {
+          Text(text = stringResource(R.string.btn_cancel))
+        }
+      },
+      modifier = Modifier.testTag("delete_confirmation_dialog")
+    )
+  }
+
+  // Bottom Sheet Overlay
+  if (showBottomSheet && selectedTaskForSheet != null) {
+    ModalBottomSheet(
+      onDismissRequest = {
+        showBottomSheet = false
+        selectedTaskForSheet = null
+      },
+      sheetState = rememberModalBottomSheetState(),
+      modifier = Modifier.testTag("task_options_bottom_sheet")
+    ) {
+      Column(
+        modifier = Modifier
+          .fillMaxWidth()
+          .padding(bottom = 36.dp, start = 24.dp, end = 24.dp, top = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+      ) {
+        Text(
+          text = selectedTaskForSheet!!.title,
+          style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+          maxLines = 1,
+          overflow = TextOverflow.Ellipsis,
+          modifier = Modifier.fillMaxWidth().testTag("bottom_sheet_task_title")
+        )
+
+        HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
+
+        // Edit
+        Row(
+          modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .clickable {
+              val task = selectedTaskForSheet
+              showBottomSheet = false
+              selectedTaskForSheet = null
+              taskToEdit = task
+              showEditDialog = true
+            }
+            .padding(vertical = 12.dp, horizontal = 16.dp)
+            .testTag("bottom_sheet_edit_option"),
+          verticalAlignment = Alignment.CenterVertically,
+          horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+          Icon(
+            imageVector = Icons.Default.Edit,
+            contentDescription = stringResource(R.string.bottom_sheet_edit),
+            tint = MaterialTheme.colorScheme.primary
+          )
+          Text(
+            text = stringResource(R.string.bottom_sheet_edit),
+            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold)
+          )
+        }
+
+        // Delete
+        Row(
+          modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .clickable {
+              val task = selectedTaskForSheet
+              showBottomSheet = false
+              selectedTaskForSheet = null
+              taskToDelete = task
+              showDeleteConfirm = true
+            }
+            .padding(vertical = 12.dp, horizontal = 16.dp)
+            .testTag("bottom_sheet_delete_option"),
+          verticalAlignment = Alignment.CenterVertically,
+          horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+          Icon(
+            imageVector = Icons.Default.Delete,
+            contentDescription = stringResource(R.string.bottom_sheet_delete),
+            tint = MaterialTheme.colorScheme.error
+          )
+          Text(
+            text = stringResource(R.string.bottom_sheet_delete),
+            style = MaterialTheme.typography.bodyLarge.copy(
+              fontWeight = FontWeight.SemiBold,
+              color = MaterialTheme.colorScheme.error
+            )
+          )
+        }
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        // Cancel
+        OutlinedButton(
+          onClick = {
+            showBottomSheet = false
+            selectedTaskForSheet = null
+          },
+          modifier = Modifier
+            .fillMaxWidth()
+            .height(48.dp)
+            .testTag("bottom_sheet_cancel_button"),
+          shape = RoundedCornerShape(12.dp)
+        ) {
+          Text(
+            text = stringResource(R.string.bottom_sheet_cancel),
+            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
+          )
+        }
+      }
+    }
+  }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TaskRow(
   task: Task,
   isPending: Boolean,
-  onToggleComplete: (Task) -> Unit
+  onToggleComplete: (Task) -> Unit,
+  onLongClick: (Task) -> Unit
 ) {
   // Subtle pulse scale animation on the card
   val scale by if (isPending) {
@@ -332,6 +546,10 @@ fun TaskRow(
     modifier = Modifier
       .fillMaxWidth()
       .scale(scale)
+      .combinedClickable(
+        onClick = {},
+        onLongClick = { onLongClick(task) }
+      )
       .testTag("task_item_${task.id}"),
     shape = RoundedCornerShape(16.dp),
     colors = CardDefaults.cardColors(

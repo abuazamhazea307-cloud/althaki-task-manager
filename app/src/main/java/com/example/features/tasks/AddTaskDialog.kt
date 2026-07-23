@@ -62,13 +62,14 @@ import java.util.Locale
 @Composable
 fun AddTaskDialog(
   onDismiss: () -> Unit,
-  onAddTask: (Task) -> Unit
+  onAddTask: (Task) -> Unit,
+  taskToEdit: Task? = null
 ) {
-  var title by remember { mutableStateOf("") }
-  var description by remember { mutableStateOf("") }
-  var startTime by remember { mutableStateOf("") }
-  var enableReminder by remember { mutableStateOf(false) }
-  var selectedCategory by remember { mutableStateOf("work") } // Default to 'work'
+  var title by remember { mutableStateOf(taskToEdit?.title ?: "") }
+  var description by remember { mutableStateOf(taskToEdit?.description ?: "") }
+  var startTime by remember { mutableStateOf(taskToEdit?.startTime ?: "") }
+  var enableReminder by remember { mutableStateOf(taskToEdit?.reminderEnabled ?: false) }
+  var selectedCategory by remember { mutableStateOf(taskToEdit?.category ?: "work") } // Default to 'work'
   
   var showTimePickerDialog by remember { mutableStateOf(false) }
 
@@ -108,7 +109,7 @@ fun AddTaskDialog(
           verticalAlignment = Alignment.CenterVertically
         ) {
           Text(
-            text = stringResource(R.string.dialog_add_title),
+            text = if (taskToEdit != null) stringResource(R.string.dialog_edit_title) else stringResource(R.string.dialog_add_title),
             style = MaterialTheme.typography.titleMedium.copy(
               fontWeight = FontWeight.Bold,
               fontSize = 20.sp,
@@ -322,15 +323,25 @@ fun AddTaskDialog(
           Button(
             onClick = {
               if (title.isNotBlank()) {
-                val newTask = Task(
-                  title = title,
-                  description = description,
-                  category = selectedCategory,
-                  startTime = startTime.ifBlank { null },
-                  reminderEnabled = enableReminder,
-                  isCompleted = false
-                )
-                onAddTask(newTask)
+                val updatedTask = if (taskToEdit != null) {
+                  taskToEdit.copy(
+                    title = title,
+                    description = description,
+                    category = selectedCategory,
+                    startTime = startTime.ifBlank { null },
+                    reminderEnabled = enableReminder
+                  )
+                } else {
+                  Task(
+                    title = title,
+                    description = description,
+                    category = selectedCategory,
+                    startTime = startTime.ifBlank { null },
+                    reminderEnabled = enableReminder,
+                    isCompleted = false
+                  )
+                }
+                onAddTask(updatedTask)
               }
             },
             modifier = Modifier

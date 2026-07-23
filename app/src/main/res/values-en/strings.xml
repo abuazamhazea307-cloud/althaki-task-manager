@@ -66,4 +66,10 @@
     <string name="reminder_channel_name">Task Reminders</string>
     <string name="reminder_channel_desc">Send notifications when a task is scheduled to start</string>
     <string name="reminder_notif_title">Task Reminder</string>
+    <string name="dialog_edit_title">Edit Task</string>
+    <string name="delete_confirm_title">Delete Task?</string>
+    <string name="delete_confirm_desc">Are you sure you want to permanently delete this task? This action cannot be undone.</string>
+    <string name="bottom_sheet_edit">Edit</string>
+    <string name="bottom_sheet_delete">Delete</string>
+    <string name="bottom_sheet_cancel">Cancel</string>
 </resources>

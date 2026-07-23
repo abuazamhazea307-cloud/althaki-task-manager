@@ -66,4 +66,10 @@
     <string name="reminder_channel_name">تنبيهات المهام</string>
     <string name="reminder_channel_desc">إرسال إشعارات عند حلول وقت بدء المهام</string>
     <string name="reminder_notif_title">تنبيه مهمة</string>
+    <string name="dialog_edit_title">تعديل المهمة</string>
+    <string name="delete_confirm_title">حذف المهمة؟</string>
+    <string name="delete_confirm_desc">هل أنت متأكد من رغبتك في حذف هذه المهمة نهائيًا؟ لا يمكن التراجع عن هذا الإجراء.</string>
+    <string name="bottom_sheet_edit">تعديل</string>
+    <string name="bottom_sheet_delete">حذف</string>
+    <string name="bottom_sheet_cancel">إلغاء</string>
 </resources>
