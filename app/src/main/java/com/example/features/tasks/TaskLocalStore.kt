@@ -26,7 +26,30 @@ class TaskLocalStore(context: Context) {
      * Loads the saved list of tasks. Returns null if no tasks have been saved yet.
      */
     fun loadTasks(): List<Task>? {
-        val json = sharedPreferences.getString("saved_tasks", null) ?: return null
+        val migrated = sharedPreferences.getBoolean("demo_tasks_migrated_v1", false)
+        val json = sharedPreferences.getString("saved_tasks", null)
+
+        if (!migrated) {
+            if (json != null) {
+                try {
+                    val tasks = jsonAdapter.fromJson(json)
+                    if (tasks != null) {
+                        val demoIds = setOf("1", "2", "3", "4")
+                        val filtered = tasks.filterNot { it.id in demoIds }
+                        if (filtered.size != tasks.size) {
+                            saveTasks(filtered)
+                            sharedPreferences.edit().putBoolean("demo_tasks_migrated_v1", true).apply()
+                            return filtered
+                        }
+                    }
+                } catch (e: Exception) {
+                    // Ignore
+                }
+            }
+            sharedPreferences.edit().putBoolean("demo_tasks_migrated_v1", true).apply()
+        }
+
+        if (json == null) return null
         return try {
             jsonAdapter.fromJson(json)
         } catch (e: Exception) {

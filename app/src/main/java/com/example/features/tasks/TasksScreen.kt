@@ -81,27 +81,12 @@ fun TasksScreen(navController: NavController) {
   val context = androidx.compose.ui.platform.LocalContext.current
   val taskStore = remember { TaskLocalStore(context) }
 
-  // Local reactive list pre-populated with beautiful mock tasks
-  val mockTask1Title = stringResource(R.string.mock_task_1_title)
-  val mockTask2Title = stringResource(R.string.mock_task_2_title)
-  val mockTask3Title = stringResource(R.string.mock_task_3_title)
-  val mockTask4Title = stringResource(R.string.mock_task_4_title)
-
-  // Initialize tasks with yesterday and today dates to demonstrate the daily rollover feature
+  // Initialize tasks from local storage
   val tasks = remember {
     val saved = taskStore.loadTasks()
     val list = mutableStateListOf<Task>()
     if (saved != null) {
       list.addAll(saved)
-    } else {
-      list.addAll(
-        listOf(
-          Task(id = "1", title = mockTask1Title, createdAt = 1000L, startTime = "09:00 AM", targetDate = getYesterdayDateString()),
-          Task(id = "2", title = mockTask2Title, createdAt = 2000L, startTime = "11:30 AM", isCompleted = true, completedAt = 2000L, targetDate = getYesterdayDateString()),
-          Task(id = "3", title = mockTask3Title, createdAt = 3000L, startTime = null, targetDate = getCurrentDateString()),
-          Task(id = "4", title = mockTask4Title, createdAt = 4000L, startTime = "04:15 PM", targetDate = getCurrentDateString())
-        )
-      )
     }
     list
   }
