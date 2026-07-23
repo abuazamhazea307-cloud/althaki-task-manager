@@ -462,7 +462,7 @@ fun TaskRow(
               modifier = Modifier.size(14.dp)
             )
             Text(
-              text = task.startTime,
+              text = formatStartTimeForDisplay(task.startTime, java.util.Locale.getDefault()),
               style = MaterialTheme.typography.bodySmall.copy(
                 fontSize = 12.sp,
                 color = if (task.isCompleted) {
@@ -479,4 +479,36 @@ fun TaskRow(
       }
     }
   }
+}
+
+fun formatStartTimeForDisplay(startTime: String, locale: java.util.Locale): String {
+    val cleanTime = startTime.trim()
+    try {
+        val regex = java.util.regex.Pattern.compile("(\\d{1,2}):(\\d{2})\\s*(AM|PM|am|pm|صباحًا|مساءً)?", java.util.regex.Pattern.CASE_INSENSITIVE)
+        val matcher = regex.matcher(cleanTime)
+        if (matcher.find()) {
+            val hourStr = matcher.group(1) ?: return startTime
+            val minuteStr = matcher.group(2) ?: return startTime
+            val amPmIndicator = matcher.group(3)?.uppercase(java.util.Locale.US) ?: "AM"
+            
+            val isPm = amPmIndicator.contains("PM") || amPmIndicator.contains("مساءً")
+            val hourInt = hourStr.toIntOrNull() ?: return startTime
+            val minuteInt = minuteStr.toIntOrNull() ?: return startTime
+            
+            if (locale.language == "ar") {
+                val formattedHour = String.format(java.util.Locale.US, "%02d", hourInt)
+                val formattedMinute = String.format(java.util.Locale.US, "%02d", minuteInt)
+                val suffix = if (isPm) "مساءً" else "صباحًا"
+                return "$formattedHour:$formattedMinute $suffix"
+            } else {
+                val formattedHour = hourInt.toString()
+                val formattedMinute = String.format(java.util.Locale.US, "%02d", minuteInt)
+                val suffix = if (isPm) "PM" else "AM"
+                return "$formattedHour:$formattedMinute $suffix"
+            }
+        }
+    } catch (e: Exception) {
+        // Fallback
+    }
+    return startTime
 }

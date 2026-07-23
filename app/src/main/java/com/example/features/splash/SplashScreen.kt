@@ -126,6 +126,16 @@ fun SplashScreen(navController: NavController) {
         )
       )
 
+      Spacer(modifier = Modifier.height(10.dp))
+
+      Text(
+        text = stringResource(R.string.splash_welcome),
+        style = MaterialTheme.typography.bodyMedium.copy(
+          fontSize = 14.sp,
+          color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+        )
+      )
+
       Spacer(modifier = Modifier.height(48.dp))
 
       CircularProgressIndicator(

@@ -59,12 +59,45 @@ import java.util.Locale
 import kotlinx.coroutines.delay
 import androidx.compose.ui.res.stringResource
 import com.example.R
+import com.example.features.tasks.TaskLocalStore
+import com.example.features.tasks.Task
+import com.example.features.tasks.getCurrentDateString
+import androidx.navigation.compose.currentBackStackEntryAsState
 
 @Composable
 fun HomeScreen(navController: NavController) {
   var currentDayName by remember { mutableStateOf("") }
   var currentDate by remember { mutableStateOf("") }
   var currentTime by remember { mutableStateOf("") }
+
+  val context = androidx.compose.ui.platform.LocalContext.current
+  val taskStore = remember { TaskLocalStore(context) }
+  var tasksList by remember { mutableStateOf<List<Task>>(emptyList()) }
+
+  val navBackStackEntry by navController.currentBackStackEntryAsState()
+  LaunchedEffect(navBackStackEntry) {
+    tasksList = taskStore.loadTasks() ?: emptyList()
+  }
+
+  val today = getCurrentDateString()
+
+  val updatedTasksList = remember(tasksList, today) {
+    tasksList.map { task ->
+      if (!task.isCompleted && task.targetDate < today) {
+        task.copy(targetDate = today, isRolledOver = true)
+      } else {
+        task
+      }
+    }
+  }
+
+  val todaysTasks = remember(updatedTasksList, today) {
+    updatedTasksList.filter { it.targetDate == today }
+  }
+
+  val totalTasksCount = todaysTasks.size
+  val completedTasksCount = todaysTasks.count { it.isCompleted }
+  val pendingTasksCount = todaysTasks.count { !it.isCompleted }
 
   LaunchedEffect(Unit) {
     while (true) {
@@ -144,7 +177,7 @@ fun HomeScreen(navController: NavController) {
           }
           
           Text(
-            text = stringResource(R.string.nav_tasks),
+            text = stringResource(R.string.app_name),
             style = MaterialTheme.typography.bodyLarge.copy(
               fontWeight = FontWeight.Medium,
               color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
@@ -254,21 +287,21 @@ fun HomeScreen(navController: NavController) {
       ) {
         StatCard(
           title = stringResource(R.string.stat_total_tasks),
-          value = "12",
+          value = totalTasksCount.toString(),
           icon = Icons.Default.FormatListBulleted,
           iconColor = MaterialTheme.colorScheme.primary,
           modifier = Modifier.weight(1f)
         )
         StatCard(
           title = stringResource(R.string.stat_in_progress),
-          value = "4",
+          value = pendingTasksCount.toString(),
           icon = Icons.Default.PendingActions,
           iconColor = MaterialTheme.colorScheme.tertiary,
           modifier = Modifier.weight(1f)
         )
         StatCard(
           title = stringResource(R.string.stat_completed_tasks),
-          value = "8",
+          value = completedTasksCount.toString(),
           icon = Icons.Default.CheckCircle,
           iconColor = Color(0xFF10B981), // Healthy green
           modifier = Modifier.weight(1f)

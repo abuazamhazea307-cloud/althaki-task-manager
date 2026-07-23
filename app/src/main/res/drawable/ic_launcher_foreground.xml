@@ -6,29 +6,23 @@
     
     <!-- Outer Diamond Outline -->
     <path
-        android:pathData="M54,22 L64,32 L54,42 L44,32 Z"
+        android:pathData="M54,32 L76,54 L54,76 L32,54 Z"
         android:strokeColor="#FFFFFF"
-        android:strokeWidth="3.2"
+        android:strokeWidth="4.0"
         android:strokeLineJoin="round"
         android:fillColor="#00000000" />
         
-    <!-- Inner Solid Diamond -->
+    <!-- Inner Diamond Outline -->
     <path
-        android:pathData="M54,29.5 L56.5,32 L54,34.5 L51.5,32 Z"
-        android:fillColor="#FFFFFF" />
-
-    <!-- Dot of the Arabic letter Thal (ذ) -->
-    <path
-        android:pathData="M58,50 m-3.5,0 a3.5,3.5 0 1,1 7,0 a3.5,3.5 0 1,1 -7,0"
-        android:fillColor="#FFFFFF" />
-
-    <!-- Body of the Arabic letter Thal (ذ) -->
-    <path
-        android:pathData="M64,62 L50,76 L68,76"
+        android:pathData="M54,41 L67,54 L54,67 L41,54 Z"
         android:strokeColor="#FFFFFF"
-        android:strokeWidth="7"
-        android:strokeLineCap="round"
+        android:strokeWidth="2.5"
         android:strokeLineJoin="round"
         android:fillColor="#00000000" />
+
+    <!-- Core Solid Diamond -->
+    <path
+        android:pathData="M54,50 L58,54 L54,58 L50,54 Z"
+        android:fillColor="#FFFFFF" />
         
 </vector>
