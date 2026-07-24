@@ -131,9 +131,27 @@ fun HomeScreen(navController: NavController) {
         )
         NavigationBarItem(
           selected = false,
-          onClick = { navController.navigate(Screen.Tasks.route) },
+          onClick = {
+            navController.navigate(Screen.Tasks.route) {
+              popUpTo(Screen.Home.route) { saveState = true }
+              launchSingleTop = true
+              restoreState = true
+            }
+          },
           icon = { Icon(Icons.Default.List, contentDescription = stringResource(R.string.nav_tasks)) },
           label = { Text(stringResource(R.string.nav_tasks), style = MaterialTheme.typography.labelSmall) }
+        )
+        NavigationBarItem(
+          selected = false,
+          onClick = {
+            navController.navigate(Screen.Settings.route) {
+              popUpTo(Screen.Home.route) { saveState = true }
+              launchSingleTop = true
+              restoreState = true
+            }
+          },
+          icon = { Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.settings_title)) },
+          label = { Text(stringResource(R.string.settings_title), style = MaterialTheme.typography.labelSmall) }
         )
       }
     }
@@ -162,7 +180,7 @@ fun HomeScreen(navController: NavController) {
           horizontalAlignment = Alignment.CenterHorizontally,
           verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-          // App Series Name, Logo & Settings button (B-001)
+          // App Series Name & Logo (B-001)
           Box(
             modifier = Modifier.fillMaxWidth(),
             contentAlignment = Alignment.Center
@@ -175,19 +193,6 @@ fun HomeScreen(navController: NavController) {
                 fontSize = 22.sp
               )
             )
-
-            IconButton(
-              onClick = { navController.navigate(Screen.Settings.route) },
-              modifier = Modifier
-                .align(Alignment.CenterEnd)
-                .testTag("home_settings_button")
-            ) {
-              Icon(
-                imageVector = Icons.Default.Settings,
-                contentDescription = stringResource(R.string.settings_title),
-                tint = MaterialTheme.colorScheme.primary
-              )
-            }
           }
           
           Text(

@@ -27,6 +27,10 @@ import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.List
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -134,25 +138,12 @@ fun SettingsScreen(navController: NavController) {
         modifier = Modifier
           .fillMaxWidth()
           .background(MaterialTheme.colorScheme.background)
-          .padding(top = 16.dp, bottom = 8.dp, start = 8.dp, end = 16.dp)
+          .padding(top = 16.dp, bottom = 8.dp, start = 20.dp, end = 20.dp)
       ) {
         Row(
           verticalAlignment = Alignment.CenterVertically,
           modifier = Modifier.fillMaxWidth()
         ) {
-          IconButton(
-            onClick = { navController.popBackStack() },
-            modifier = Modifier.testTag("settings_back_button")
-          ) {
-            Icon(
-              imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-              contentDescription = stringResource(R.string.settings_back_desc),
-              tint = MaterialTheme.colorScheme.onBackground
-            )
-          }
-
-          Spacer(modifier = Modifier.width(8.dp))
-
           Column {
             Text(
               text = stringResource(R.string.settings_title),
@@ -172,6 +163,42 @@ fun SettingsScreen(navController: NavController) {
             )
           }
         }
+      }
+    },
+    bottomBar = {
+      NavigationBar(
+        containerColor = MaterialTheme.colorScheme.surface,
+        tonalElevation = 8.dp
+      ) {
+        NavigationBarItem(
+          selected = false,
+          onClick = {
+            navController.navigate(Screen.Home.route) {
+              popUpTo(Screen.Home.route) { inclusive = true }
+              launchSingleTop = true
+            }
+          },
+          icon = { Icon(Icons.Default.Home, contentDescription = stringResource(R.string.nav_home)) },
+          label = { Text(stringResource(R.string.nav_home), style = MaterialTheme.typography.labelSmall) }
+        )
+        NavigationBarItem(
+          selected = false,
+          onClick = {
+            navController.navigate(Screen.Tasks.route) {
+              popUpTo(Screen.Home.route) { saveState = true }
+              launchSingleTop = true
+              restoreState = true
+            }
+          },
+          icon = { Icon(Icons.Default.List, contentDescription = stringResource(R.string.nav_tasks)) },
+          label = { Text(stringResource(R.string.nav_tasks), style = MaterialTheme.typography.labelSmall) }
+        )
+        NavigationBarItem(
+          selected = true,
+          onClick = { /* Already on Settings */ },
+          icon = { Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.settings_title)) },
+          label = { Text(stringResource(R.string.settings_title), style = MaterialTheme.typography.labelSmall) }
+        )
       }
     }
   ) { paddingValues ->

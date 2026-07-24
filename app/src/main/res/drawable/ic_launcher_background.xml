@@ -167,4 +167,8 @@
         android:pathData="M79,19L79,89"
         android:strokeWidth="0.8"
         android:strokeColor="#33FFFFFF" />
+    <!-- Masking circle to hide the grid lines behind the central logo -->
+    <path
+        android:fillColor="#0EA5E9"
+        android:pathData="M54,54m-30,0a30,30 0 1,1 60,0a30,30 0 1,1 -60,0" />
 </vector>

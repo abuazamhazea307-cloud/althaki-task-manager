@@ -4,44 +4,81 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
     
-    <!-- Outer Elegant Circular Safe Ring to soften any square/box feeling -->
+    <!-- 1. Outer Large White Circle (Radius 30) -->
     <path
-        android:pathData="M54,24 A30,30 0 1,1 53.9,24 Z"
-        android:strokeColor="#4DFFFFFF"
-        android:strokeWidth="1.5"
-        android:strokeLineJoin="round"
-        android:strokeLineCap="round"
-        android:fillColor="#00000000" />
-
-    <path
-        android:pathData="M54,28 A26,26 0 1,1 53.9,28 Z"
-        android:strokeColor="#1AFFFFFF"
-        android:strokeWidth="1.0"
-        android:strokeLineJoin="round"
-        android:strokeLineCap="round"
-        android:fillColor="#00000000" />
-
-    <!-- Outer Diamond Outline (Perfect visual centering) -->
-    <path
-        android:pathData="M54,32 L76,54 L54,76 L32,54 Z"
+        android:pathData="M54,54m-30,0a30,30 0 1,1 60,0a30,30 0 1,1 -60,0"
         android:strokeColor="#FFFFFF"
-        android:strokeWidth="4.0"
+        android:strokeWidth="2.0"
+        android:strokeLineJoin="round"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000" />
+
+    <!-- 2. Thin Inner Circular Ring (Radius 26) -->
+    <path
+        android:pathData="M54,54m-26,0a26,26 0 1,1 52,0a26,26 0 1,1 -52,0"
+        android:strokeColor="#B3FFFFFF"
+        android:strokeWidth="0.8"
+        android:strokeLineJoin="round"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000" />
+
+    <!-- 3. Centered Geometric Althaki Diamond Logo -->
+    <!-- Outer Diamond Outline -->
+    <path
+        android:pathData="M54,35 L65,46 L54,57 L43,46 Z"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2.0"
         android:strokeLineJoin="round"
         android:strokeLineCap="round"
         android:fillColor="#00000000" />
         
     <!-- Inner Diamond Outline -->
     <path
-        android:pathData="M54,41 L67,54 L54,67 L41,54 Z"
-        android:strokeColor="#FFFFFF"
-        android:strokeWidth="2.5"
+        android:pathData="M54,40.5 L59.5,46 L54,51.5 L48.5,46 Z"
+        android:strokeColor="#B3FFFFFF"
+        android:strokeWidth="1.2"
         android:strokeLineJoin="round"
         android:strokeLineCap="round"
         android:fillColor="#00000000" />
 
     <!-- Core Solid Diamond -->
     <path
-        android:pathData="M54,50 L58,54 L54,58 L50,54 Z"
+        android:pathData="M54,44 L56,46 L54,48 L52,46 Z"
         android:fillColor="#FFFFFF" />
+
+    <!-- 4. Task Manager Checklist Symbol (Centered below the diamond around Y = 66) -->
+    <!-- Row 1: Checkmark -->
+    <path
+        android:pathData="M45,62.5 L47,64.5 L51,60.5"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.6"
+        android:strokeLineJoin="round"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000" />
+
+    <!-- Row 1: Line -->
+    <path
+        android:pathData="M55,62.5 L63,62.5"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.6"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000" />
+
+    <!-- Row 2: Checkmark -->
+    <path
+        android:pathData="M45,69.5 L47,71.5 L51,67.5"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.6"
+        android:strokeLineJoin="round"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000" />
+
+    <!-- Row 2: Line -->
+    <path
+        android:pathData="M55,69.5 L63,69.5"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.6"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000" />
         
 </vector>

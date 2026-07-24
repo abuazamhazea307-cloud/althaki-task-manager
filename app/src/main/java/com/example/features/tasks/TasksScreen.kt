@@ -36,6 +36,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.HourglassEmpty
 import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -189,7 +190,12 @@ fun TasksScreen(navController: NavController) {
       ) {
         NavigationBarItem(
           selected = false,
-          onClick = { navController.navigate(Screen.Home.route) },
+          onClick = {
+            navController.navigate(Screen.Home.route) {
+              popUpTo(Screen.Home.route) { inclusive = true }
+              launchSingleTop = true
+            }
+          },
           icon = { Icon(Icons.Default.Home, contentDescription = stringResource(R.string.nav_home)) },
           label = { Text(stringResource(R.string.nav_home), style = MaterialTheme.typography.labelSmall) }
         )
@@ -198,6 +204,18 @@ fun TasksScreen(navController: NavController) {
           onClick = { /* Already on Tasks */ },
           icon = { Icon(Icons.Default.List, contentDescription = stringResource(R.string.nav_tasks)) },
           label = { Text(stringResource(R.string.nav_tasks), style = MaterialTheme.typography.labelSmall) }
+        )
+        NavigationBarItem(
+          selected = false,
+          onClick = {
+            navController.navigate(Screen.Settings.route) {
+              popUpTo(Screen.Home.route) { saveState = true }
+              launchSingleTop = true
+              restoreState = true
+            }
+          },
+          icon = { Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.settings_title)) },
+          label = { Text(stringResource(R.string.settings_title), style = MaterialTheme.typography.labelSmall) }
         )
       }
     },
