@@ -64,7 +64,18 @@ import com.example.R
 import com.example.features.tasks.TaskLocalStore
 import com.example.features.tasks.Task
 import com.example.features.tasks.getCurrentDateString
+import androidx.compose.runtime.collectAsState
 import androidx.navigation.compose.currentBackStackEntryAsState
+
+private fun isUserTask(task: Task): Boolean {
+  val demoIds = setOf("1", "2", "3", "4")
+  if (task.id in demoIds) return false
+  val title = task.title.lowercase(Locale.US)
+  val desc = task.description.lowercase(Locale.US)
+  if (title.contains("demo") || title.contains("sample") || title.contains("template") || title.contains("hidden")) return false
+  if (desc.contains("demo") || desc.contains("sample") || desc.contains("template") || desc.contains("hidden")) return false
+  return true
+}
 
 @Composable
 fun HomeScreen(navController: NavController) {
@@ -74,12 +85,7 @@ fun HomeScreen(navController: NavController) {
 
   val context = androidx.compose.ui.platform.LocalContext.current
   val taskStore = remember { TaskLocalStore(context) }
-  var tasksList by remember { mutableStateOf<List<Task>>(emptyList()) }
-
-  val navBackStackEntry by navController.currentBackStackEntryAsState()
-  LaunchedEffect(navBackStackEntry) {
-    tasksList = taskStore.loadTasks() ?: emptyList()
-  }
+  val tasksList by TaskLocalStore.tasksFlow.collectAsState()
 
   val today = getCurrentDateString()
 
@@ -94,7 +100,7 @@ fun HomeScreen(navController: NavController) {
   }
 
   val todaysTasks = remember(updatedTasksList, today) {
-    updatedTasksList.filter { it.targetDate == today }
+    updatedTasksList.filter { it.targetDate == today && isUserTask(it) }
   }
 
   val totalTasksCount = todaysTasks.size

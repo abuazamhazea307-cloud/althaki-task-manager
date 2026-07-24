@@ -3,10 +3,14 @@ package com.example.features.tasks
 import android.content.Context
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 /**
  * Modern, lightweight, and thread-safe local persistence layer for Task data.
  * Wraps SharedPreferences and handles serialization seamlessly using Moshi codegen.
+ * Integrates a reactive StateFlow so updates are instantly pushed to all observers.
  */
 class TaskLocalStore(private val context: Context) {
     private val sharedPreferences = context.getSharedPreferences("tasks_prefs", Context.MODE_PRIVATE)
@@ -14,15 +18,69 @@ class TaskLocalStore(private val context: Context) {
     private val taskListType = Types.newParameterizedType(List::class.java, Task::class.java)
     private val jsonAdapter = moshi.adapter<List<Task>>(taskListType)
 
-    /**
-     * Saves the entire list of tasks to SharedPreferences in an asynchronous manner.
-     */
-    fun saveTasks(tasks: List<Task>) {
-        val oldTasks = loadTasks() ?: emptyList()
-        val oldTasksMap = oldTasks.associateBy { it.id }
+    companion object {
+        private val _tasksFlow = MutableStateFlow<List<Task>>(emptyList())
+        val tasksFlow: StateFlow<List<Task>> = _tasksFlow.asStateFlow()
+        @Volatile
+        private var isInitialized = false
+    }
 
+    init {
+        synchronized(TaskLocalStore::class.java) {
+            if (!isInitialized) {
+                val loaded = loadTasksInternal() ?: emptyList()
+                _tasksFlow.value = loaded
+                isInitialized = true
+            }
+        }
+    }
+
+    private fun loadTasksInternal(): List<Task>? {
+        val migrated = sharedPreferences.getBoolean("demo_tasks_migrated_v1", false)
+        val json = sharedPreferences.getString("saved_tasks", null)
+
+        if (!migrated) {
+            if (json != null) {
+                try {
+                    val tasks = jsonAdapter.fromJson(json)
+                    if (tasks != null) {
+                        val demoIds = setOf("1", "2", "3", "4")
+                        val filtered = tasks.filterNot { it.id in demoIds }
+                        if (filtered.size != tasks.size) {
+                            saveTasksInternal(filtered)
+                            sharedPreferences.edit().putBoolean("demo_tasks_migrated_v1", true).apply()
+                            return filtered
+                        }
+                    }
+                } catch (e: Exception) {
+                    // Ignore
+                }
+            }
+            sharedPreferences.edit().putBoolean("demo_tasks_migrated_v1", true).apply()
+        }
+
+        if (json == null) return null
+        return try {
+            jsonAdapter.fromJson(json)
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    private fun saveTasksInternal(tasks: List<Task>) {
         val json = jsonAdapter.toJson(tasks)
         sharedPreferences.edit().putString("saved_tasks", json).apply()
+    }
+
+    /**
+     * Saves the entire list of tasks to SharedPreferences and updates the reactive StateFlow.
+     */
+    fun saveTasks(tasks: List<Task>) {
+        val oldTasks = _tasksFlow.value
+        val oldTasksMap = oldTasks.associateBy { it.id }
+
+        saveTasksInternal(tasks)
+        _tasksFlow.value = tasks
 
         // Sync reminders based on the changes
         val newIds = tasks.map { it.id }.toSet()
@@ -53,37 +111,17 @@ class TaskLocalStore(private val context: Context) {
     }
 
     /**
-     * Loads the saved list of tasks. Returns null if no tasks have been saved yet.
+     * Loads the saved list of tasks from the reactive memory cache.
      */
     fun loadTasks(): List<Task>? {
-        val migrated = sharedPreferences.getBoolean("demo_tasks_migrated_v1", false)
-        val json = sharedPreferences.getString("saved_tasks", null)
-
-        if (!migrated) {
-            if (json != null) {
-                try {
-                    val tasks = jsonAdapter.fromJson(json)
-                    if (tasks != null) {
-                        val demoIds = setOf("1", "2", "3", "4")
-                        val filtered = tasks.filterNot { it.id in demoIds }
-                        if (filtered.size != tasks.size) {
-                            saveTasks(filtered)
-                            sharedPreferences.edit().putBoolean("demo_tasks_migrated_v1", true).apply()
-                            return filtered
-                        }
-                    }
-                } catch (e: Exception) {
-                    // Ignore
-                }
-            }
-            sharedPreferences.edit().putBoolean("demo_tasks_migrated_v1", true).apply()
+        val current = _tasksFlow.value
+        if (current.isNotEmpty()) return current
+        
+        val loaded = loadTasksInternal()
+        if (loaded != null) {
+            _tasksFlow.value = loaded
+            return loaded
         }
-
-        if (json == null) return null
-        return try {
-            jsonAdapter.fromJson(json)
-        } catch (e: Exception) {
-            null
-        }
+        return null
     }
 }

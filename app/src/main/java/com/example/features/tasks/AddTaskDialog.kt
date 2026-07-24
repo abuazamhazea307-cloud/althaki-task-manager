@@ -265,7 +265,7 @@ fun AddTaskDialog(
 
           Switch(
             checked = enableReminder,
-            onCheckedChange = { enableReminder = it },
+            onCheckedChange = null,
             modifier = Modifier.testTag("task_reminder_switch")
           )
         }
