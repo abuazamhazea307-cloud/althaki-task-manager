@@ -32,6 +32,7 @@ class MainActivity : ComponentActivity() {
     ThemeManager.init(this)
     com.example.features.settings.GeneralSettingsManager.init(this)
     com.example.features.settings.TaskSettingsManager.init(this)
+    com.example.features.settings.ReminderSettingsManager.init(this)
     enableEdgeToEdge()
 
     // Initialize notification channel

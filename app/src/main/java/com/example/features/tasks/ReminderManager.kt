@@ -173,7 +173,8 @@ object ReminderScheduler {
             pendingIntentFlags
         )
 
-        val alarmTime = System.currentTimeMillis() + 10 * 60 * 1000 // 10 minutes
+        val snoozeMin = com.example.features.settings.ReminderSettingsManager.defaultSnoozeDuration
+        val alarmTime = System.currentTimeMillis() + snoozeMin * 60 * 1000
 
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -234,10 +235,14 @@ class ReminderReceiver : BroadcastReceiver() {
             val taskStartTime = intent.getStringExtra("task_start_time") ?: ""
             val ringtoneUri = intent.getStringExtra("ringtone_uri")
 
-            // SAFETY: Never trigger completed, deleted, or reminder disabled tasks
+            // SAFETY: Never trigger deleted or reminder disabled tasks
             val localStore = TaskLocalStore(context)
             val task = localStore.loadTasks()?.find { it.id == taskId }
-            if (task == null || task.isCompleted || !task.reminderEnabled) {
+            if (task == null || !task.reminderEnabled) {
+                return
+            }
+
+            if (com.example.features.settings.ReminderSettingsManager.ignoreCompletedTasks && task.isCompleted) {
                 return
             }
 

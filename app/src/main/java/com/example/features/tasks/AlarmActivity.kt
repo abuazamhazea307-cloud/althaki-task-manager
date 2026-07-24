@@ -82,10 +82,16 @@ class AlarmActivity : ComponentActivity() {
 
         setContent {
             MyApplicationTheme {
+                val maxSnooze = com.example.features.settings.ReminderSettingsManager.maxSnoozeCount
+                val snoozeCount = com.example.features.settings.ReminderSettingsManager.getSnoozeCount(this, taskId)
+                val showSnoozeButton = maxSnooze == -1 || snoozeCount < maxSnooze
+
                 AlarmScreen(
                     taskTitle = taskTitle,
                     taskStartTime = taskStartTime,
+                    showSnoozeButton = showSnoozeButton,
                     onStopClick = {
+                        com.example.features.settings.ReminderSettingsManager.clearSnoozeCount(this, taskId)
                         val stopIntent = Intent(this, AlarmService::class.java).apply {
                             action = AlarmService.ACTION_STOP
                         }
@@ -93,6 +99,7 @@ class AlarmActivity : ComponentActivity() {
                         finish()
                     },
                     onSnoozeClick = {
+                        com.example.features.settings.ReminderSettingsManager.incrementSnoozeCount(this, taskId)
                         val snoozeIntent = Intent(this, AlarmService::class.java).apply {
                             action = AlarmService.ACTION_SNOOZE
                         }
@@ -118,6 +125,7 @@ class AlarmActivity : ComponentActivity() {
 fun AlarmScreen(
     taskTitle: String,
     taskStartTime: String,
+    showSnoozeButton: Boolean = true,
     onStopClick: () -> Unit,
     onSnoozeClick: () -> Unit
 ) {
@@ -248,24 +256,26 @@ fun AlarmScreen(
                     )
                 }
 
-                OutlinedButton(
-                    onClick = onSnoozeClick,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp)
-                        .testTag("alarm_snooze_button"),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = MaterialTheme.colorScheme.onBackground
-                    ),
-                    border = ButtonDefaults.outlinedButtonBorder.copy()
-                ) {
-                    Text(
-                        text = context.getString(R.string.alarm_snooze_btn),
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.SemiBold
+                if (showSnoozeButton) {
+                    OutlinedButton(
+                        onClick = onSnoozeClick,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp)
+                            .testTag("alarm_snooze_button"),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = MaterialTheme.colorScheme.onBackground
+                        ),
+                        border = ButtonDefaults.outlinedButtonBorder.copy()
+                    ) {
+                        Text(
+                            text = context.getString(R.string.alarm_snooze_btn),
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.SemiBold
+                            )
                         )
-                    )
+                    }
                 }
             }
         }

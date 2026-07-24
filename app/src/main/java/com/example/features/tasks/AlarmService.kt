@@ -24,6 +24,8 @@ class AlarmService : Service() {
 
     private var mediaPlayer: MediaPlayer? = null
     private var vibrator: Vibrator? = null
+    private val handler = android.os.Handler(android.os.Looper.getMainLooper())
+    private var timeoutRunnable: Runnable? = null
 
     companion object {
         const val ACTION_START = "com.example.ACTION_START_ALARM"
@@ -72,7 +74,18 @@ class AlarmService : Service() {
 
             startForegroundServiceNotification(taskId, taskTitle, taskStartTime, ringtoneUri)
             startRinging(ringtoneUri)
-            startVibrating()
+            
+            if (com.example.features.settings.ReminderSettingsManager.alarmVibration) {
+                startVibrating()
+            }
+
+            if (!com.example.features.settings.ReminderSettingsManager.continuousAlarm) {
+                val timeoutMs = com.example.features.settings.ReminderSettingsManager.alarmTimeout * 1000L
+                timeoutRunnable = Runnable {
+                    stopAlarm()
+                }
+                handler.postDelayed(timeoutRunnable!!, timeoutMs)
+            }
         } else if (action == ACTION_STOP) {
             stopAlarm()
         } else if (action == ACTION_SNOOZE) {
@@ -149,18 +162,23 @@ class AlarmService : Service() {
             pendingIntentFlags
         )
 
+        val showHeadsUp = com.example.features.settings.ReminderSettingsManager.reminderNotification
+
         val notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.mipmap.ic_launcher)
             .setContentTitle(getString(R.string.reminder_notif_title))
             .setContentText("$taskTitle ($taskStartTime)")
-            .setPriority(NotificationCompat.PRIORITY_MAX)
+            .setPriority(if (showHeadsUp) NotificationCompat.PRIORITY_MAX else NotificationCompat.PRIORITY_LOW)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
-            .setFullScreenIntent(fullScreenPendingIntent, true)
             .setContentIntent(fullScreenPendingIntent)
             .setOngoing(true)
             .setAutoCancel(false)
             .addAction(R.drawable.ic_alarm, getString(R.string.alarm_stop_btn), stopPendingIntent)
             .addAction(R.drawable.ic_alarm, getString(R.string.alarm_snooze_btn), snoozePendingIntent)
+
+        if (showHeadsUp) {
+            notificationBuilder.setFullScreenIntent(fullScreenPendingIntent, true)
+        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             startForeground(
@@ -171,6 +189,14 @@ class AlarmService : Service() {
         } else {
             startForeground(NOTIFICATION_ID, notificationBuilder.build())
         }
+
+        if (!showHeadsUp) {
+            try {
+                startActivity(fullScreenIntent)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
 
     private fun startRinging(ringtoneUriStr: String?) {
@@ -178,6 +204,12 @@ class AlarmService : Service() {
             var ringtoneUri: Uri? = null
             if (!ringtoneUriStr.isNullOrBlank()) {
                 ringtoneUri = Uri.parse(ringtoneUriStr)
+            }
+            if (ringtoneUri == null) {
+                val globalDefaultStr = com.example.features.settings.ReminderSettingsManager.defaultAlarmSound
+                if (!globalDefaultStr.isNullOrBlank()) {
+                    ringtoneUri = Uri.parse(globalDefaultStr)
+                }
             }
             if (ringtoneUri == null) {
                 ringtoneUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
@@ -257,10 +289,19 @@ class AlarmService : Service() {
 
     private fun cleanup() {
         isRinging = false
+        currentTaskId?.let { taskId ->
+            com.example.features.settings.ReminderSettingsManager.clearSnoozeCount(this, taskId)
+        }
         currentTaskId = null
         currentTaskTitle = null
         currentTaskStartTime = null
         currentRingtoneUri = null
+
+        timeoutRunnable?.let {
+            handler.removeCallbacks(it)
+            timeoutRunnable = null
+        }
+
         try {
             mediaPlayer?.stop()
             mediaPlayer?.release()

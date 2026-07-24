@@ -165,4 +165,50 @@
     <string name="tasks_restore_dialog_confirm">Restore</string>
     <string name="tasks_restore_dialog_cancel">Cancel</string>
     <string name="tasks_restore_success_toast">Task settings restored to defaults successfully</string>
+
+    <!-- Reminder Settings -->
+    <string name="reminder_settings_title">Reminder Settings</string>
+    <string name="reminder_settings_back_desc">Back to Settings</string>
+    <string name="reminder_default_title">Enable Reminder by Default</string>
+    <string name="reminder_default_desc">Automatically enable reminder when creating a new task</string>
+    <string name="default_alarm_sound_title">Default Alarm Sound</string>
+    <string name="default_alarm_sound_desc">Sound played for new tasks unless customized</string>
+    <string name="default_snooze_duration_title">Default Snooze Duration</string>
+    <string name="default_snooze_duration_desc">Time interval before the alarm rings again</string>
+    <string name="max_snooze_count_title">Maximum Snooze Count</string>
+    <string name="max_snooze_count_desc">Number of times you can snooze an alarm before it can only be stopped</string>
+    <string name="alarm_vibration_title">Alarm Vibration</string>
+    <string name="alarm_vibration_desc">Vibrate device during alarm ring</string>
+    <string name="continuous_alarm_title">Continuous Ring</string>
+    <string name="continuous_alarm_desc">Keep ringing until you stop or snooze</string>
+    <string name="alarm_timeout_title">Alarm Timeout</string>
+    <string name="alarm_timeout_desc">Auto-stop ringing after the configured duration</string>
+    <string name="ignore_completed_tasks_title">Ignore Completed Tasks</string>
+    <string name="ignore_completed_tasks_desc">Never trigger alarms for tasks marked as completed</string>
+    <string name="reminder_notification_title">Show Reminder Notification</string>
+    <string name="reminder_notification_desc">Display a heads-up notification; turn off for direct full-screen mode only</string>
+    <string name="reminder_restore_defaults_title">Reset Reminder Settings</string>
+    <string name="reminder_restore_defaults_btn">Restore Default Settings</string>
+    <string name="reminder_restore_defaults_desc">Reset only Reminder Settings to their initial default values</string>
+    <string name="reminder_restore_dialog_title">Restore Defaults?</string>
+    <string name="reminder_restore_dialog_msg">Are you sure you want to restore all Reminder Settings to their default values?\n\nThis will not affect your tasks, task settings, general settings, or theme.</string>
+    <string name="reminder_restore_dialog_confirm">Restore</string>
+    <string name="reminder_restore_dialog_cancel">Cancel</string>
+    <string name="reminder_restore_success_toast">Reminder settings restored to defaults successfully</string>
+    
+    <!-- Option Values -->
+    <string name="snooze_5_min">5 minutes</string>
+    <string name="snooze_10_min">10 minutes</string>
+    <string name="snooze_15_min">15 minutes</string>
+    <string name="snooze_30_min">30 minutes</string>
+    
+    <string name="snooze_unlimited">Unlimited</string>
+    <string name="snooze_count_1">1 time</string>
+    <string name="snooze_count_3">3 times</string>
+    <string name="snooze_count_5">5 times</string>
+    
+    <string name="timeout_30_sec">30 seconds</string>
+    <string name="timeout_1_min">1 minute</string>
+    <string name="timeout_3_min">3 minutes</string>
+    <string name="timeout_5_min">5 minutes</string>
 </resources>

@@ -9,4 +9,5 @@ sealed class Screen(val route: String) {
     object LanguageInfo : Screen("language_info")
     object GeneralSettings : Screen("general_settings")
     object TaskSettings : Screen("task_settings")
+    object ReminderSettings : Screen("reminder_settings")
 }

@@ -165,4 +165,50 @@
     <string name="tasks_restore_dialog_confirm">استعادة</string>
     <string name="tasks_restore_dialog_cancel">إلغاء</string>
     <string name="tasks_restore_success_toast">تمت استعادة إعدادات المهام الافتراضية بنجاح</string>
+
+    <!-- Reminder Settings -->
+    <string name="reminder_settings_title">إعدادات التذكير</string>
+    <string name="reminder_settings_back_desc">الرجوع للإعدادات</string>
+    <string name="reminder_default_title">تفعيل التذكير تلقائياً</string>
+    <string name="reminder_default_desc">تفعيل منبه التذكير تلقائياً عند إضافة مهمة جديدة</string>
+    <string name="default_alarm_sound_title">نغمة المنبه الافتراضية</string>
+    <string name="default_alarm_sound_desc">النغمة التي سيتم تشغيلها للمهام الجديدة ما لم يتم تخصيصها</string>
+    <string name="default_snooze_duration_title">مدة الغفوة الافتراضية</string>
+    <string name="default_snooze_duration_desc">الفترة الزمنية قبل رنين المنبه مرة أخرى عند تفعيل الغفوة</string>
+    <string name="max_snooze_count_title">الحد الأقصى لمرات الغفوة</string>
+    <string name="max_snooze_count_desc">عدد مرات تأجيل المنبه المسموحة قبل أن يصبح خيار الإيقاف هو الوحيد المتاح</string>
+    <string name="alarm_vibration_title">اهتزاز المنبه</string>
+    <string name="alarm_vibration_desc">اهتزاز الهاتف أثناء رنين المنبه</string>
+    <string name="continuous_alarm_title">رنين مستمر</string>
+    <string name="continuous_alarm_desc">استمرار رنين المنبه حتى تتخذ إجراءً بالإيقاف أو الغفوة</string>
+    <string name="alarm_timeout_title">مهلة رنين المنبه</string>
+    <string name="alarm_timeout_desc">إيقاف رنين المنبه تلقائياً بعد المدة المحددة</string>
+    <string name="ignore_completed_tasks_title">تجاهل المهام المكتملة</string>
+    <string name="ignore_completed_tasks_desc">عدم تفعيل المنبه نهائياً للمهام التي تم وضع علامة اكتمال عليها</string>
+    <string name="reminder_notification_title">عرض إشعار التذكير</string>
+    <string name="reminder_notification_desc">إظهار إشعار أعلى الشاشة، أوقف التشغيل لعرض شاشة المنبه الكاملة مباشرة فقط</string>
+    <string name="reminder_restore_defaults_title">إعادة تعيين إعدادات التذكير</string>
+    <string name="reminder_restore_defaults_btn">استعادة الإعدادات الافتراضية</string>
+    <string name="reminder_restore_defaults_desc">إعادة تعيين جميع خيارات إعدادات التذكير فقط إلى قيمها الأصلية</string>
+    <string name="reminder_restore_dialog_title">استعادة الافتراضيات؟</string>
+    <string name="reminder_restore_dialog_msg">هل تريد استعادة جميع إعدادات التذكير إلى قيمها الافتراضية؟\n\nلن يؤثر هذا الإجراء على مهامك، إعدادات المهام، الإعدادات العامة، أو المظهر.</string>
+    <string name="reminder_restore_dialog_confirm">استعادة</string>
+    <string name="reminder_restore_dialog_cancel">إلغاء</string>
+    <string name="reminder_restore_success_toast">تمت استعادة إعدادات التذكير الافتراضية بنجاح</string>
+    
+    <!-- Option Values -->
+    <string name="snooze_5_min">٥ دقائق</string>
+    <string name="snooze_10_min">١٠ دقائق</string>
+    <string name="snooze_15_min">١٥ دقيقة</string>
+    <string name="snooze_30_min">٣٠ دقيقة</string>
+    
+    <string name="snooze_unlimited">غير محدود</string>
+    <string name="snooze_count_1">مرة واحدة</string>
+    <string name="snooze_count_3">٣ مرات</string>
+    <string name="snooze_count_5">٥ مرات</string>
+    
+    <string name="timeout_30_sec">٣٠ ثانية</string>
+    <string name="timeout_1_min">دقيقة واحدة</string>
+    <string name="timeout_3_min">٣ دقائق</string>
+    <string name="timeout_5_min">٥ دقائق</string>
 </resources>

@@ -70,7 +70,7 @@ fun AddTaskDialog(
   var title by remember { mutableStateOf(taskToEdit?.title ?: "") }
   var description by remember { mutableStateOf(taskToEdit?.description ?: "") }
   var startTime by remember { mutableStateOf(taskToEdit?.startTime ?: "") }
-  var enableReminder by remember { mutableStateOf(taskToEdit?.reminderEnabled ?: false) }
+  var enableReminder by remember { mutableStateOf(taskToEdit?.reminderEnabled ?: com.example.features.settings.ReminderSettingsManager.reminderByDefault) }
   var selectedCategory by remember { mutableStateOf(taskToEdit?.category ?: "work") } // Default to 'work'
 
   var selectedRingtoneUri by remember { mutableStateOf(taskToEdit?.ringtoneUri) }
@@ -535,9 +535,14 @@ fun AddTaskDialog(
 }
 
 fun getRingtoneName(context: android.content.Context, uriString: String?): String {
-  if (uriString.isNullOrBlank()) return context.getString(R.string.ringtone_default)
+  val targetUri = if (uriString.isNullOrBlank()) {
+    com.example.features.settings.ReminderSettingsManager.defaultAlarmSound
+  } else {
+    uriString
+  }
+  if (targetUri.isNullOrBlank()) return context.getString(R.string.ringtone_default)
   return try {
-    val uri = android.net.Uri.parse(uriString)
+    val uri = android.net.Uri.parse(targetUri)
     val ringtone = android.media.RingtoneManager.getRingtone(context, uri)
     ringtone?.getTitle(context) ?: context.getString(R.string.ringtone_default)
   } catch (e: Exception) {
