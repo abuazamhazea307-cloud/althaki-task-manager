@@ -95,4 +95,16 @@
     <string name="theme_option_light">فاتح</string>
     <string name="theme_option_dark">داكن</string>
     <string name="theme_dialog_title">اختر المظهر</string>
+    <string name="about_title">حول التطبيق</string>
+    <string name="about_back_desc">الرجوع للإعدادات</string>
+    <string name="about_brand_name">الذكي</string>
+    <string name="about_app_name">مدير المهام</string>
+    <string name="about_english_name">Task Manager</string>
+    <string name="about_version_label">الإصدار</string>
+    <string name="about_build_label">رقم البناء</string>
+    <string name="about_desc">مساعد ذكي وسريع وآمن مصمم لمساعدتك على إدارة مهامك اليومية وتنظيم وقتك وتحقيق أهدافك بذكاء وبساطة.</string>
+    <string name="about_developer_title">المطور</string>
+    <string name="about_developer_val">فريق تطوير سلسلة تطبيقات الذكي</string>
+    <string name="about_license_title">الترخيص والاستخدام</string>
+    <string name="about_license_val">جميع الحقوق محفوظة لسلسلة تطبيقات الذكي © 2026</string>
 </resources>

@@ -54,6 +54,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.R
+import com.example.navigation.Screen
 import com.example.ui.theme.ThemeManager
 
 @Composable
@@ -243,7 +244,7 @@ fun SettingsScreen(navController: NavController) {
         icon = Icons.Default.Info,
         testTag = "settings_item_about",
         onClick = {
-          Toast.makeText(context, "${context.getString(R.string.settings_section_about_title)}: ${context.getString(R.string.welcome_subtitle)}", Toast.LENGTH_SHORT).show()
+          navController.navigate(Screen.About.route)
         }
       )
 

@@ -95,4 +95,16 @@
     <string name="theme_option_light">Light</string>
     <string name="theme_option_dark">Dark</string>
     <string name="theme_dialog_title">Choose Theme</string>
+    <string name="about_title">About App</string>
+    <string name="about_back_desc">Back to Settings</string>
+    <string name="about_brand_name">Althaki</string>
+    <string name="about_app_name">Task Manager</string>
+    <string name="about_english_name">Task Manager</string>
+    <string name="about_version_label">Version</string>
+    <string name="about_build_label">Build Code</string>
+    <string name="about_desc">A smart, fast, and secure assistant designed to manage your daily tasks, organize your time, and help you reach your goals with elegant simplicity.</string>
+    <string name="about_developer_title">Developer</string>
+    <string name="about_developer_val">Althaki App Series Developer Team</string>
+    <string name="about_license_title">License &amp; Usage</string>
+    <string name="about_license_val">All rights reserved to Althaki App Series © 2026</string>
 </resources>
