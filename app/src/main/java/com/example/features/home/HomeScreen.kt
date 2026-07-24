@@ -24,11 +24,13 @@ import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.PendingActions
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -160,11 +162,10 @@ fun HomeScreen(navController: NavController) {
           horizontalAlignment = Alignment.CenterHorizontally,
           verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-          // App Series Name & Logo
-          Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center,
-            modifier = Modifier.fillMaxWidth()
+          // App Series Name, Logo & Settings button (B-001)
+          Box(
+            modifier = Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center
           ) {
             Text(
               text = stringResource(R.string.series_title),
@@ -174,6 +175,19 @@ fun HomeScreen(navController: NavController) {
                 fontSize = 22.sp
               )
             )
+
+            IconButton(
+              onClick = { navController.navigate(Screen.Settings.route) },
+              modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .testTag("home_settings_button")
+            ) {
+              Icon(
+                imageVector = Icons.Default.Settings,
+                contentDescription = stringResource(R.string.settings_title),
+                tint = MaterialTheme.colorScheme.primary
+              )
+            }
           }
           
           Text(

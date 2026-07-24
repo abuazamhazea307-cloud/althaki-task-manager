@@ -76,4 +76,19 @@
     <string name="ringtone_label">نغمة التنبيه</string>
     <string name="alarm_stop_btn">إيقاف</string>
     <string name="alarm_snooze_btn">غفوة (10 دقائق)</string>
+    <string name="settings_title">الإعدادات</string>
+    <string name="settings_desc">تخصيص وإعداد التطبيق</string>
+    <string name="settings_back_desc">الرجوع للرئيسية</string>
+    <string name="settings_section_general_title">العامة</string>
+    <string name="settings_section_general_subtitle">إعدادات عامة للتطبيق والتحكم الأساسي</string>
+    <string name="settings_section_tasks_title">المهام</string>
+    <string name="settings_section_tasks_subtitle">تخصيص تصنيفات المهام والخيارات الافتراضية</string>
+    <string name="settings_section_reminders_title">التنبيهات والتذكيرات</string>
+    <string name="settings_section_reminders_subtitle">ضبط نغمات ومواعيد التذكير والتنبيهات اليومية</string>
+    <string name="settings_section_appearance_title">المظهر</string>
+    <string name="settings_section_appearance_subtitle">التحكم في الألوان والمظهر الداكن أو الفاتح</string>
+    <string name="settings_section_language_title">اللغة</string>
+    <string name="settings_section_language_subtitle">تغيير لغة التطبيق الحالية (العربية / English)</string>
+    <string name="settings_section_about_title">حول التطبيق</string>
+    <string name="settings_section_about_subtitle">معلومات الإصدار، المطور، وسلسلة تطبيقات الذكي</string>
 </resources>
