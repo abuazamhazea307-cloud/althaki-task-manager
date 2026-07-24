@@ -280,12 +280,12 @@ fun GeometricLogo(
       style = androidx.compose.ui.graphics.drawscope.Stroke(width = 0.8f * scaleX)
     )
 
-    // 3. Centered Geometric Althaki Diamond Logo (Scaled and shifted slightly upwards at centerY = 46)
+    // 3. Official Althaki Diamond Logo (60% visual weight, centered at Y=44)
     val outerDiamond = androidx.compose.ui.graphics.Path().apply {
-      moveTo(54f * scaleX, 35f * scaleY)
-      lineTo(65f * scaleX, 46f * scaleY)
-      lineTo(54f * scaleX, 57f * scaleY)
-      lineTo(43f * scaleX, 46f * scaleY)
+      moveTo(54f * scaleX, 30f * scaleY)
+      lineTo(68f * scaleX, 44f * scaleY)
+      lineTo(54f * scaleX, 58f * scaleY)
+      lineTo(40f * scaleX, 44f * scaleY)
       close()
     }
     drawPath(
@@ -299,10 +299,10 @@ fun GeometricLogo(
     )
 
     val innerDiamond = androidx.compose.ui.graphics.Path().apply {
-      moveTo(54f * scaleX, 40.5f * scaleY)
-      lineTo(59.5f * scaleX, 46f * scaleY)
-      lineTo(54f * scaleX, 51.5f * scaleY)
-      lineTo(48.5f * scaleX, 46f * scaleY)
+      moveTo(54f * scaleX, 37f * scaleY)
+      lineTo(61f * scaleX, 44f * scaleY)
+      lineTo(54f * scaleX, 51f * scaleY)
+      lineTo(47f * scaleX, 44f * scaleY)
       close()
     }
     drawPath(
@@ -316,10 +316,10 @@ fun GeometricLogo(
     )
 
     val coreDiamond = androidx.compose.ui.graphics.Path().apply {
-      moveTo(54f * scaleX, 44f * scaleY)
-      lineTo(56f * scaleX, 46f * scaleY)
-      lineTo(54f * scaleX, 48f * scaleY)
-      lineTo(52f * scaleX, 46f * scaleY)
+      moveTo(54f * scaleX, 41f * scaleY)
+      lineTo(57f * scaleX, 44f * scaleY)
+      lineTo(54f * scaleX, 47f * scaleY)
+      lineTo(51f * scaleX, 44f * scaleY)
       close()
     }
     drawPath(
@@ -328,53 +328,29 @@ fun GeometricLogo(
       style = androidx.compose.ui.graphics.drawscope.Fill
     )
 
-    // 4. Task Manager Checklist Symbol (Centered below the diamond around Y = 66)
-    // Row 1: Checkmark & Line
-    val check1 = androidx.compose.ui.graphics.Path().apply {
-      moveTo(45f * scaleX, 62.5f * scaleY)
-      lineTo(47f * scaleX, 64.5f * scaleY)
-      lineTo(51f * scaleX, 60.5f * scaleY)
+    // 4. Task Manager Symbol (task_alt) (25% visual weight, centered at Y=70)
+    // Circle Ring (Radius 7)
+    drawCircle(
+      color = color,
+      radius = 7f * scaleX,
+      center = androidx.compose.ui.geometry.Offset(54f * scaleX, 70f * scaleY),
+      style = androidx.compose.ui.graphics.drawscope.Stroke(width = 1.6f * scaleX)
+    )
+
+    // Checkmark inside task_alt
+    val checkPath = androidx.compose.ui.graphics.Path().apply {
+      moveTo(50.2f * scaleX, 69.5f * scaleY)
+      lineTo(52.7f * scaleX, 72.0f * scaleY)
+      lineTo(57.8f * scaleX, 66.9f * scaleY)
     }
     drawPath(
-      path = check1,
+      path = checkPath,
       color = color,
       style = androidx.compose.ui.graphics.drawscope.Stroke(
-        width = 1.6f * scaleX,
+        width = 1.8f * scaleX,
         cap = androidx.compose.ui.graphics.StrokeCap.Round,
         join = androidx.compose.ui.graphics.StrokeJoin.Round
       )
-    )
-
-    drawLine(
-      color = color,
-      start = androidx.compose.ui.geometry.Offset(55f * scaleX, 62.5f * scaleY),
-      end = androidx.compose.ui.geometry.Offset(63f * scaleX, 62.5f * scaleY),
-      strokeWidth = 1.6f * scaleX,
-      cap = androidx.compose.ui.graphics.StrokeCap.Round
-    )
-
-    // Row 2: Checkmark & Line
-    val check2 = androidx.compose.ui.graphics.Path().apply {
-      moveTo(45f * scaleX, 69.5f * scaleY)
-      lineTo(47f * scaleX, 71.5f * scaleY)
-      lineTo(51f * scaleX, 67.5f * scaleY)
-    }
-    drawPath(
-      path = check2,
-      color = color,
-      style = androidx.compose.ui.graphics.drawscope.Stroke(
-        width = 1.6f * scaleX,
-        cap = androidx.compose.ui.graphics.StrokeCap.Round,
-        join = androidx.compose.ui.graphics.StrokeJoin.Round
-      )
-    )
-
-    drawLine(
-      color = color,
-      start = androidx.compose.ui.geometry.Offset(55f * scaleX, 69.5f * scaleY),
-      end = androidx.compose.ui.geometry.Offset(63f * scaleX, 69.5f * scaleY),
-      strokeWidth = 1.6f * scaleX,
-      cap = androidx.compose.ui.graphics.StrokeCap.Round
     )
   }
 }

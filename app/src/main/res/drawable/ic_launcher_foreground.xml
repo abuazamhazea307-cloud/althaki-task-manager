@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
@@ -8,7 +9,7 @@
     <path
         android:pathData="M54,54m-30,0a30,30 0 1,1 60,0a30,30 0 1,1 -60,0"
         android:strokeColor="#FFFFFF"
-        android:strokeWidth="2.0"
+        android:strokeWidth="2.5"
         android:strokeLineJoin="round"
         android:strokeLineCap="round"
         android:fillColor="#00000000" />
@@ -16,69 +17,97 @@
     <!-- 2. Thin Inner Circular Ring (Radius 26) -->
     <path
         android:pathData="M54,54m-26,0a26,26 0 1,1 52,0a26,26 0 1,1 -52,0"
-        android:strokeColor="#B3FFFFFF"
-        android:strokeWidth="0.8"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.0"
         android:strokeLineJoin="round"
         android:strokeLineCap="round"
         android:fillColor="#00000000" />
 
-    <!-- 3. Centered Geometric Althaki Diamond Logo -->
-    <!-- Outer Diamond Outline -->
+    <!-- 3. Official Althaki Logo (Crystal-style geometric diamond, Y-centered at 44) -->
+    <!-- Outer Crystal Outline -->
     <path
-        android:pathData="M54,35 L65,46 L54,57 L43,46 Z"
+        android:pathData="M45,34 L63,34 L68,44 L54,58 L40,44 Z"
         android:strokeColor="#FFFFFF"
         android:strokeWidth="2.0"
         android:strokeLineJoin="round"
         android:strokeLineCap="round"
         android:fillColor="#00000000" />
         
-    <!-- Inner Diamond Outline -->
+    <!-- Inner Crystal Outline -->
     <path
-        android:pathData="M54,40.5 L59.5,46 L54,51.5 L48.5,46 Z"
-        android:strokeColor="#B3FFFFFF"
+        android:pathData="M48,38 L60,38 L63,44 L54,53 L45,44 Z"
+        android:strokeColor="#FFFFFF"
         android:strokeWidth="1.2"
         android:strokeLineJoin="round"
         android:strokeLineCap="round"
         android:fillColor="#00000000" />
 
-    <!-- Core Solid Diamond -->
+    <!-- Tiny Center Crystal -->
     <path
-        android:pathData="M54,44 L56,46 L54,48 L52,46 Z"
-        android:fillColor="#FFFFFF" />
+        android:pathData="M51,41.5 L57,41.5 L58.5,44 L54,48 L49.5,44 Z"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="0.8"
+        android:strokeLineJoin="round"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000" />
 
-    <!-- 4. Task Manager Checklist Symbol (Centered below the diamond around Y = 66) -->
-    <!-- Row 1: Checkmark -->
+    <!-- Crystal Facet Lines (Connecting Outer to Inner) -->
     <path
-        android:pathData="M45,62.5 L47,64.5 L51,60.5"
+        android:pathData="M45,34 L48,38 M63,34 L60,38 M68,44 L63,44 M54,58 L54,53 M40,44 L45,44"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.5"
+        android:strokeLineJoin="round"
+        android:strokeLineCap="round" />
+
+    <!-- Crystal Facet Lines (Connecting Inner to Center) -->
+    <path
+        android:pathData="M48,38 L51,41.5 M60,38 L57,41.5 M63,44 L58.5,44 M54,53 L54,48 M45,44 L49.5,44"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="0.8"
+        android:strokeLineJoin="round"
+        android:strokeLineCap="round" />
+
+    <!-- 4. Task Manager Custom Vector Symbol (Centered under the diamond at Y=71) -->
+    <!-- Small Rounded Paper Outline with Folded Top-Right Corner -->
+    <path
+        android:pathData="M49,64 L57,64 L61,68 L61,76 A2,2 0 0 1 59,78 L49,78 A2,2 0 0 1 47,76 L47,66 A2,2 0 0 1 49,64 Z"
         android:strokeColor="#FFFFFF"
         android:strokeWidth="1.6"
         android:strokeLineJoin="round"
         android:strokeLineCap="round"
         android:fillColor="#00000000" />
 
-    <!-- Row 1: Line -->
+    <!-- Folded Corner Flap -->
     <path
-        android:pathData="M55,62.5 L63,62.5"
-        android:strokeColor="#FFFFFF"
-        android:strokeWidth="1.6"
-        android:strokeLineCap="round"
-        android:fillColor="#00000000" />
-
-    <!-- Row 2: Checkmark -->
-    <path
-        android:pathData="M45,69.5 L47,71.5 L51,67.5"
+        android:pathData="M57,64 L57,68 L61,68"
         android:strokeColor="#FFFFFF"
         android:strokeWidth="1.6"
         android:strokeLineJoin="round"
         android:strokeLineCap="round"
         android:fillColor="#00000000" />
 
-    <!-- Row 2: Line -->
+    <!-- Row 1: Short Horizontal Line -->
     <path
-        android:pathData="M55,69.5 L63,69.5"
+        android:pathData="M50,70 L58,70"
         android:strokeColor="#FFFFFF"
-        android:strokeWidth="1.6"
+        android:strokeWidth="1.4"
+        android:strokeLineCap="round" />
+
+    <!-- Row 2: Check Mark and Short Horizontal Line -->
+    <!-- Small Check Mark -->
+    <path
+        android:pathData="M49.5,73.5 L51,75 L53,72"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.4"
+        android:strokeLineJoin="round"
         android:strokeLineCap="round"
         android:fillColor="#00000000" />
+
+    <!-- Short Horizontal Line next to the check mark -->
+    <path
+        android:pathData="M54.5,74 L58.5,74"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.4"
+        android:strokeLineCap="round" />
         
 </vector>
