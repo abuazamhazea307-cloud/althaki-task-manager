@@ -6,6 +6,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.features.home.HomeScreen
 import com.example.features.settings.AboutScreen
+import com.example.features.settings.LanguageInfoScreen
 import com.example.features.settings.SettingsScreen
 import com.example.features.splash.SplashScreen
 import com.example.features.tasks.TasksScreen
@@ -30,6 +31,9 @@ fun NavGraph(navController: NavHostController) {
     }
     composable(Screen.About.route) {
       AboutScreen(navController = navController)
+    }
+    composable(Screen.LanguageInfo.route) {
+      LanguageInfoScreen(navController = navController)
     }
   }
 }

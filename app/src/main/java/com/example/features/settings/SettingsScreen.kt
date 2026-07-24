@@ -234,7 +234,7 @@ fun SettingsScreen(navController: NavController) {
         icon = Icons.Default.Language,
         testTag = "settings_item_language",
         onClick = {
-          Toast.makeText(context, "${context.getString(R.string.settings_section_language_title)}: ${context.getString(R.string.welcome_subtitle)}", Toast.LENGTH_SHORT).show()
+          navController.navigate(Screen.LanguageInfo.route)
         }
       )
 

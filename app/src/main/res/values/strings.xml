@@ -107,4 +107,13 @@
     <string name="about_developer_val">فريق تطوير سلسلة تطبيقات الذكي</string>
     <string name="about_license_title">الترخيص والاستخدام</string>
     <string name="about_license_val">جميع الحقوق محفوظة لسلسلة تطبيقات الذكي © 2026</string>
+    <string name="language_title">إعدادات اللغة</string>
+    <string name="language_back_desc">الرجوع للإعدادات</string>
+    <string name="language_info_title">مزامنة اللغة</string>
+    <string name="language_info_body">يتبع التطبيق لغة جهازك تلقائياً.\n\nلتغيير لغة التطبيق، يرجى تغيير لغة الجهاز من إعدادات الهاتف.\n\nسيقوم التطبيق باستخدام اللغة الجديدة تلقائياً.</string>
+    <string name="language_section_title">معلومات اللغة الحالية</string>
+    <string name="language_current_label">اللغة النشطة</string>
+    <string name="language_source_label">مصدر اللغة</string>
+    <string name="language_source_value">إعدادات النظام (الجهاز)</string>
+    <string name="language_settings_btn">فتح إعدادات لغة الجهاز</string>
 </resources>

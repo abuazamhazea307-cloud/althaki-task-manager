@@ -107,4 +107,13 @@
     <string name="about_developer_val">Althaki App Series Developer Team</string>
     <string name="about_license_title">License &amp; Usage</string>
     <string name="about_license_val">All rights reserved to Althaki App Series © 2026</string>
+    <string name="language_title">Language Settings</string>
+    <string name="language_back_desc">Back to Settings</string>
+    <string name="language_info_title">Language Synchronization</string>
+    <string name="language_info_body">The application automatically follows your device language.\n\nTo change the application language, change your device language from your phone settings.\n\nThe application will automatically use the new language.</string>
+    <string name="language_section_title">Current Language Info</string>
+    <string name="language_current_label">Active Language</string>
+    <string name="language_source_label">Language Source</string>
+    <string name="language_source_value">System Settings (Device)</string>
+    <string name="language_settings_btn">Open Device Language Settings</string>
 </resources>
