@@ -9,6 +9,7 @@ import com.example.features.settings.AboutScreen
 import com.example.features.settings.LanguageInfoScreen
 import com.example.features.settings.SettingsScreen
 import com.example.features.settings.GeneralSettingsScreen
+import com.example.features.settings.TaskSettingsScreen
 import com.example.features.splash.SplashScreen
 import com.example.features.tasks.TasksScreen
 
@@ -41,6 +42,9 @@ fun NavGraph(navController: NavHostController) {
     }
     composable(Screen.GeneralSettings.route) {
       GeneralSettingsScreen(navController = navController)
+    }
+    composable(Screen.TaskSettings.route) {
+      TaskSettingsScreen(navController = navController)
     }
   }
 }

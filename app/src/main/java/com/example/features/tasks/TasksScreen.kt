@@ -78,6 +78,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.R
 import com.example.navigation.Screen
+import com.example.features.settings.TaskSettingsManager
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -138,9 +139,45 @@ fun TasksScreen(navController: NavController) {
 
   // Filter tasks: display only those targeted for the current day (Today).
   // This correctly excludes completed tasks from previous days, while including rolled over incomplete tasks.
-  val sortedTasks = remember(tasks.size, tasks.toList(), today) {
-    tasks.filter { it.targetDate == today }
-         .sortedByDescending { it.createdAt }
+  val sortedTasks = remember(
+    tasks.size,
+    tasks.toList(),
+    today,
+    TaskSettingsManager.showCompleted,
+    TaskSettingsManager.sortBy,
+    TaskSettingsManager.taskOrder
+  ) {
+    val todayTasks = tasks.filter { it.targetDate == today }
+    val filtered = if (TaskSettingsManager.showCompleted) {
+      todayTasks
+    } else {
+      todayTasks.filter { !it.isCompleted }
+    }
+
+    val sorted = when (TaskSettingsManager.sortBy) {
+      TaskSettingsManager.SORT_START_TIME -> {
+        filtered.sortedWith(
+          compareBy<Task> { it.startTime.isNullOrBlank() }
+            .thenBy { it.startTime ?: "" }
+            .thenBy { it.createdAt }
+        )
+      }
+      TaskSettingsManager.SORT_TITLE -> {
+        filtered.sortedWith(
+          compareBy<Task> { it.title.lowercase() }
+            .thenBy { it.createdAt }
+        )
+      }
+      else -> { // SORT_CREATION_DATE
+        filtered.sortedBy { it.createdAt }
+      }
+    }
+
+    if (TaskSettingsManager.taskOrder == TaskSettingsManager.ORDER_NEWEST_FIRST) {
+      sorted.reversed()
+    } else {
+      sorted
+    }
   }
 
   Scaffold(
@@ -647,36 +684,85 @@ fun TaskRow(
           }
         }
 
-        if (!task.startTime.isNullOrBlank()) {
+        if (TaskSettingsManager.showCategories || (TaskSettingsManager.showTaskTime && !task.startTime.isNullOrBlank())) {
           Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            modifier = Modifier.padding(top = 4.dp)
           ) {
-            Icon(
-              imageVector = Icons.Default.AccessTime,
-              contentDescription = null,
-              tint = if (task.isCompleted) {
-                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
-              } else if (isPending) {
-                if (isSystemInDarkTheme()) Color(0xFF81C784) else Color(0xFF2E7D32)
-              } else {
-                MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
-              },
-              modifier = Modifier.size(14.dp)
-            )
-            Text(
-              text = formatStartTimeForDisplay(task.startTime, java.util.Locale.getDefault()),
-              style = MaterialTheme.typography.bodySmall.copy(
-                fontSize = 12.sp,
-                color = if (task.isCompleted) {
-                  MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
-                } else if (isPending) {
-                  if (isSystemInDarkTheme()) Color(0xFFC8E6C9) else Color(0xFF2E7D32)
-                } else {
-                  MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
-                }
-              )
-            )
+            // Category Badge
+            if (TaskSettingsManager.showCategories) {
+              val localizedCategory = when (task.category) {
+                "work" -> stringResource(R.string.cat_work)
+                "personal" -> stringResource(R.string.cat_personal)
+                "important" -> stringResource(R.string.cat_important)
+                else -> task.category
+              }
+              val categoryColor = when (task.category) {
+                "important" -> MaterialTheme.colorScheme.error
+                "personal" -> MaterialTheme.colorScheme.secondary
+                else -> MaterialTheme.colorScheme.primary
+              }
+
+              Box(
+                modifier = Modifier
+                  .background(
+                    color = categoryColor.copy(alpha = 0.08f),
+                    shape = RoundedCornerShape(6.dp)
+                  )
+                  .border(
+                    width = 0.5.dp,
+                    color = categoryColor.copy(alpha = 0.25f),
+                    shape = RoundedCornerShape(6.dp)
+                  )
+                  .padding(horizontal = 8.dp, vertical = 2.dp)
+                  .testTag("task_category_badge_${task.id}")
+              ) {
+                Text(
+                  text = localizedCategory,
+                  style = MaterialTheme.typography.labelSmall.copy(
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = categoryColor
+                  )
+                )
+              }
+            }
+
+            // Start Time Row
+            if (TaskSettingsManager.showTaskTime && !task.startTime.isNullOrBlank()) {
+              Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                modifier = Modifier.testTag("task_time_container_${task.id}")
+              ) {
+                Icon(
+                  imageVector = Icons.Default.AccessTime,
+                  contentDescription = null,
+                  tint = if (task.isCompleted) {
+                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                  } else if (isPending) {
+                    if (isSystemInDarkTheme()) Color(0xFF81C784) else Color(0xFF2E7D32)
+                  } else {
+                    MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
+                  },
+                  modifier = Modifier.size(14.dp)
+                )
+                Text(
+                  text = formatStartTimeForDisplay(task.startTime, java.util.Locale.getDefault()),
+                  style = MaterialTheme.typography.bodySmall.copy(
+                    fontSize = 12.sp,
+                    color = if (task.isCompleted) {
+                      MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                    } else if (isPending) {
+                      if (isSystemInDarkTheme()) Color(0xFFC8E6C9) else Color(0xFF2E7D32)
+                    } else {
+                      MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                    }
+                  )
+                )
+              }
+            }
           }
         }
       }

@@ -204,7 +204,7 @@ fun SettingsScreen(navController: NavController) {
         icon = Icons.Default.CheckCircle,
         testTag = "settings_item_tasks",
         onClick = {
-          Toast.makeText(context, "${context.getString(R.string.settings_section_tasks_title)}: ${context.getString(R.string.welcome_subtitle)}", Toast.LENGTH_SHORT).show()
+          navController.navigate(Screen.TaskSettings.route)
         }
       )
 
