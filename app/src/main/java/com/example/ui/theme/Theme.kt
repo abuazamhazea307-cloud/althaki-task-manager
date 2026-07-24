@@ -43,7 +43,11 @@ private val LightColorScheme =
 
 @Composable
 fun MyApplicationTheme(
-  darkTheme: Boolean = isSystemInDarkTheme(),
+  darkTheme: Boolean = when (ThemeManager.currentThemeMode) {
+    ThemeManager.MODE_LIGHT -> false
+    ThemeManager.MODE_DARK -> true
+    else -> isSystemInDarkTheme()
+  },
   // Disable dynamic color by default to maintain our unified professional theme
   dynamicColor: Boolean = false,
   content: @Composable () -> Unit,

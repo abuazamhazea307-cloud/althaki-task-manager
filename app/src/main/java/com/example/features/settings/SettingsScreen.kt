@@ -27,15 +27,21 @@ import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -48,11 +54,74 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.R
+import com.example.ui.theme.ThemeManager
 
 @Composable
 fun SettingsScreen(navController: NavController) {
   val context = LocalContext.current
   val scrollState = rememberScrollState()
+
+  var showThemeDialog by remember { mutableStateOf(false) }
+
+  val activeThemeLabel = when (ThemeManager.currentThemeMode) {
+    ThemeManager.MODE_LIGHT -> stringResource(R.string.theme_option_light)
+    ThemeManager.MODE_DARK -> stringResource(R.string.theme_option_dark)
+    else -> stringResource(R.string.theme_option_system)
+  }
+
+  if (showThemeDialog) {
+    AlertDialog(
+      onDismissRequest = { showThemeDialog = false },
+      title = {
+        Text(
+          text = stringResource(R.string.theme_dialog_title),
+          style = MaterialTheme.typography.titleLarge.copy(
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface
+          )
+        )
+      },
+      text = {
+        Column(
+          verticalArrangement = Arrangement.spacedBy(8.dp),
+          modifier = Modifier.fillMaxWidth()
+        ) {
+          ThemeOptionRow(
+            text = stringResource(R.string.theme_option_system),
+            isSelected = ThemeManager.currentThemeMode == ThemeManager.MODE_SYSTEM,
+            onClick = {
+              ThemeManager.setThemeMode(context, ThemeManager.MODE_SYSTEM)
+              showThemeDialog = false
+            }
+          )
+          ThemeOptionRow(
+            text = stringResource(R.string.theme_option_light),
+            isSelected = ThemeManager.currentThemeMode == ThemeManager.MODE_LIGHT,
+            onClick = {
+              ThemeManager.setThemeMode(context, ThemeManager.MODE_LIGHT)
+              showThemeDialog = false
+            }
+          )
+          ThemeOptionRow(
+            text = stringResource(R.string.theme_option_dark),
+            isSelected = ThemeManager.currentThemeMode == ThemeManager.MODE_DARK,
+            onClick = {
+              ThemeManager.setThemeMode(context, ThemeManager.MODE_DARK)
+              showThemeDialog = false
+            }
+          )
+        }
+      },
+      confirmButton = {},
+      dismissButton = {
+        TextButton(onClick = { showThemeDialog = false }) {
+          Text(text = stringResource(R.string.bottom_sheet_cancel))
+        }
+      },
+      shape = RoundedCornerShape(24.dp),
+      containerColor = MaterialTheme.colorScheme.surface
+    )
+  }
 
   Scaffold(
     modifier = Modifier
@@ -150,11 +219,11 @@ fun SettingsScreen(navController: NavController) {
 
       SettingsItemCard(
         title = stringResource(R.string.settings_section_appearance_title),
-        subtitle = stringResource(R.string.settings_section_appearance_subtitle),
+        subtitle = "${stringResource(R.string.settings_section_appearance_subtitle)} ($activeThemeLabel)",
         icon = Icons.Default.Palette,
         testTag = "settings_item_appearance",
         onClick = {
-          Toast.makeText(context, "${context.getString(R.string.settings_section_appearance_title)}: ${context.getString(R.string.welcome_subtitle)}", Toast.LENGTH_SHORT).show()
+          showThemeDialog = true
         }
       )
 
@@ -288,5 +357,34 @@ fun SettingsItemCard(
         modifier = Modifier.size(24.dp)
       )
     }
+  }
+}
+
+@Composable
+fun ThemeOptionRow(
+  text: String,
+  isSelected: Boolean,
+  onClick: () -> Unit
+) {
+  Row(
+    modifier = Modifier
+      .fillMaxWidth()
+      .clip(RoundedCornerShape(12.dp))
+      .clickable { onClick() }
+      .padding(vertical = 12.dp, horizontal = 16.dp),
+    verticalAlignment = Alignment.CenterVertically,
+    horizontalArrangement = Arrangement.SpaceBetween
+  ) {
+    Text(
+      text = text,
+      style = MaterialTheme.typography.bodyLarge.copy(
+        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+      )
+    )
+    RadioButton(
+      selected = isSelected,
+      onClick = onClick
+    )
   }
 }

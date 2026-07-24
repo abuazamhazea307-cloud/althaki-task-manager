@@ -91,4 +91,8 @@
     <string name="settings_section_language_subtitle">تغيير لغة التطبيق الحالية (العربية / English)</string>
     <string name="settings_section_about_title">حول التطبيق</string>
     <string name="settings_section_about_subtitle">معلومات الإصدار، المطور، وسلسلة تطبيقات الذكي</string>
+    <string name="theme_option_system">افتراضي النظام</string>
+    <string name="theme_option_light">فاتح</string>
+    <string name="theme_option_dark">داكن</string>
+    <string name="theme_dialog_title">اختر المظهر</string>
 </resources>

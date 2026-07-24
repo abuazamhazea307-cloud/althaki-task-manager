@@ -16,6 +16,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.features.tasks.createNotificationChannel
 import com.example.navigation.NavGraph
 import com.example.ui.theme.MyApplicationTheme
+import com.example.ui.theme.ThemeManager
 
 @SuppressLint("InvalidFragmentVersionForActivityResult")
 class MainActivity : ComponentActivity() {
@@ -28,6 +29,7 @@ class MainActivity : ComponentActivity() {
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
+    ThemeManager.init(this)
     enableEdgeToEdge()
 
     // Initialize notification channel
