@@ -8,14 +8,18 @@ import com.example.features.home.HomeScreen
 import com.example.features.settings.AboutScreen
 import com.example.features.settings.LanguageInfoScreen
 import com.example.features.settings.SettingsScreen
+import com.example.features.settings.GeneralSettingsScreen
 import com.example.features.splash.SplashScreen
 import com.example.features.tasks.TasksScreen
 
+import com.example.features.settings.GeneralSettingsManager
+
 @Composable
 fun NavGraph(navController: NavHostController) {
+  val startRoute = if (GeneralSettingsManager.showSplash) Screen.Splash.route else Screen.Home.route
   NavHost(
     navController = navController,
-    startDestination = Screen.Splash.route
+    startDestination = startRoute
   ) {
     composable(Screen.Splash.route) {
       SplashScreen(navController = navController)
@@ -34,6 +38,9 @@ fun NavGraph(navController: NavHostController) {
     }
     composable(Screen.LanguageInfo.route) {
       LanguageInfoScreen(navController = navController)
+    }
+    composable(Screen.GeneralSettings.route) {
+      GeneralSettingsScreen(navController = navController)
     }
   }
 }

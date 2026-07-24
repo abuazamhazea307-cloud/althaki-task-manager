@@ -30,6 +30,7 @@ class MainActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     ThemeManager.init(this)
+    com.example.features.settings.GeneralSettingsManager.init(this)
     enableEdgeToEdge()
 
     // Initialize notification channel

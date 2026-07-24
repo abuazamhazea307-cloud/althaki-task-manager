@@ -38,60 +38,74 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun SplashScreen(navController: NavController) {
+  val showAnimations = com.example.features.settings.GeneralSettingsManager.enableAnimations
+  val durationType = com.example.features.settings.GeneralSettingsManager.splashDuration
+
+  val totalDuration = when (durationType) {
+    com.example.features.settings.GeneralSettingsManager.DURATION_SHORT -> 1500L
+    com.example.features.settings.GeneralSettingsManager.DURATION_LONG -> 5000L
+    else -> 3000L
+  }
+
   // Animatables for precise timeline triggers
-  val logoAlpha = remember { Animatable(0f) }
-  val logoScale = remember { Animatable(0.8f) }
+  val logoAlpha = remember { Animatable(if (showAnimations) 0f else 1f) }
+  val logoScale = remember { Animatable(if (showAnimations) 0.8f else 1f) }
 
-  val brandAlpha = remember { Animatable(0f) }
-  val brandScale = remember { Animatable(0.85f) }
+  val brandAlpha = remember { Animatable(if (showAnimations) 0f else 1f) }
+  val brandScale = remember { Animatable(if (showAnimations) 0.85f else 1f) }
 
-  val word1Alpha = remember { Animatable(0f) }
-  val word1Scale = remember { Animatable(0.85f) }
+  val word1Alpha = remember { Animatable(if (showAnimations) 0f else 1f) }
+  val word1Scale = remember { Animatable(if (showAnimations) 0.85f else 1f) }
 
-  val word2Alpha = remember { Animatable(0f) }
-  val word2Scale = remember { Animatable(0.85f) }
+  val word2Alpha = remember { Animatable(if (showAnimations) 0f else 1f) }
+  val word2Scale = remember { Animatable(if (showAnimations) 0.85f else 1f) }
 
   LaunchedEffect(Unit) {
-    // 0.0s: Display splash background (background is already visible immediately)
+    if (showAnimations) {
+      val factor = totalDuration.toFloat() / 3000f
 
-    // 0.4s: Soft fade-in of logo
-    delay(400)
-    launch {
-      logoAlpha.animateTo(1f, animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing))
-    }
-    launch {
-      logoScale.animateTo(1f, animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing))
+      // 0.4s * factor
+      delay((400 * factor).toLong())
+      launch {
+        logoAlpha.animateTo(1f, animationSpec = tween(durationMillis = (600 * factor).toInt(), easing = FastOutSlowInEasing))
+      }
+      launch {
+        logoScale.animateTo(1f, animationSpec = tween(durationMillis = (600 * factor).toInt(), easing = FastOutSlowInEasing))
+      }
+
+      // 0.9s * factor
+      delay((500 * factor).toLong())
+      launch {
+        brandAlpha.animateTo(1f, animationSpec = tween(durationMillis = (500 * factor).toInt(), easing = FastOutSlowInEasing))
+      }
+      launch {
+        brandScale.animateTo(1f, animationSpec = tween(durationMillis = (500 * factor).toInt(), easing = FastOutSlowInEasing))
+      }
+
+      // 1.6s * factor
+      delay((700 * factor).toLong())
+      launch {
+        word1Alpha.animateTo(1f, animationSpec = tween(durationMillis = (500 * factor).toInt(), easing = FastOutSlowInEasing))
+      }
+      launch {
+        word1Scale.animateTo(1f, animationSpec = tween(durationMillis = (500 * factor).toInt(), easing = FastOutSlowInEasing))
+      }
+
+      // 2.2s * factor
+      delay((600 * factor).toLong())
+      launch {
+        word2Alpha.animateTo(1f, animationSpec = tween(durationMillis = (500 * factor).toInt(), easing = FastOutSlowInEasing))
+      }
+      launch {
+        word2Scale.animateTo(1f, animationSpec = tween(durationMillis = (500 * factor).toInt(), easing = FastOutSlowInEasing))
+      }
+
+      // 3.0s * factor
+      delay((800 * factor).toLong())
+    } else {
+      delay(totalDuration)
     }
 
-    // 0.9s: Show "الذكي" (0.9s - 0.4s = 500ms delay)
-    delay(500)
-    launch {
-      brandAlpha.animateTo(1f, animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing))
-    }
-    launch {
-      brandScale.animateTo(1f, animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing))
-    }
-
-    // 1.6s: Fade in "مدير" (1.6s - 0.9s = 700ms delay)
-    delay(700)
-    launch {
-      word1Alpha.animateTo(1f, animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing))
-    }
-    launch {
-      word1Scale.animateTo(1f, animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing))
-    }
-
-    // 2.2s: Fade in "المهام" (2.2s - 1.6s = 600ms delay)
-    delay(600)
-    launch {
-      word2Alpha.animateTo(1f, animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing))
-    }
-    launch {
-      word2Scale.animateTo(1f, animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing))
-    }
-
-    // 3.0s: Navigate to Home (3.0s - 2.2s = 800ms delay)
-    delay(800)
     navController.navigate(Screen.Home.route) {
       popUpTo(Screen.Splash.route) { inclusive = true }
     }
