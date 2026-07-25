@@ -13,6 +13,7 @@ import com.example.features.settings.TaskSettingsScreen
 import com.example.features.settings.ReminderSettingsScreen
 import com.example.features.splash.SplashScreen
 import com.example.features.tasks.TasksScreen
+import com.example.features.tasks.TomorrowTasksScreen
 
 import com.example.features.settings.GeneralSettingsManager
 
@@ -49,6 +50,9 @@ fun NavGraph(navController: NavHostController) {
     }
     composable(Screen.ReminderSettings.route) {
       ReminderSettingsScreen(navController = navController)
+    }
+    composable(Screen.TomorrowTasks.route) {
+      TomorrowTasksScreen(navController = navController)
     }
   }
 }
