@@ -98,7 +98,8 @@ class TaskLocalStore(private val context: Context) {
                 if (task.isCompleted != oldTask.isCompleted ||
                     task.reminderEnabled != oldTask.reminderEnabled ||
                     task.startTime != oldTask.startTime ||
-                    task.targetDate != oldTask.targetDate
+                    task.targetDate != oldTask.targetDate ||
+                    task.taskDay != oldTask.taskDay
                 ) {
                     if (task.isCompleted) {
                         ReminderScheduler.cancelReminder(context, task.id)

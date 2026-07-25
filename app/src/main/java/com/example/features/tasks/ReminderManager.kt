@@ -88,7 +88,7 @@ fun parseAlarmTime(targetDate: String, startTime: String): Long? {
 object ReminderScheduler {
 
     fun scheduleReminder(context: Context, task: Task) {
-        if (!task.reminderEnabled || task.isCompleted || task.startTime == null) {
+        if (!task.reminderEnabled || task.isCompleted || task.startTime == null || task.taskDay == "tomorrow") {
             cancelReminder(context, task.id)
             return
         }

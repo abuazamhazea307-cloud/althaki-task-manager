@@ -81,4 +81,50 @@ class ExampleRobolectricTest {
     assertEquals("tomorrow", migratedCompleted?.taskDay)
     assertEquals(tomorrowDate, migratedCompleted?.targetDate)
   }
+
+  @Test
+  fun `test tomorrow scheduler engine does not schedule alarm for tomorrow tasks`() {
+    val context = ApplicationProvider.getApplicationContext<Context>()
+    val localStore = TaskLocalStore(context)
+    val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as android.app.AlarmManager
+    val shadowAlarmManager = org.robolectric.Shadows.shadowOf(alarmManager)
+    
+    // Clear scheduled alarms
+    shadowAlarmManager.scheduledAlarms.clear()
+    
+    val todayDate = getCurrentDateString()
+    val tomorrowDate = getTomorrowDateString()
+    
+    // Tomorrow task with reminderEnabled = true and startTime set
+    val tomorrowTask = Task(
+      id = "test_tomorrow_alarm",
+      title = "Tomorrow Alarm",
+      targetDate = tomorrowDate,
+      taskDay = "tomorrow",
+      startTime = "10:00 AM",
+      reminderEnabled = true
+    )
+    
+    // Today task with reminderEnabled = true and startTime set
+    val todayTask = Task(
+      id = "test_today_alarm",
+      title = "Today Alarm",
+      targetDate = todayDate,
+      taskDay = "today",
+      startTime = "11:59 PM", // Set late to make sure it's future
+      reminderEnabled = true
+    )
+    
+    localStore.saveTasks(listOf(tomorrowTask, todayTask))
+    
+    val scheduledAlarms = shadowAlarmManager.scheduledAlarms
+    
+    // Tomorrow task must NOT have an alarm
+    val hasTomorrowAlarm = scheduledAlarms.any { 
+      val shadowPending = org.robolectric.Shadows.shadowOf(it.operation)
+      shadowPending.savedIntent.getStringExtra("task_id") == "test_tomorrow_alarm"
+    }
+    
+    org.junit.Assert.assertFalse("Tomorrow task must NOT have a scheduled alarm", hasTomorrowAlarm)
+  }
 }
