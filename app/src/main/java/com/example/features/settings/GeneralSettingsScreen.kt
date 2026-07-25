@@ -245,7 +245,7 @@ fun GeneralSettingsScreen(navController: NavController) {
               )
             }
 
-            // Duration Selector (Visible only when Splash is enabled)
+            // Duration & Style Selector (Visible only when Splash is enabled)
             AnimatedVisibility(
               visible = GeneralSettingsManager.showSplash,
               enter = fadeIn() + expandVertically(),
@@ -254,6 +254,39 @@ fun GeneralSettingsScreen(navController: NavController) {
               Column {
                 HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
 
+                // 1. Splash Style Setting
+                Text(
+                  text = stringResource(R.string.general_splash_style_title),
+                  style = MaterialTheme.typography.bodyMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontSize = 14.sp
+                  ),
+                  modifier = Modifier.padding(top = 16.dp, bottom = 4.dp)
+                )
+                Text(
+                  text = stringResource(R.string.general_splash_style_desc),
+                  style = MaterialTheme.typography.bodySmall.copy(
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontSize = 11.sp
+                  ),
+                  modifier = Modifier.padding(bottom = 12.dp)
+                )
+
+                DurationRadioOption(
+                  label = stringResource(R.string.general_splash_style_default),
+                  selected = GeneralSettingsManager.splashStyle == GeneralSettingsManager.STYLE_DEFAULT,
+                  testTag = "general_style_default",
+                  onClick = {
+                    triggerHaptic()
+                    GeneralSettingsManager.setSplashStyle(context, GeneralSettingsManager.STYLE_DEFAULT)
+                  }
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.04f))
+
+                // 2. Splash Duration Setting
                 Text(
                   text = stringResource(R.string.general_splash_duration_title),
                   style = MaterialTheme.typography.bodyMedium.copy(
