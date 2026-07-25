@@ -19,6 +19,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.FormatListBulleted
+import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.PendingActions
@@ -79,6 +80,9 @@ private fun isUserTask(task: Task): Boolean {
 
 @Composable
 fun HomeScreen(navController: NavController) {
+  val navBackStackEntry by navController.currentBackStackEntryAsState()
+  val current = navBackStackEntry?.destination?.route
+
   var currentDayName by remember { mutableStateOf("") }
   var currentDate by remember { mutableStateOf("") }
   var currentTime by remember { mutableStateOf("") }
@@ -125,40 +129,60 @@ fun HomeScreen(navController: NavController) {
   Scaffold(
     modifier = Modifier.fillMaxSize().testTag("home_screen_root"),
     bottomBar = {
-      NavigationBar(
-        containerColor = MaterialTheme.colorScheme.surface,
-        tonalElevation = 8.dp
-      ) {
-        NavigationBarItem(
-          selected = true,
-          onClick = { /* Already on Home */ },
-          icon = { Icon(Icons.Default.Home, contentDescription = stringResource(R.string.nav_home)) },
-          label = { Text(stringResource(R.string.nav_home), style = MaterialTheme.typography.labelSmall) }
-        )
-        NavigationBarItem(
-          selected = false,
-          onClick = {
-            navController.navigate(Screen.Tasks.route) {
-              popUpTo(Screen.Home.route) { saveState = true }
-              launchSingleTop = true
-              restoreState = true
-            }
-          },
-          icon = { Icon(Icons.Default.List, contentDescription = stringResource(R.string.nav_tasks)) },
-          label = { Text(stringResource(R.string.nav_tasks), style = MaterialTheme.typography.labelSmall) }
-        )
-        NavigationBarItem(
-          selected = false,
-          onClick = {
-            navController.navigate(Screen.Settings.route) {
-              popUpTo(Screen.Home.route) { saveState = true }
-              launchSingleTop = true
-              restoreState = true
-            }
-          },
-          icon = { Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.settings_title)) },
-          label = { Text(stringResource(R.string.settings_title), style = MaterialTheme.typography.labelSmall) }
-        )
+      NavigationBar {
+
+          NavigationBarItem(
+              selected = current == Screen.Home.route,
+              onClick = {
+                  navController.navigate(Screen.Home.route)
+              },
+              icon = {
+                  Icon(Icons.Default.Home, null)
+              },
+              label = {
+                  Text(stringResource(R.string.home))
+              }
+          )
+
+          NavigationBarItem(
+              selected = current == Screen.Tasks.route,
+              onClick = {
+                  navController.navigate(Screen.Tasks.route)
+              },
+              icon = {
+                  Icon(Icons.Default.CheckCircle, null)
+              },
+              label = {
+                  Text(stringResource(R.string.today_tasks))
+              }
+          )
+
+          NavigationBarItem(
+              selected = current == Screen.TomorrowTasks.route,
+              onClick = {
+                  navController.navigate(Screen.TomorrowTasks.route)
+              },
+              icon = {
+                  Icon(Icons.Default.Event, null)
+              },
+              label = {
+                  Text(stringResource(R.string.tomorrow_tasks))
+              }
+          )
+
+          NavigationBarItem(
+              selected = current == Screen.Settings.route,
+              onClick = {
+                  navController.navigate(Screen.Settings.route)
+              },
+              icon = {
+                  Icon(Icons.Default.Settings, null)
+              },
+              label = {
+                  Text(stringResource(R.string.settings))
+              }
+          )
+
       }
     }
   ) { paddingValues ->
