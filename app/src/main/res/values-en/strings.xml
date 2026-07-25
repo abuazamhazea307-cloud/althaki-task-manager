@@ -211,4 +211,9 @@
     <string name="timeout_1_min">1 minute</string>
     <string name="timeout_3_min">3 minutes</string>
     <string name="timeout_5_min">5 minutes</string>
+    <string name="tomorrow_tasks_coming">Tomorrow Planner will be available soon.</string>
+    <string name="home">Home</string>
+    <string name="today_tasks">Today\'s Tasks</string>
+    <string name="tomorrow_tasks">Tomorrow Tasks</string>
+    <string name="settings">Settings</string>
 </resources>

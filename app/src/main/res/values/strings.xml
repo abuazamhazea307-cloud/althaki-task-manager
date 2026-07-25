@@ -211,9 +211,9 @@
     <string name="timeout_1_min">دقيقة واحدة</string>
     <string name="timeout_3_min">٣ دقائق</string>
     <string name="timeout_5_min">٥ دقائق</string>
-    <string name="tomorrow_tasks_coming">مهام الغد قادمة قريباً</string>
-    <string name="home">الرئيسية</string>
-    <string name="today_tasks">مهام اليوم</string>
-    <string name="tomorrow_tasks">مهام الغد</string>
-    <string name="settings">الإعدادات</string>
+    <string name="tomorrow_tasks_coming">Tomorrow Planner is under construction.</string>
+    <string name="home">Home</string>
+    <string name="today_tasks">Today\'s Tasks</string>
+    <string name="tomorrow_tasks">Tomorrow Tasks</string>
+    <string name="settings">Settings</string>
 </resources>
