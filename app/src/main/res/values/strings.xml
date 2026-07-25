@@ -211,4 +211,5 @@
     <string name="timeout_1_min">دقيقة واحدة</string>
     <string name="timeout_3_min">٣ دقائق</string>
     <string name="timeout_5_min">٥ دقائق</string>
+    <string name="tomorrow_tasks_coming">مهام الغد قادمة قريباً</string>
 </resources>
