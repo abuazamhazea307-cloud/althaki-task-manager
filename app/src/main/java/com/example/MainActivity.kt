@@ -33,6 +33,7 @@ class MainActivity : ComponentActivity() {
     com.example.features.settings.GeneralSettingsManager.init(this)
     com.example.features.settings.TaskSettingsManager.init(this)
     com.example.features.settings.ReminderSettingsManager.init(this)
+    com.example.features.tasks.TomorrowAutoMigrationEngine.checkAndMigrate(this)
     enableEdgeToEdge()
 
     // Initialize notification channel
@@ -55,6 +56,11 @@ class MainActivity : ComponentActivity() {
         NavGraph(navController = navController)
       }
     }
+  }
+
+  override fun onStart() {
+    super.onStart()
+    com.example.features.tasks.TomorrowAutoMigrationEngine.checkAndMigrate(this)
   }
 }
 

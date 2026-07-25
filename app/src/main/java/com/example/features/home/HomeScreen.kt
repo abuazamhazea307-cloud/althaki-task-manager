@@ -130,59 +130,72 @@ fun HomeScreen(navController: NavController) {
     modifier = Modifier.fillMaxSize().testTag("home_screen_root"),
     bottomBar = {
       NavigationBar {
-
           NavigationBarItem(
               selected = current == Screen.Home.route,
               onClick = {
-                  navController.navigate(Screen.Home.route)
+                  navController.navigate(Screen.Home.route) {
+                      popUpTo(Screen.Home.route) { inclusive = true }
+                      launchSingleTop = true
+                  }
               },
               icon = {
                   Icon(Icons.Default.Home, null)
               },
               label = {
-                  Text(stringResource(R.string.home))
+                  Text(stringResource(R.string.home), style = MaterialTheme.typography.labelSmall)
               }
           )
 
           NavigationBarItem(
               selected = current == Screen.Tasks.route,
               onClick = {
-                  navController.navigate(Screen.Tasks.route)
+                  navController.navigate(Screen.Tasks.route) {
+                      popUpTo(Screen.Home.route) { saveState = true }
+                      launchSingleTop = true
+                      restoreState = true
+                  }
               },
               icon = {
                   Icon(Icons.Default.CheckCircle, null)
               },
               label = {
-                  Text(stringResource(R.string.today_tasks))
+                  Text(stringResource(R.string.today_tasks), style = MaterialTheme.typography.labelSmall)
               }
           )
 
           NavigationBarItem(
               selected = current == Screen.TomorrowTasks.route,
               onClick = {
-                  navController.navigate(Screen.TomorrowTasks.route)
+                  navController.navigate(Screen.TomorrowTasks.route) {
+                      popUpTo(Screen.Home.route) { saveState = true }
+                      launchSingleTop = true
+                      restoreState = true
+                  }
               },
               icon = {
                   Icon(Icons.Default.Event, null)
               },
               label = {
-                  Text(stringResource(R.string.tomorrow_tasks))
+                  Text(stringResource(R.string.tomorrow_tasks), style = MaterialTheme.typography.labelSmall)
               }
           )
 
           NavigationBarItem(
               selected = current == Screen.Settings.route,
               onClick = {
-                  navController.navigate(Screen.Settings.route)
+                  navController.navigate(Screen.Settings.route) {
+                      popUpTo(Screen.Home.route) { saveState = true }
+                      launchSingleTop = true
+                      restoreState = true
+                  }
               },
               icon = {
                   Icon(Icons.Default.Settings, null)
               },
               label = {
-                  Text(stringResource(R.string.settings))
+                  Text(stringResource(R.string.settings), style = MaterialTheme.typography.labelSmall)
               }
           )
-
       }
     }
   ) { paddingValues ->

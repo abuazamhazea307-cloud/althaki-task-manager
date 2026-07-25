@@ -11,6 +11,13 @@ fun getCurrentDateString(): String {
     return sdf.format(Date())
 }
 
+fun getTomorrowDateString(): String {
+    val cal = java.util.Calendar.getInstance()
+    cal.add(java.util.Calendar.DAY_OF_YEAR, 1)
+    val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+    return sdf.format(cal.time)
+}
+
 /**
  * Clean data model representing a Task in the "Al-Thaki" (الذكي) application.
  * Adheres to standard Clean Architecture guidelines.
@@ -28,5 +35,6 @@ data class Task(
     val reminderEnabled: Boolean = false,
     val isCompleted: Boolean = false,
     val completedAt: Long? = null,
-    val ringtoneUri: String? = null
+    val ringtoneUri: String? = null,
+    val taskDay: String = "today"
 )

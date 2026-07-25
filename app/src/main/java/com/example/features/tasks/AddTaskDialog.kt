@@ -65,13 +65,15 @@ import java.util.Locale
 fun AddTaskDialog(
   onDismiss: () -> Unit,
   onAddTask: (Task) -> Unit,
-  taskToEdit: Task? = null
+  taskToEdit: Task? = null,
+  defaultTaskDay: String = "today"
 ) {
   var title by remember { mutableStateOf(taskToEdit?.title ?: "") }
   var description by remember { mutableStateOf(taskToEdit?.description ?: "") }
   var startTime by remember { mutableStateOf(taskToEdit?.startTime ?: "") }
   var enableReminder by remember { mutableStateOf(taskToEdit?.reminderEnabled ?: com.example.features.settings.ReminderSettingsManager.reminderByDefault) }
   var selectedCategory by remember { mutableStateOf(taskToEdit?.category ?: "work") } // Default to 'work'
+  var selectedTaskDay by remember { mutableStateOf(taskToEdit?.taskDay ?: defaultTaskDay) }
 
   var selectedRingtoneUri by remember { mutableStateOf(taskToEdit?.ringtoneUri) }
   var selectedRingtoneName by remember { mutableStateOf("") }
@@ -375,6 +377,54 @@ fun AddTaskDialog(
           }
         }
 
+        Spacer(modifier = Modifier.height(4.dp))
+
+        // Task Day Selection
+        Text(
+          text = stringResource(R.string.label_task_day),
+          style = MaterialTheme.typography.bodyLarge.copy(
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+          )
+        )
+
+        Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+          val dayOptions = listOf("today", "tomorrow")
+          dayOptions.forEach { dayOption ->
+            val isSelected = selectedTaskDay == dayOption
+            val chipBg = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)
+            val chipTextColor = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+            val localizedDay = when (dayOption) {
+              "today" -> stringResource(R.string.today_tasks)
+              "tomorrow" -> stringResource(R.string.tomorrow_tasks)
+              else -> dayOption
+            }
+
+            Box(
+              modifier = Modifier
+                .weight(1f)
+                .clip(RoundedCornerShape(10.dp))
+                .background(chipBg)
+                .clickable { selectedTaskDay = dayOption }
+                .padding(vertical = 10.dp)
+                .testTag("task_day_chip_${dayOption}"),
+              contentAlignment = Alignment.Center
+            ) {
+              Text(
+                text = localizedDay,
+                style = MaterialTheme.typography.labelSmall.copy(
+                  fontSize = 13.sp,
+                  fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                  color = chipTextColor
+                )
+              )
+            }
+          }
+        }
+
         Spacer(modifier = Modifier.height(12.dp))
 
         // Dialog Actions (Cancel & Save Buttons)
@@ -402,6 +452,7 @@ fun AddTaskDialog(
           Button(
             onClick = {
               if (title.isNotBlank()) {
+                val calculatedTargetDate = if (selectedTaskDay == "tomorrow") getTomorrowDateString() else getCurrentDateString()
                 val updatedTask = if (taskToEdit != null) {
                   taskToEdit.copy(
                     title = title,
@@ -409,7 +460,9 @@ fun AddTaskDialog(
                     category = selectedCategory,
                     startTime = startTime.ifBlank { null },
                     reminderEnabled = enableReminder,
-                    ringtoneUri = selectedRingtoneUri
+                    ringtoneUri = selectedRingtoneUri,
+                    taskDay = selectedTaskDay,
+                    targetDate = calculatedTargetDate
                   )
                 } else {
                   Task(
@@ -419,7 +472,9 @@ fun AddTaskDialog(
                     startTime = startTime.ifBlank { null },
                     reminderEnabled = enableReminder,
                     isCompleted = false,
-                    ringtoneUri = selectedRingtoneUri
+                    ringtoneUri = selectedRingtoneUri,
+                    taskDay = selectedTaskDay,
+                    targetDate = calculatedTargetDate
                   )
                 }
                 onAddTask(updatedTask)

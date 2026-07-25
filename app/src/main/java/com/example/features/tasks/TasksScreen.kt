@@ -31,8 +31,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.HourglassEmpty
 import androidx.compose.material.icons.filled.List
@@ -148,7 +150,7 @@ fun TasksScreen(navController: NavController) {
     TaskSettingsManager.sortBy,
     TaskSettingsManager.taskOrder
   ) {
-    val todayTasks = tasks.filter { it.targetDate == today }
+    val todayTasks = tasks.filter { it.targetDate == today && it.taskDay == "today" }
     val filtered = if (TaskSettingsManager.showCompleted) {
       todayTasks
     } else {
@@ -196,14 +198,26 @@ fun TasksScreen(navController: NavController) {
               launchSingleTop = true
             }
           },
-          icon = { Icon(Icons.Default.Home, contentDescription = stringResource(R.string.nav_home)) },
-          label = { Text(stringResource(R.string.nav_home), style = MaterialTheme.typography.labelSmall) }
+          icon = { Icon(Icons.Default.Home, contentDescription = stringResource(R.string.home)) },
+          label = { Text(stringResource(R.string.home), style = MaterialTheme.typography.labelSmall) }
         )
         NavigationBarItem(
           selected = true,
           onClick = { /* Already on Tasks */ },
-          icon = { Icon(Icons.Default.List, contentDescription = stringResource(R.string.nav_tasks)) },
-          label = { Text(stringResource(R.string.nav_tasks), style = MaterialTheme.typography.labelSmall) }
+          icon = { Icon(Icons.Default.CheckCircle, contentDescription = stringResource(R.string.today_tasks)) },
+          label = { Text(stringResource(R.string.today_tasks), style = MaterialTheme.typography.labelSmall) }
+        )
+        NavigationBarItem(
+          selected = false,
+          onClick = {
+            navController.navigate(Screen.TomorrowTasks.route) {
+              popUpTo(Screen.Home.route) { saveState = true }
+              launchSingleTop = true
+              restoreState = true
+            }
+          },
+          icon = { Icon(Icons.Default.Event, contentDescription = stringResource(R.string.tomorrow_tasks)) },
+          label = { Text(stringResource(R.string.tomorrow_tasks), style = MaterialTheme.typography.labelSmall) }
         )
         NavigationBarItem(
           selected = false,
@@ -214,8 +228,8 @@ fun TasksScreen(navController: NavController) {
               restoreState = true
             }
           },
-          icon = { Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.settings_title)) },
-          label = { Text(stringResource(R.string.settings_title), style = MaterialTheme.typography.labelSmall) }
+          icon = { Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.settings)) },
+          label = { Text(stringResource(R.string.settings), style = MaterialTheme.typography.labelSmall) }
         )
       }
     },

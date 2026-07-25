@@ -267,6 +267,7 @@ class ReminderReceiver : BroadcastReceiver() {
             action == Intent.ACTION_TIMEZONE_CHANGED
         ) {
             // Re-register all alarms on system events
+            TomorrowAutoMigrationEngine.checkAndMigrate(context)
             val localStore = TaskLocalStore(context)
             val tasks = localStore.loadTasks() ?: emptyList()
             for (task in tasks) {

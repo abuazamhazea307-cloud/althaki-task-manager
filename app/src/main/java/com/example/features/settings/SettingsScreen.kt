@@ -22,6 +22,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Notifications
@@ -178,8 +179,8 @@ fun SettingsScreen(navController: NavController) {
               launchSingleTop = true
             }
           },
-          icon = { Icon(Icons.Default.Home, contentDescription = stringResource(R.string.nav_home)) },
-          label = { Text(stringResource(R.string.nav_home), style = MaterialTheme.typography.labelSmall) }
+          icon = { Icon(Icons.Default.Home, contentDescription = stringResource(R.string.home)) },
+          label = { Text(stringResource(R.string.home), style = MaterialTheme.typography.labelSmall) }
         )
         NavigationBarItem(
           selected = false,
@@ -190,14 +191,26 @@ fun SettingsScreen(navController: NavController) {
               restoreState = true
             }
           },
-          icon = { Icon(Icons.Default.List, contentDescription = stringResource(R.string.nav_tasks)) },
-          label = { Text(stringResource(R.string.nav_tasks), style = MaterialTheme.typography.labelSmall) }
+          icon = { Icon(Icons.Default.CheckCircle, contentDescription = stringResource(R.string.today_tasks)) },
+          label = { Text(stringResource(R.string.today_tasks), style = MaterialTheme.typography.labelSmall) }
+        )
+        NavigationBarItem(
+          selected = false,
+          onClick = {
+            navController.navigate(Screen.TomorrowTasks.route) {
+              popUpTo(Screen.Home.route) { saveState = true }
+              launchSingleTop = true
+              restoreState = true
+            }
+          },
+          icon = { Icon(Icons.Default.Event, contentDescription = stringResource(R.string.tomorrow_tasks)) },
+          label = { Text(stringResource(R.string.tomorrow_tasks), style = MaterialTheme.typography.labelSmall) }
         )
         NavigationBarItem(
           selected = true,
           onClick = { /* Already on Settings */ },
-          icon = { Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.settings_title)) },
-          label = { Text(stringResource(R.string.settings_title), style = MaterialTheme.typography.labelSmall) }
+          icon = { Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.settings)) },
+          label = { Text(stringResource(R.string.settings), style = MaterialTheme.typography.labelSmall) }
         )
       }
     }
