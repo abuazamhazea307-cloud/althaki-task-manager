@@ -47,23 +47,20 @@ fun SplashScreen(navController: NavController) {
   }
 
   // State to track if we have transitioned from Phase 1 (Splash Background) to Phase 2 (Welcome Splash)
-  val isWelcomePhase = remember { androidx.compose.runtime.mutableStateOf(false) }
+  val isWelcomePhase = remember { androidx.compose.runtime.mutableStateOf(true) }
 
-  // Animatables start at 0f (except scale) so elements are hidden during Stage 1
-  val diamondAlpha = remember { Animatable(0f) }
-  val diamondScale = remember { Animatable(0.8f) }
+  // Animatables start at 0.4f (if animations are enabled) so elements are visible from the first frame
+  val initialAlpha = if (showAnimations) 0.4f else 1f
+  val diamondAlpha = remember { Animatable(initialAlpha) }
+  val diamondScale = remember { Animatable(if (showAnimations) 0.8f else 1f) }
 
-  val titleAlpha = remember { Animatable(0f) }
-  val taskLogoAlpha = remember { Animatable(0f) }
-  val subtitleAlpha = remember { Animatable(0f) }
-  val welcomeAlpha = remember { Animatable(0f) }
+  val titleAlpha = remember { Animatable(initialAlpha) }
+  val taskLogoAlpha = remember { Animatable(initialAlpha) }
+  val subtitleAlpha = remember { Animatable(initialAlpha) }
+  val welcomeAlpha = remember { Animatable(initialAlpha) }
 
   LaunchedEffect(Unit) {
-    // Stage 1: Splash Background (Sky blue background only) - ALWAYS 1.0s, does not change
-    delay(1000L)
-    
-    // Transition to Phase 2 (Welcome Splash)
-    isWelcomePhase.value = true
+    // No initial blank delay - show the Welcome Splash immediately from the first frame
 
     if (showAnimations) {
       // Calculate scaled animation duration and step delay (each is 10% of welcome duration)
