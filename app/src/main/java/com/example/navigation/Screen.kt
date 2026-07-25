@@ -10,4 +10,5 @@ sealed class Screen(val route: String) {
     object GeneralSettings : Screen("general_settings")
     object TaskSettings : Screen("task_settings")
     object ReminderSettings : Screen("reminder_settings")
+    object TomorrowTasks : Screen("tomorrow_tasks")
 }
