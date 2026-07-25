@@ -46,6 +46,9 @@ fun SplashScreen(navController: NavController) {
     else -> 4000L // Default (Recommended)
   }
 
+  // State to track if we have transitioned from Phase 1 (Splash Background) to Phase 2 (Welcome Splash)
+  val isWelcomePhase = remember { androidx.compose.runtime.mutableStateOf(false) }
+
   // Animatables start at 0f (except scale) so elements are hidden during Stage 1
   val diamondAlpha = remember { Animatable(0f) }
   val diamondScale = remember { Animatable(0.8f) }
@@ -56,8 +59,11 @@ fun SplashScreen(navController: NavController) {
   val welcomeAlpha = remember { Animatable(0f) }
 
   LaunchedEffect(Unit) {
-    // Stage 1: Sky blue background only (1 second static) - ALWAYS 1.0s, does not change
+    // Stage 1: Splash Background (Sky blue background only) - ALWAYS 1.0s, does not change
     delay(1000L)
+    
+    // Transition to Phase 2 (Welcome Splash)
+    isWelcomePhase.value = true
 
     if (showAnimations) {
       // Calculate scaled animation duration and step delay (each is 10% of welcome duration)
@@ -146,100 +152,102 @@ fun SplashScreen(navController: NavController) {
         .testTag("splash_screen_root"),
       contentAlignment = Alignment.Center
     ) {
-      Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.SpaceBetween,
-        modifier = Modifier
-          .fillMaxSize()
-          .padding(top = 80.dp, bottom = 60.dp, start = 24.dp, end = 24.dp)
-      ) {
-        // Top spacer for visual balance
-        Spacer(modifier = Modifier.height(1.dp))
-
-        // Central visual identity stack
+      if (isWelcomePhase.value) {
         Column(
           horizontalAlignment = Alignment.CenterHorizontally,
-          verticalArrangement = Arrangement.Center
+          verticalArrangement = Arrangement.SpaceBetween,
+          modifier = Modifier
+            .fillMaxSize()
+            .padding(top = 80.dp, bottom = 60.dp, start = 24.dp, end = 24.dp)
         ) {
-          // Animation 1: Official Althaki Diamond
-          Box(
-            modifier = Modifier
-              .size(100.dp)
-              .graphicsLayer(
-                scaleX = diamondScale.value,
-                scaleY = diamondScale.value,
-                alpha = diamondAlpha.value
+          // Top spacer for visual balance
+          Spacer(modifier = Modifier.height(1.dp))
+
+          // Central visual identity stack
+          Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+          ) {
+            // Animation 1: Official Althaki Diamond
+            Box(
+              modifier = Modifier
+                .size(100.dp)
+                .graphicsLayer(
+                  scaleX = diamondScale.value,
+                  scaleY = diamondScale.value,
+                  alpha = diamondAlpha.value
+                ),
+              contentAlignment = Alignment.Center
+            ) {
+              AlthakiDiamondLogo(
+                modifier = Modifier.size(80.dp),
+                color = Color.White
+              )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Animation 2: Brand text "الذكي"
+            Text(
+              text = stringResource(R.string.splash_title),
+              style = MaterialTheme.typography.displayMedium.copy(
+                fontSize = 38.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                letterSpacing = 0.5.sp
               ),
-            contentAlignment = Alignment.Center
-          ) {
-            AlthakiDiamondLogo(
-              modifier = Modifier.size(80.dp),
-              color = Color.White
+              modifier = Modifier
+                .graphicsLayer(alpha = titleAlpha.value)
+                .testTag("splash_brand_title")
+            )
+
+            Spacer(modifier = Modifier.height(44.dp))
+
+            // Animation 3: Custom Task Manager Logo
+            Box(
+              modifier = Modifier
+                .size(72.dp)
+                .graphicsLayer(alpha = taskLogoAlpha.value),
+              contentAlignment = Alignment.Center
+            ) {
+              TaskManagerCustomLogo(
+                modifier = Modifier.size(54.dp),
+                color = Color.White
+              )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Animation 4: "مدير المهام" Subtitle
+            Text(
+              text = stringResource(R.string.splash_subtitle),
+              style = MaterialTheme.typography.titleLarge.copy(
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color.White.copy(alpha = 0.9f),
+                letterSpacing = 0.5.sp
+              ),
+              modifier = Modifier
+                .graphicsLayer(alpha = subtitleAlpha.value)
+                .testTag("splash_subtitle")
             )
           }
 
-          Spacer(modifier = Modifier.height(24.dp))
-
-          // Animation 2: Brand text "الذكي"
+          // Animation 5: Welcome text "مرحبًا بك 🌹"
           Text(
-            text = stringResource(R.string.splash_title),
-            style = MaterialTheme.typography.displayMedium.copy(
-              fontSize = 38.sp,
-              fontWeight = FontWeight.Bold,
-              color = Color.White,
-              letterSpacing = 0.5.sp
-            ),
-            modifier = Modifier
-              .graphicsLayer(alpha = titleAlpha.value)
-              .testTag("splash_brand_title")
-          )
-
-          Spacer(modifier = Modifier.height(44.dp))
-
-          // Animation 3: Custom Task Manager Logo
-          Box(
-            modifier = Modifier
-              .size(72.dp)
-              .graphicsLayer(alpha = taskLogoAlpha.value),
-            contentAlignment = Alignment.Center
-          ) {
-            TaskManagerCustomLogo(
-              modifier = Modifier.size(54.dp),
-              color = Color.White
-            )
-          }
-
-          Spacer(modifier = Modifier.height(16.dp))
-
-          // Animation 4: "مدير المهام" Subtitle
-          Text(
-            text = stringResource(R.string.splash_subtitle),
-            style = MaterialTheme.typography.titleLarge.copy(
-              fontSize = 22.sp,
+            text = stringResource(R.string.splash_welcome) + " 🌹",
+            style = MaterialTheme.typography.bodyLarge.copy(
+              fontSize = 18.sp,
               fontWeight = FontWeight.Medium,
-              color = Color.White.copy(alpha = 0.9f),
+              color = Color.White.copy(alpha = 0.85f),
               letterSpacing = 0.5.sp
             ),
             modifier = Modifier
-              .graphicsLayer(alpha = subtitleAlpha.value)
-              .testTag("splash_subtitle")
+              .graphicsLayer(alpha = welcomeAlpha.value)
+              .testTag("splash_welcome_text")
+              .padding(bottom = 24.dp)
           )
         }
-
-        // Animation 5: Welcome text "مرحبًا بك 🌹"
-        Text(
-          text = stringResource(R.string.splash_welcome) + " 🌹",
-          style = MaterialTheme.typography.bodyLarge.copy(
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Medium,
-            color = Color.White.copy(alpha = 0.85f),
-            letterSpacing = 0.5.sp
-          ),
-          modifier = Modifier
-            .graphicsLayer(alpha = welcomeAlpha.value)
-            .testTag("splash_welcome_text")
-            .padding(bottom = 24.dp)
-        )
       }
     }
   }

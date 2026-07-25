@@ -170,8 +170,10 @@
     <!-- Reminder Settings -->
     <string name="reminder_settings_title">Reminder Settings</string>
     <string name="reminder_settings_back_desc">Back to Settings</string>
-    <string name="reminder_default_title">Enable Reminder by Default</string>
-    <string name="reminder_default_desc">Automatically enable reminder when creating a new task</string>
+    <string name="reminder_default_title">Default Reminder Status</string>
+    <string name="reminder_default_desc">Choose the default reminder state for new tasks</string>
+    <string name="reminder_mode_auto">Automatic (Default)</string>
+    <string name="reminder_mode_optional">Optional</string>
     <string name="default_alarm_sound_title">Default Alarm Sound</string>
     <string name="default_alarm_sound_desc">Sound played for new tasks unless customized</string>
     <string name="default_snooze_duration_title">Default Snooze Duration</string>

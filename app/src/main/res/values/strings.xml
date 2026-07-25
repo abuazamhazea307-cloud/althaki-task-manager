@@ -170,8 +170,10 @@
     <!-- Reminder Settings -->
     <string name="reminder_settings_title">إعدادات التذكير</string>
     <string name="reminder_settings_back_desc">الرجوع للإعدادات</string>
-    <string name="reminder_default_title">تفعيل التذكير تلقائياً</string>
-    <string name="reminder_default_desc">تفعيل منبه التذكير تلقائياً عند إضافة مهمة جديدة</string>
+    <string name="reminder_default_title">الوضع الافتراضي للتذكير</string>
+    <string name="reminder_default_desc">اختر حالة التذكير الافتراضية للمهام الجديدة</string>
+    <string name="reminder_mode_auto">تلقائي (الافتراضي)</string>
+    <string name="reminder_mode_optional">اختياري</string>
     <string name="default_alarm_sound_title">نغمة المنبه الافتراضية</string>
     <string name="default_alarm_sound_desc">النغمة التي سيتم تشغيلها للمهام الجديدة ما لم يتم تخصيصها</string>
     <string name="default_snooze_duration_title">مدة الغفوة الافتراضية</string>

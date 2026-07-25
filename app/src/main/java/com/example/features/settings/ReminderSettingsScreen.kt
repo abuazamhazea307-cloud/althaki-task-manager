@@ -186,14 +186,14 @@ fun ReminderSettingsScreen(navController: NavController) {
                             .fillMaxWidth()
                             .padding(horizontal = 20.dp, vertical = 12.dp)
                     ) {
-                        // Default Reminder Switch
-                        ReminderSwitchSettingItem(
+                        // Default Reminder Radio Group
+                        ReminderRadioGroupSettingItem(
                             title = stringResource(R.string.reminder_default_title),
                             subtitle = stringResource(R.string.reminder_default_desc),
                             icon = Icons.Default.NotificationsActive,
-                            checked = ReminderSettingsManager.reminderByDefault,
-                            testTag = "reminder_by_default_switch",
-                            onCheckedChange = {
+                            selectedValue = ReminderSettingsManager.reminderByDefault,
+                            testTag = "reminder_by_default_radio_group",
+                            onValueChange = {
                                 triggerHaptic()
                                 ReminderSettingsManager.setReminderByDefault(context, it)
                             }
@@ -882,5 +882,84 @@ fun ReminderSwitchSettingItem(
                 checkedTrackColor = MaterialTheme.colorScheme.primaryContainer
             )
         )
+    }
+}
+
+@Composable
+fun ReminderRadioGroupSettingItem(
+    title: String,
+    subtitle: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    selectedValue: Boolean,
+    testTag: String,
+    onValueChange: (Boolean) -> Unit
+) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 12.dp)
+            .testTag(testTag)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .background(
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
+                        shape = CircleShape
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                )
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                        fontSize = 11.sp
+                    )
+                )
+            }
+        }
+        
+        Spacer(modifier = Modifier.height(12.dp))
+        
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 52.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            ReminderRadioOption(
+                label = stringResource(R.string.reminder_mode_auto),
+                selected = selectedValue,
+                testTag = "reminder_mode_auto_option",
+                onClick = { onValueChange(true) }
+            )
+            ReminderRadioOption(
+                label = stringResource(R.string.reminder_mode_optional),
+                selected = !selectedValue,
+                testTag = "reminder_mode_optional_option",
+                onClick = { onValueChange(false) }
+            )
+        }
     }
 }
