@@ -16,6 +16,7 @@ object GeneralSettingsManager {
     private const val KEY_ENABLE_ANIMATIONS = "enable_animations"
     private const val KEY_ENABLE_HAPTIC = "enable_haptic"
 
+    const val DURATION_DEFAULT = "default"
     const val DURATION_SHORT = "short"
     const val DURATION_NORMAL = "normal"
     const val DURATION_LONG = "long"
@@ -24,7 +25,7 @@ object GeneralSettingsManager {
     var showSplash by mutableStateOf(true)
         private set
 
-    var splashDuration by mutableStateOf(DURATION_NORMAL)
+    var splashDuration by mutableStateOf(DURATION_DEFAULT)
         private set
 
     var enableAnimations by mutableStateOf(true)
@@ -39,7 +40,7 @@ object GeneralSettingsManager {
     fun init(context: Context) {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         showSplash = prefs.getBoolean(KEY_SHOW_SPLASH, true)
-        splashDuration = prefs.getString(KEY_SPLASH_DURATION, DURATION_NORMAL) ?: DURATION_NORMAL
+        splashDuration = prefs.getString(KEY_SPLASH_DURATION, DURATION_DEFAULT) ?: DURATION_DEFAULT
         enableAnimations = prefs.getBoolean(KEY_ENABLE_ANIMATIONS, true)
         enableHaptic = prefs.getBoolean(KEY_ENABLE_HAPTIC, true)
     }
@@ -73,7 +74,7 @@ object GeneralSettingsManager {
      */
     fun restoreDefaults(context: Context) {
         setShowSplash(context, true)
-        setSplashDuration(context, DURATION_NORMAL)
+        setSplashDuration(context, DURATION_DEFAULT)
         setEnableAnimations(context, true)
         setEnableHaptic(context, true)
     }

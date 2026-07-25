@@ -123,6 +123,7 @@
     <string name="general_show_splash_desc">Display splash screen during app launch</string>
     <string name="general_splash_duration_title">Splash Duration</string>
     <string name="general_splash_duration_desc">Select how long the splash screen is displayed at launch</string>
+    <string name="general_splash_duration_default">Default (Recommended)</string>
     <string name="general_splash_duration_short">Short (1.5 seconds)</string>
     <string name="general_splash_duration_normal">Normal (3 seconds)</string>
     <string name="general_splash_duration_long">Long (5 seconds)</string>

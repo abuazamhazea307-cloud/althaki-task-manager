@@ -274,6 +274,16 @@ fun GeneralSettingsScreen(navController: NavController) {
 
                 // Radio Button list for Duration
                 DurationRadioOption(
+                  label = stringResource(R.string.general_splash_duration_default),
+                  selected = GeneralSettingsManager.splashDuration == GeneralSettingsManager.DURATION_DEFAULT,
+                  testTag = "general_duration_default",
+                  onClick = {
+                    triggerHaptic()
+                    GeneralSettingsManager.setSplashDuration(context, GeneralSettingsManager.DURATION_DEFAULT)
+                  }
+                )
+
+                DurationRadioOption(
                   label = stringResource(R.string.general_splash_duration_short),
                   selected = GeneralSettingsManager.splashDuration == GeneralSettingsManager.DURATION_SHORT,
                   testTag = "general_duration_short",

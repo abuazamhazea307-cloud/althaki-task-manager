@@ -123,6 +123,7 @@
     <string name="general_show_splash_desc">عرض شاشة الترحيب الرسومية عند تشغيل التطبيق</string>
     <string name="general_splash_duration_title">مدة شاشة الترحيب</string>
     <string name="general_splash_duration_desc">اختر مدة بقاء شاشة الترحيب عند بدء التشغيل</string>
+    <string name="general_splash_duration_default">الافتراضي (موصى به)</string>
     <string name="general_splash_duration_short">قصيرة (1.5 ثانية)</string>
     <string name="general_splash_duration_normal">طبيعية (3 ثوانٍ)</string>
     <string name="general_splash_duration_long">طويلة (5 ثوانٍ)</string>

@@ -38,101 +38,96 @@ fun SplashScreen(navController: NavController) {
   val showAnimations = com.example.features.settings.GeneralSettingsManager.enableAnimations
   val durationType = com.example.features.settings.GeneralSettingsManager.splashDuration
 
-  // Adjust total duration based on Settings selection
-  val totalDuration = when (durationType) {
-    com.example.features.settings.GeneralSettingsManager.DURATION_SHORT -> 1800L
-    com.example.features.settings.GeneralSettingsManager.DURATION_LONG -> 5500L
-    else -> 3800L // 3.8s for Normal, to perfectly capture the requested timeline
+  // Adjust welcome branding duration based on Settings selection
+  val welcomeDuration = when (durationType) {
+    com.example.features.settings.GeneralSettingsManager.DURATION_SHORT -> 1500L
+    com.example.features.settings.GeneralSettingsManager.DURATION_NORMAL -> 3000L
+    com.example.features.settings.GeneralSettingsManager.DURATION_LONG -> 5000L
+    else -> 4000L // Default (Recommended)
   }
 
-  // Animatables for precise timeline triggers
-  val diamondAlpha = remember { Animatable(if (showAnimations) 0f else 1f) }
-  val diamondScale = remember { Animatable(if (showAnimations) 0.8f else 1f) }
+  // Animatables start at 0f (except scale) so elements are hidden during Stage 1
+  val diamondAlpha = remember { Animatable(0f) }
+  val diamondScale = remember { Animatable(0.8f) }
 
-  val titleAlpha = remember { Animatable(if (showAnimations) 0f else 1f) }
-  val taskLogoAlpha = remember { Animatable(if (showAnimations) 0f else 1f) }
-  val subtitleAlpha = remember { Animatable(if (showAnimations) 0f else 1f) }
-  val welcomeAlpha = remember { Animatable(if (showAnimations) 0f else 1f) }
+  val titleAlpha = remember { Animatable(0f) }
+  val taskLogoAlpha = remember { Animatable(0f) }
+  val subtitleAlpha = remember { Animatable(0f) }
+  val welcomeAlpha = remember { Animatable(0f) }
 
   LaunchedEffect(Unit) {
+    // Stage 1: Sky blue background only (1 second static) - ALWAYS 1.0s, does not change
+    delay(1000L)
+
     if (showAnimations) {
-      val factor = (totalDuration - 1000L).coerceAtLeast(100L).toFloat() / 2800f
+      // Calculate scaled animation duration and step delay (each is 10% of welcome duration)
+      val animDuration = (welcomeDuration * 0.10f).toInt()
+      val stepDelay = (welcomeDuration * 0.10f).toLong()
 
-      // 0.0s to 1.0s: Sky blue background only (1 second static)
-      delay(1000L)
-
-      // Animation 1: Official Althaki Diamond (Fade In + Scale, Soft easing)
+      // Animation 1: Official Althaki Diamond (💎)
       launch {
         diamondAlpha.animateTo(
           targetValue = 1f,
-          animationSpec = tween(
-            durationMillis = (500 * factor).toInt(),
-            easing = FastOutSlowInEasing
-          )
+          animationSpec = tween(durationMillis = animDuration, easing = FastOutSlowInEasing)
         )
       }
       launch {
         diamondScale.animateTo(
           targetValue = 1f,
-          animationSpec = tween(
-            durationMillis = (500 * factor).toInt(),
-            easing = FastOutSlowInEasing
-          )
+          animationSpec = tween(durationMillis = animDuration, easing = FastOutSlowInEasing)
         )
       }
 
       // Animation 2: Below the Diamond - "الذكي" Fade In
-      delay((500 * factor).toLong())
+      delay(stepDelay)
       launch {
         titleAlpha.animateTo(
           targetValue = 1f,
-          animationSpec = tween(
-            durationMillis = (500 * factor).toInt(),
-            easing = FastOutSlowInEasing
-          )
+          animationSpec = tween(durationMillis = animDuration, easing = FastOutSlowInEasing)
         )
       }
 
-      // Animation 3: Below "الذكي" - Custom Task Manager Logo Fade In
-      delay((500 * factor).toLong())
+      // Animation 3: Below "الذكي" - Custom Task Manager Logo (📝) Fade In
+      delay(stepDelay)
       launch {
         taskLogoAlpha.animateTo(
           targetValue = 1f,
-          animationSpec = tween(
-            durationMillis = (500 * factor).toInt(),
-            easing = FastOutSlowInEasing
-          )
+          animationSpec = tween(durationMillis = animDuration, easing = FastOutSlowInEasing)
         )
       }
 
-      // Animation 4: Below the Task Logo - "مدير المهام" Fade In
-      delay((500 * factor).toLong())
+      // Animation 4: Below the Task Logo - "مدير المهام" Subtitle Fade In
+      delay(stepDelay)
       launch {
         subtitleAlpha.animateTo(
           targetValue = 1f,
-          animationSpec = tween(
-            durationMillis = (500 * factor).toInt(),
-            easing = FastOutSlowInEasing
-          )
+          animationSpec = tween(durationMillis = animDuration, easing = FastOutSlowInEasing)
         )
       }
 
       // Animation 5: Bottom area - "مرحبًا بك 🌹" Fade In gently
-      delay((500 * factor).toLong())
+      delay(stepDelay)
       launch {
         welcomeAlpha.animateTo(
           targetValue = 1f,
-          animationSpec = tween(
-            durationMillis = (600 * factor).toInt(),
-            easing = FastOutSlowInEasing
-          )
+          animationSpec = tween(durationMillis = animDuration, easing = FastOutSlowInEasing)
         )
       }
 
-      // Complete the remaining splash delay
-      delay((800 * factor).toLong())
+      // Complete the remaining welcome duration (rest time)
+      val totalSpent = stepDelay * 4 + animDuration
+      val remaining = (welcomeDuration - totalSpent).coerceAtLeast(0L)
+      delay(remaining)
     } else {
-      delay(totalDuration)
+      // If animations are disabled, immediately snap all elements to visible in Stage 2, and wait welcomeDuration
+      diamondAlpha.snapTo(1f)
+      diamondScale.snapTo(1f)
+      titleAlpha.snapTo(1f)
+      taskLogoAlpha.snapTo(1f)
+      subtitleAlpha.snapTo(1f)
+      welcomeAlpha.snapTo(1f)
+
+      delay(welcomeDuration)
     }
 
     navController.navigate(Screen.Home.route) {
