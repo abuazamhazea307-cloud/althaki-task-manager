@@ -3,10 +3,6 @@ package com.example.features.splash
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.RepeatMode
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -51,21 +47,7 @@ fun SplashScreen(navController: NavController) {
     else -> 4000L // Default (Recommended)
   }
 
-  // State to track if we have transitioned from Phase 1 (Splash Background) to Phase 2 (Welcome Splash)
-  val isWelcomePhase = remember { androidx.compose.runtime.mutableStateOf(false) }
-
-  // Pulsing animation for Stage 1 (Loading screen)
-  val infiniteTransition = rememberInfiniteTransition()
-  val pulseScale by infiniteTransition.animateFloat(
-    initialValue = 0.9f,
-    targetValue = 1.1f,
-    animationSpec = infiniteRepeatable(
-      animation = tween(800, easing = FastOutSlowInEasing),
-      repeatMode = RepeatMode.Reverse
-    )
-  )
-
-  // Animatables start at 0f (except scale) so elements are hidden during Stage 1
+  // Animatables start at 0f (except scale) so elements are hidden initially and then animate in
   val diamondAlpha = remember { Animatable(0f) }
   val diamondScale = remember { Animatable(0.8f) }
 
@@ -75,12 +57,6 @@ fun SplashScreen(navController: NavController) {
   val welcomeAlpha = remember { Animatable(0f) }
 
   LaunchedEffect(Unit) {
-    // Stage 1: Loading screen with pulsing diamond (1 second)
-    delay(1000L)
-    
-    // Transition to Phase 2 (Welcome Splash)
-    isWelcomePhase.value = true
-
     if (showAnimations) {
       // Calculate scaled animation duration and step delay (each is 10% of welcome duration)
       val animDuration = (welcomeDuration * 0.10f).toInt()
@@ -141,7 +117,7 @@ fun SplashScreen(navController: NavController) {
       val remaining = (welcomeDuration - totalSpent).coerceAtLeast(0L)
       delay(remaining)
     } else {
-      // If animations are disabled, immediately snap all elements to visible in Stage 2, and wait welcomeDuration
+      // If animations are disabled, immediately snap all elements to visible, and wait welcomeDuration
       diamondAlpha.snapTo(1f)
       diamondScale.snapTo(1f)
       titleAlpha.snapTo(1f)
@@ -168,112 +144,99 @@ fun SplashScreen(navController: NavController) {
         .testTag("splash_screen_root"),
       contentAlignment = Alignment.Center
     ) {
-      if (isWelcomePhase.value) {
+      Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.SpaceBetween,
+        modifier = Modifier
+          .fillMaxSize()
+          .padding(top = 80.dp, bottom = 60.dp, start = 24.dp, end = 24.dp)
+      ) {
+        // Top spacer for visual balance
+        Spacer(modifier = Modifier.height(1.dp))
+
+        // Central visual identity stack
         Column(
           horizontalAlignment = Alignment.CenterHorizontally,
-          verticalArrangement = Arrangement.SpaceBetween,
-          modifier = Modifier
-            .fillMaxSize()
-            .padding(top = 80.dp, bottom = 60.dp, start = 24.dp, end = 24.dp)
+          verticalArrangement = Arrangement.Center
         ) {
-          // Top spacer for visual balance
-          Spacer(modifier = Modifier.height(1.dp))
-
-          // Central visual identity stack
-          Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+          // Animation 1: Official Althaki Diamond
+          Box(
+            modifier = Modifier
+              .size(100.dp)
+              .graphicsLayer(
+                scaleX = diamondScale.value,
+                scaleY = diamondScale.value,
+                alpha = diamondAlpha.value
+              ),
+            contentAlignment = Alignment.Center
           ) {
-            // Animation 1: Official Althaki Diamond
-            Box(
-              modifier = Modifier
-                .size(100.dp)
-                .graphicsLayer(
-                  scaleX = diamondScale.value,
-                  scaleY = diamondScale.value,
-                  alpha = diamondAlpha.value
-                ),
-              contentAlignment = Alignment.Center
-            ) {
-              AlthakiDiamondLogo(
-                modifier = Modifier.size(80.dp),
-                color = Color.White
-              )
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Animation 2: Brand text "الذكي"
-            Text(
-              text = stringResource(R.string.splash_title),
-              style = MaterialTheme.typography.displayMedium.copy(
-                fontSize = 38.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White,
-                letterSpacing = 0.5.sp
-              ),
-              modifier = Modifier
-                .graphicsLayer(alpha = titleAlpha.value)
-                .testTag("splash_brand_title")
-            )
-
-            Spacer(modifier = Modifier.height(44.dp))
-
-            // Animation 3: Custom Task Manager Logo
-            Box(
-              modifier = Modifier
-                .size(72.dp)
-                .graphicsLayer(alpha = taskLogoAlpha.value),
-              contentAlignment = Alignment.Center
-            ) {
-              TaskManagerCustomLogo(
-                modifier = Modifier.size(54.dp),
-                color = Color.White
-              )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Animation 4: "مدير المهام" Subtitle
-            Text(
-              text = stringResource(R.string.splash_subtitle),
-              style = MaterialTheme.typography.titleLarge.copy(
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Medium,
-                color = Color.White.copy(alpha = 0.9f),
-                letterSpacing = 0.5.sp
-              ),
-              modifier = Modifier
-                .graphicsLayer(alpha = subtitleAlpha.value)
-                .testTag("splash_subtitle")
+            AlthakiDiamondLogo(
+              modifier = Modifier.size(80.dp),
+              color = Color.White
             )
           }
 
-          // Animation 5: Welcome text "مرحبًا بك 🌹"
+          Spacer(modifier = Modifier.height(24.dp))
+
+          // Animation 2: Brand text "الذكي"
           Text(
-            text = stringResource(R.string.splash_welcome) + " 🌹",
-            style = MaterialTheme.typography.bodyLarge.copy(
-              fontSize = 18.sp,
-              fontWeight = FontWeight.Medium,
-              color = Color.White.copy(alpha = 0.85f),
+            text = stringResource(R.string.splash_title),
+            style = MaterialTheme.typography.displayMedium.copy(
+              fontSize = 38.sp,
+              fontWeight = FontWeight.Bold,
+              color = Color.White,
               letterSpacing = 0.5.sp
             ),
             modifier = Modifier
-              .graphicsLayer(alpha = welcomeAlpha.value)
-              .testTag("splash_welcome_text")
-              .padding(bottom = 24.dp)
+              .graphicsLayer(alpha = titleAlpha.value)
+              .testTag("splash_brand_title")
+          )
+
+          Spacer(modifier = Modifier.height(44.dp))
+
+          // Animation 3: Custom Task Manager Logo
+          Box(
+            modifier = Modifier
+              .size(72.dp)
+              .graphicsLayer(alpha = taskLogoAlpha.value),
+            contentAlignment = Alignment.Center
+          ) {
+            TaskManagerCustomLogo(
+              modifier = Modifier.size(54.dp),
+              color = Color.White
+            )
+          }
+
+          Spacer(modifier = Modifier.height(16.dp))
+
+          // Animation 4: "مدير المهام" Subtitle
+          Text(
+            text = stringResource(R.string.splash_subtitle),
+            style = MaterialTheme.typography.titleLarge.copy(
+              fontSize = 22.sp,
+              fontWeight = FontWeight.Medium,
+              color = Color.White.copy(alpha = 0.9f),
+              letterSpacing = 0.5.sp
+            ),
+            modifier = Modifier
+              .graphicsLayer(alpha = subtitleAlpha.value)
+              .testTag("splash_subtitle")
           )
         }
-      } else {
-        // Professional loading screen with pulsing Althaki Diamond Logo
-        AlthakiDiamondLogo(
+
+        // Animation 5: Welcome text "مرحبًا بك 🌹"
+        Text(
+          text = stringResource(R.string.splash_welcome) + " 🌹",
+          style = MaterialTheme.typography.bodyLarge.copy(
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Medium,
+            color = Color.White.copy(alpha = 0.85f),
+            letterSpacing = 0.5.sp
+          ),
           modifier = Modifier
-            .size(100.dp)
-            .graphicsLayer(
-              scaleX = pulseScale,
-              scaleY = pulseScale
-            ),
-          color = Color.White
+            .graphicsLayer(alpha = welcomeAlpha.value)
+            .testTag("splash_welcome_text")
+            .padding(bottom = 24.dp)
         )
       }
     }
