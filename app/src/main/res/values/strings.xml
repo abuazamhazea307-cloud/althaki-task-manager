@@ -61,6 +61,9 @@
     <string name="placeholder_start_time">انقر لتحديد الوقت...</string>
     <string name="label_reminder">تفعيل التنبيه</string>
     <string name="desc_reminder">إرسال تنبيه عند حلول وقت بدء المهمة</string>
+    <string name="label_reminder_type">نوع التذكير</string>
+    <string name="reminder_type_notification">إشعار</string>
+    <string name="reminder_type_alarm">شاشة كاملة / منبه</string>
     <string name="time_picker_title">اختر وقت البدء</string>
     <string name="badge_rolled_over">مرحلة</string>
     <string name="reminder_channel_name">تنبيهات المهام</string>

@@ -61,6 +61,9 @@
     <string name="placeholder_start_time">Tap to select time...</string>
     <string name="label_reminder">Enable Reminder</string>
     <string name="desc_reminder">Send a reminder when task start time arrives</string>
+    <string name="label_reminder_type">Reminder Type</string>
+    <string name="reminder_type_notification">Notification</string>
+    <string name="reminder_type_alarm">Full Screen / Alarm</string>
     <string name="time_picker_title">Select Start Time</string>
     <string name="badge_rolled_over">Rolled Over</string>
     <string name="reminder_channel_name">Task Reminders</string>

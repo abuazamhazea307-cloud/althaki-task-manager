@@ -77,7 +77,13 @@ fun AddTaskDialog(
 
   var selectedRingtoneUri by remember { mutableStateOf(taskToEdit?.ringtoneUri) }
   var selectedRingtoneName by remember { mutableStateOf("") }
+  var reminderNotification by remember { mutableStateOf(com.example.features.settings.ReminderSettingsManager.reminderNotification) }
   val context = androidx.compose.ui.platform.LocalContext.current
+
+  // Reactive constraint: Reminder cannot be enabled without start time
+  if (startTime.isBlank() && enableReminder) {
+    enableReminder = false
+  }
 
   LaunchedEffect(selectedRingtoneUri) {
     selectedRingtoneName = getRingtoneName(context, selectedRingtoneUri)
@@ -176,121 +182,125 @@ fun AddTaskDialog(
           )
         )
 
-        // Description Input field
-        OutlinedTextField(
-          value = description,
-          onValueChange = { description = it },
-          label = { Text(stringResource(R.string.input_desc_label), style = MaterialTheme.typography.bodyLarge) },
-          placeholder = { Text(stringResource(R.string.input_desc_placeholder), style = MaterialTheme.typography.bodyLarge) },
-          modifier = Modifier
-            .fillMaxWidth()
-            .height(110.dp)
-            .testTag("task_description_input"),
-          shape = RoundedCornerShape(12.dp),
-          colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = MaterialTheme.colorScheme.primary,
-            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+        // Task Day Selection
+        Text(
+          text = stringResource(R.string.label_task_day),
+          style = MaterialTheme.typography.bodyLarge.copy(
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
           )
         )
 
-        // Task Start Time Input (Optional clickable box)
+        Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+          val dayOptions = listOf("today", "tomorrow")
+          dayOptions.forEach { dayOption ->
+            val isSelected = selectedTaskDay == dayOption
+            val chipBg = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)
+            val chipTextColor = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+            val localizedDay = when (dayOption) {
+              "today" -> stringResource(R.string.today_tasks)
+              "tomorrow" -> stringResource(R.string.tomorrow_tasks)
+              else -> dayOption
+            }
+
+            Box(
+              modifier = Modifier
+                .weight(1f)
+                .clip(RoundedCornerShape(10.dp))
+                .background(chipBg)
+                .clickable { selectedTaskDay = dayOption }
+                .padding(vertical = 10.dp)
+                .testTag("task_day_chip_${dayOption}"),
+              contentAlignment = Alignment.Center
+            ) {
+              Text(
+                text = localizedDay,
+                style = MaterialTheme.typography.labelSmall.copy(
+                  fontSize = 13.sp,
+                  fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                  color = chipTextColor
+                )
+              )
+            }
+          }
+        }
+
+        // Task Start Time Input
         Box(
-          modifier = Modifier
-            .fillMaxWidth()
-            .clickable { showTimePickerDialog = true }
+          modifier = Modifier.fillMaxWidth()
         ) {
           OutlinedTextField(
             value = startTime,
             onValueChange = {},
             readOnly = true,
-            enabled = false,
+            enabled = true,
             label = { Text(stringResource(R.string.label_start_time), style = MaterialTheme.typography.bodyLarge) },
             placeholder = { Text(stringResource(R.string.placeholder_start_time), style = MaterialTheme.typography.bodyLarge) },
             trailingIcon = {
-              Icon(
-                imageVector = Icons.Default.AccessTime,
-                contentDescription = stringResource(R.string.label_start_time),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-              )
+              if (startTime.isNotBlank()) {
+                IconButton(
+                  onClick = {
+                    startTime = ""
+                    enableReminder = false
+                    // Cancel any active reminder for this task directly if editing
+                    taskToEdit?.let {
+                      com.example.features.tasks.ReminderScheduler.cancelReminder(context, it.id)
+                    }
+                  },
+                  modifier = Modifier.testTag("clear_start_time_button")
+                ) {
+                  Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Clear start time",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                  )
+                }
+              } else {
+                IconButton(
+                  onClick = { showTimePickerDialog = true },
+                  modifier = Modifier.testTag("open_time_picker_button")
+                ) {
+                  Icon(
+                    imageVector = Icons.Default.AccessTime,
+                    contentDescription = stringResource(R.string.label_start_time),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                  )
+                }
+              }
             },
             modifier = Modifier
               .fillMaxWidth()
               .testTag("task_start_time_input"),
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
-              disabledTextColor = MaterialTheme.colorScheme.onSurface,
-              disabledBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
-              disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-              disabledPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-              disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
+              focusedTextColor = MaterialTheme.colorScheme.onSurface,
+              unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+              focusedBorderColor = MaterialTheme.colorScheme.primary,
+              unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
             )
+          )
+
+          // Clickable overlay covering the field except the trailing icon (on the right)
+          Box(
+            modifier = Modifier
+              .matchParentSize()
+              .padding(end = 56.dp)
+              .clickable { showTimePickerDialog = true }
           )
         }
 
-        // Notification Reminder (Optional Switch toggle)
-        Row(
-          modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.03f))
-            .clickable { enableReminder = !enableReminder }
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-          verticalAlignment = Alignment.CenterVertically,
-          horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-          Row(
-            modifier = Modifier.weight(1f),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-          ) {
-            Icon(
-              imageVector = if (enableReminder) Icons.Default.NotificationsActive else Icons.Default.Notifications,
-              contentDescription = stringResource(R.string.label_reminder),
-              tint = if (enableReminder) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Column {
-              Text(
-                text = stringResource(R.string.label_reminder),
-                style = MaterialTheme.typography.bodyMedium.copy(
-                  fontWeight = FontWeight.Bold,
-                  color = MaterialTheme.colorScheme.onSurface
-                )
-              )
-              Text(
-                text = stringResource(R.string.desc_reminder),
-                style = MaterialTheme.typography.bodySmall.copy(
-                  color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
-                )
-              )
-            }
-          }
-
-          Switch(
-            checked = enableReminder,
-            onCheckedChange = null,
-            modifier = Modifier.testTag("task_reminder_switch")
-          )
-        }
-
-        // Custom Ringtone Selector
-        if (enableReminder) {
+        if (startTime.isNotBlank()) {
+          // Notification Reminder (Optional Switch toggle)
           Row(
             modifier = Modifier
               .fillMaxWidth()
               .clip(RoundedCornerShape(12.dp))
               .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.03f))
-              .clickable {
-                val intent = android.content.Intent(android.media.RingtoneManager.ACTION_RINGTONE_PICKER).apply {
-                  putExtra(android.media.RingtoneManager.EXTRA_RINGTONE_TYPE, android.media.RingtoneManager.TYPE_ALARM)
-                  putExtra(android.media.RingtoneManager.EXTRA_RINGTONE_TITLE, context.getString(R.string.ringtone_label))
-                  putExtra(android.media.RingtoneManager.EXTRA_RINGTONE_EXISTING_URI, selectedRingtoneUri?.let { android.net.Uri.parse(it) })
-                  putExtra(android.media.RingtoneManager.EXTRA_RINGTONE_SHOW_DEFAULT, true)
-                  putExtra(android.media.RingtoneManager.EXTRA_RINGTONE_SHOW_SILENT, false)
-                }
-                ringtonePickerLauncher.launch(intent)
-              }
-              .padding(horizontal = 16.dp, vertical = 12.dp)
-              .testTag("ringtone_selector_row"),
+              .clickable { enableReminder = !enableReminder }
+              .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
           ) {
@@ -300,35 +310,146 @@ fun AddTaskDialog(
               horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
               Icon(
-                imageVector = Icons.Default.Audiotrack,
-                contentDescription = stringResource(R.string.ringtone_label),
-                tint = MaterialTheme.colorScheme.primary
+                imageVector = if (enableReminder) Icons.Default.NotificationsActive else Icons.Default.Notifications,
+                contentDescription = stringResource(R.string.label_reminder),
+                tint = if (enableReminder) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
               )
               Column {
                 Text(
-                  text = stringResource(R.string.ringtone_label),
+                  text = stringResource(R.string.label_reminder),
                   style = MaterialTheme.typography.bodyMedium.copy(
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
                   )
                 )
                 Text(
-                  text = selectedRingtoneName,
+                  text = stringResource(R.string.desc_reminder),
                   style = MaterialTheme.typography.bodySmall.copy(
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
-                  ),
-                  maxLines = 1,
-                  overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
-                  modifier = Modifier.testTag("selected_ringtone_name")
+                  )
                 )
               }
             }
 
-            Icon(
-              imageVector = Icons.Default.ChevronRight,
-              contentDescription = "Navigate",
-              tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+            Switch(
+              checked = enableReminder,
+              onCheckedChange = { enableReminder = it },
+              modifier = Modifier.testTag("task_reminder_switch")
             )
+          }
+
+          // Custom Ringtone and Reminder Type Selectors
+          if (enableReminder) {
+            // Reminder Type selector row
+            Row(
+              modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.03f))
+                .clickable {
+                  reminderNotification = !reminderNotification
+                  com.example.features.settings.ReminderSettingsManager.setReminderNotification(context, reminderNotification)
+                }
+                .padding(horizontal = 16.dp, vertical = 12.dp)
+                .testTag("reminder_type_selector_row"),
+              verticalAlignment = Alignment.CenterVertically,
+              horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+              Row(
+                modifier = Modifier.weight(1f),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+              ) {
+                Icon(
+                  imageVector = Icons.Default.Notifications,
+                  contentDescription = stringResource(R.string.label_reminder_type),
+                  tint = MaterialTheme.colorScheme.primary
+                )
+                Column {
+                  Text(
+                    text = stringResource(R.string.label_reminder_type),
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                      fontWeight = FontWeight.Bold,
+                      color = MaterialTheme.colorScheme.onSurface
+                    )
+                  )
+                  Text(
+                    text = if (reminderNotification) stringResource(R.string.reminder_type_notification) else stringResource(R.string.reminder_type_alarm),
+                    style = MaterialTheme.typography.bodySmall.copy(
+                      color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                    ),
+                    modifier = Modifier.testTag("selected_reminder_type_name")
+                  )
+                }
+              }
+
+              Switch(
+                checked = reminderNotification,
+                onCheckedChange = { value ->
+                  reminderNotification = value
+                  com.example.features.settings.ReminderSettingsManager.setReminderNotification(context, value)
+                },
+                modifier = Modifier.testTag("task_reminder_type_switch")
+              )
+            }
+
+            // Ringtone Row
+            Row(
+              modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.03f))
+                .clickable {
+                  val intent = android.content.Intent(android.media.RingtoneManager.ACTION_RINGTONE_PICKER).apply {
+                    putExtra(android.media.RingtoneManager.EXTRA_RINGTONE_TYPE, android.media.RingtoneManager.TYPE_ALARM)
+                    putExtra(android.media.RingtoneManager.EXTRA_RINGTONE_TITLE, context.getString(R.string.ringtone_label))
+                    putExtra(android.media.RingtoneManager.EXTRA_RINGTONE_EXISTING_URI, selectedRingtoneUri?.let { android.net.Uri.parse(it) })
+                    putExtra(android.media.RingtoneManager.EXTRA_RINGTONE_SHOW_DEFAULT, true)
+                    putExtra(android.media.RingtoneManager.EXTRA_RINGTONE_SHOW_SILENT, false)
+                  }
+                  ringtonePickerLauncher.launch(intent)
+                }
+                .padding(horizontal = 16.dp, vertical = 12.dp)
+                .testTag("ringtone_selector_row"),
+              verticalAlignment = Alignment.CenterVertically,
+              horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+              Row(
+                modifier = Modifier.weight(1f),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+              ) {
+                Icon(
+                  imageVector = Icons.Default.Audiotrack,
+                  contentDescription = stringResource(R.string.ringtone_label),
+                  tint = MaterialTheme.colorScheme.primary
+                )
+                Column {
+                  Text(
+                    text = stringResource(R.string.ringtone_label),
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                      fontWeight = FontWeight.Bold,
+                      color = MaterialTheme.colorScheme.onSurface
+                    )
+                  )
+                  Text(
+                    text = selectedRingtoneName,
+                    style = MaterialTheme.typography.bodySmall.copy(
+                      color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                    ),
+                    maxLines = 1,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                    modifier = Modifier.testTag("selected_ringtone_name")
+                  )
+                }
+              }
+
+              Icon(
+                imageVector = Icons.Default.ChevronRight,
+                contentDescription = "Navigate",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+              )
+            }
           }
         }
 
@@ -377,53 +498,22 @@ fun AddTaskDialog(
           }
         }
 
-        Spacer(modifier = Modifier.height(4.dp))
-
-        // Task Day Selection
-        Text(
-          text = stringResource(R.string.label_task_day),
-          style = MaterialTheme.typography.bodyLarge.copy(
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+        // Description Input field
+        OutlinedTextField(
+          value = description,
+          onValueChange = { description = it },
+          label = { Text(stringResource(R.string.input_desc_label), style = MaterialTheme.typography.bodyLarge) },
+          placeholder = { Text(stringResource(R.string.input_desc_placeholder), style = MaterialTheme.typography.bodyLarge) },
+          modifier = Modifier
+            .fillMaxWidth()
+            .height(110.dp)
+            .testTag("task_description_input"),
+          shape = RoundedCornerShape(12.dp),
+          colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = MaterialTheme.colorScheme.primary,
+            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
           )
         )
-
-        Row(
-          modifier = Modifier.fillMaxWidth(),
-          horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-          val dayOptions = listOf("today", "tomorrow")
-          dayOptions.forEach { dayOption ->
-            val isSelected = selectedTaskDay == dayOption
-            val chipBg = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)
-            val chipTextColor = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-            val localizedDay = when (dayOption) {
-              "today" -> stringResource(R.string.today_tasks)
-              "tomorrow" -> stringResource(R.string.tomorrow_tasks)
-              else -> dayOption
-            }
-
-            Box(
-              modifier = Modifier
-                .weight(1f)
-                .clip(RoundedCornerShape(10.dp))
-                .background(chipBg)
-                .clickable { selectedTaskDay = dayOption }
-                .padding(vertical = 10.dp)
-                .testTag("task_day_chip_${dayOption}"),
-              contentAlignment = Alignment.Center
-            ) {
-              Text(
-                text = localizedDay,
-                style = MaterialTheme.typography.labelSmall.copy(
-                  fontSize = 13.sp,
-                  fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                  color = chipTextColor
-                )
-              )
-            }
-          }
-        }
 
         Spacer(modifier = Modifier.height(12.dp))
 
