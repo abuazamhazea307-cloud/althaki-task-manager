@@ -121,9 +121,9 @@
     <string name="language_settings_btn">فتح إعدادات لغة الجهاز</string>
     <string name="general_settings_title">الإعدادات العامة</string>
     <string name="general_settings_back_desc">الرجوع للإعدادات</string>
-    <string name="general_splash_screen_title">شاشة الترحيب</string>
-    <string name="general_show_splash_title">عرض شاشة الترحيب</string>
-    <string name="general_show_splash_desc">عرض شاشة الترحيب الرسومية عند تشغيل التطبيق</string>
+    <string name="general_splash_screen_title">شاشة البداية</string>
+    <string name="general_show_splash_title">عرض شاشة البداية</string>
+    <string name="general_show_splash_desc">عرض شاشة البداية الرسمية لسلسلة الذكي عند تشغيل التطبيق.</string>
     <string name="general_splash_style_title">عرض شاشة الترحيب</string>
     <string name="general_splash_style_desc">اختر نمط شاشة الترحيب الرسومية</string>
     <string name="general_splash_style_default">تلقائي (الافتراضي)</string>

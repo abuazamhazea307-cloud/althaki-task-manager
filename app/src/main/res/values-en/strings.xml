@@ -123,7 +123,7 @@
     <string name="general_settings_back_desc">Back to Settings</string>
     <string name="general_splash_screen_title">Splash Screen</string>
     <string name="general_show_splash_title">Show Splash Screen</string>
-    <string name="general_show_splash_desc">Display splash screen during app launch</string>
+    <string name="general_show_splash_desc">Display the official Althaki series splash screen on app startup.</string>
     <string name="general_splash_style_title">Welcome Splash Style</string>
     <string name="general_splash_style_desc">Select the style of the welcome splash screen</string>
     <string name="general_splash_style_default">Automatic (Default)</string>

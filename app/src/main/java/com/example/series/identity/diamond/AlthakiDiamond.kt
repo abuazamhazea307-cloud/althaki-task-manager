@@ -53,32 +53,24 @@ fun AlthakiDiamond(
   sizeDp: Dp = 180.dp,
   bloomProgress: Float = 1f, // 0f to 1f for the materialization effect
   shimmerProgress: Float = 0f, // 0f to 1f for the manual diagonal shine sweep
+  sparkleAlpha: Float = 0f, // 0f to 1f for the final announcement flash
   alpha: Float = 1f
 ) {
   val infiniteTransition = rememberInfiniteTransition(label = "AlthakiDiamondTransition")
 
   // 1. Glow Breathing animation (modulates the backing glow's opacity and radius)
   val glowAlpha by infiniteTransition.animateFloat(
-    initialValue = 0.35f,
-    targetValue = 0.65f,
+    initialValue = 0.40f,
+    targetValue = 0.70f,
     animationSpec = infiniteRepeatable(
-      animation = tween(durationMillis = 2800, easing = FastOutSlowInEasing),
+      animation = tween(durationMillis = 4500, easing = FastOutSlowInEasing),
       repeatMode = RepeatMode.Reverse
     ),
     label = "GlowBreathing"
   )
 
-  // 2. Continuous Floating animation (smooth sinusoidal vertical translation)
-  val floatOffsetRaw by infiniteTransition.animateFloat(
-    initialValue = 0f,
-    targetValue = (2 * Math.PI).toFloat(),
-    animationSpec = infiniteRepeatable(
-      animation = tween(durationMillis = 4000, easing = LinearEasing),
-      repeatMode = RepeatMode.Restart
-    ),
-    label = "FloatTranslation"
-  )
-  val floatY = sin(floatOffsetRaw) * 6f // Gently float up and down by 6 pixels
+  // 2. Float translation is completely disabled for luxury stability (no floating offset)
+  val floatY = 0f
 
   // 3. Staggered Sparkle Particles alphas
   val sparkleA by infiniteTransition.animateFloat(
@@ -414,6 +406,13 @@ fun AlthakiDiamond(
       drawSparkle(this, 84f * scaleX, 32f * scaleY + finalYOffset, 5f * scaleX, sparkleB * reflectionAndSparkleAlpha)
       drawSparkle(this, 22f * scaleX, 70f * scaleY + finalYOffset, 4f * scaleX, sparkleC * reflectionAndSparkleAlpha)
       drawSparkle(this, 78f * scaleX, 64f * scaleY + finalYOffset, 4.5f * scaleX, sparkleA * reflectionAndSparkleAlpha)
+    }
+
+    // ----------------------------------------------------
+    // GRAND FINAL ANNOUNCEMENT SPARKLE (The cue to reveal text)
+    // ----------------------------------------------------
+    if (sparkleAlpha > 0f) {
+      drawSparkle(this, 41f * scaleX, 36f * scaleY + finalYOffset, 12f * scaleX, sparkleAlpha * alpha)
     }
   }
 }

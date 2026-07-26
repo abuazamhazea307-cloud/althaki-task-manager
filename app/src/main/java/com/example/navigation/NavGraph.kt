@@ -19,10 +19,9 @@ import com.example.features.settings.GeneralSettingsManager
 
 @Composable
 fun NavGraph(navController: NavHostController) {
-  val startRoute = if (GeneralSettingsManager.showSplash) Screen.Splash.route else Screen.Home.route
   NavHost(
     navController = navController,
-    startDestination = startRoute
+    startDestination = Screen.Splash.route
   ) {
     composable(Screen.Splash.route) {
       MagicDiamondSplashEngine(navController = navController)
