@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.VerifiedUser
+import androidx.compose.material.icons.filled.Checklist
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -45,7 +46,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.BuildConfig
 import com.example.R
-import com.example.series.identity.diamond.GeometricLogo
 
 @Composable
 fun AboutScreen(navController: NavController) {
@@ -143,9 +143,11 @@ fun AboutScreen(navController: NavController) {
               .testTag("about_logo_container"),
             contentAlignment = Alignment.Center
           ) {
-            GeometricLogo(
-              modifier = Modifier.size(54.dp),
-              color = MaterialTheme.colorScheme.primary
+            Icon(
+              imageVector = Icons.Default.Checklist,
+              contentDescription = null,
+              tint = MaterialTheme.colorScheme.primary,
+              modifier = Modifier.size(54.dp)
             )
           }
 

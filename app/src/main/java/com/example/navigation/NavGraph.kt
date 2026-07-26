@@ -11,21 +11,15 @@ import com.example.features.settings.SettingsScreen
 import com.example.features.settings.GeneralSettingsScreen
 import com.example.features.settings.TaskSettingsScreen
 import com.example.features.settings.ReminderSettingsScreen
-import com.example.series.identity.diamond.MagicDiamondSplashEngine
 import com.example.features.tasks.TasksScreen
 import com.example.features.tasks.TomorrowTasksScreen
-
-import com.example.features.settings.GeneralSettingsManager
 
 @Composable
 fun NavGraph(navController: NavHostController) {
   NavHost(
     navController = navController,
-    startDestination = Screen.Splash.route
+    startDestination = Screen.Home.route
   ) {
-    composable(Screen.Splash.route) {
-      MagicDiamondSplashEngine(navController = navController)
-    }
     composable(Screen.Home.route) {
       HomeScreen(navController = navController)
     }
