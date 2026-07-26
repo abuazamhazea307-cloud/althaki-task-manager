@@ -3,7 +3,7 @@ package com.example
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onRoot
 import androidx.navigation.compose.rememberNavController
-import com.example.features.splash.SplashScreen
+import com.example.series.identity.diamond.AlthakiDiamondSplashEngine
 import com.example.ui.theme.MyApplicationTheme
 import com.github.takahirom.roborazzi.RobolectricDeviceQualifiers
 import com.github.takahirom.roborazzi.captureRoboImage
@@ -26,7 +26,7 @@ class GreetingScreenshotTest {
     composeTestRule.setContent {
       MyApplicationTheme {
         val navController = rememberNavController()
-        SplashScreen(navController = navController)
+        AlthakiDiamondSplashEngine(navController = navController)
       }
     }
 

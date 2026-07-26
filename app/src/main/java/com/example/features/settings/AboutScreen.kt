@@ -45,7 +45,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.BuildConfig
 import com.example.R
-import com.example.features.splash.GeometricLogo
+import com.example.series.identity.diamond.GeometricLogo
 
 @Composable
 fun AboutScreen(navController: NavController) {
