@@ -27,7 +27,7 @@ object ReminderSettingsManager {
     const val DEFAULT_ALARM_TIMEOUT_SEC = 300 // 5 minutes (300s)
 
     // Reactively exposed Compose states for immediate UI updates
-    var reminderByDefault by mutableStateOf(true)
+    var reminderByDefault by mutableStateOf(false)
         private set
 
     var defaultAlarmSound by mutableStateOf("")
@@ -62,7 +62,7 @@ object ReminderSettingsManager {
      */
     fun init(context: Context) {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        reminderByDefault = prefs.getBoolean(KEY_REMINDER_BY_DEFAULT, true)
+        reminderByDefault = prefs.getBoolean(KEY_REMINDER_BY_DEFAULT, false)
         
         // Default default alarm sound
         val defaultUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)?.toString() ?: ""
@@ -133,7 +133,7 @@ object ReminderSettingsManager {
      * Restores all core reminder settings back to their default values.
      */
     fun restoreDefaults(context: Context) {
-        setReminderByDefault(context, true)
+        setReminderByDefault(context, false)
         val defaultUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)?.toString() ?: ""
         setDefaultAlarmSound(context, defaultUri)
         setDefaultSnoozeDuration(context, DEFAULT_SNOOZE_DUR)
