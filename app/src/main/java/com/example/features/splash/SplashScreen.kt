@@ -39,7 +39,7 @@ fun SplashScreen(navController: NavController) {
   val showAnimations = com.example.features.settings.GeneralSettingsManager.enableAnimations
   val durationType = com.example.features.settings.GeneralSettingsManager.splashDuration
 
-  // Adjust welcome branding duration based on Settings selection
+  // Adjust welcome duration based on the custom settings selection
   val welcomeDuration = when (durationType) {
     com.example.features.settings.GeneralSettingsManager.DURATION_SHORT -> 1500L
     com.example.features.settings.GeneralSettingsManager.DURATION_NORMAL -> 3000L
@@ -47,88 +47,126 @@ fun SplashScreen(navController: NavController) {
     else -> 4000L // Default (Recommended)
   }
 
-  // Animatables start at 0f (except scale) so elements are hidden initially and then animate in
+  // All 5 brand elements are created in the first frame.
+  // They start with Alpha = 0f and Scale = 0.92f to prevent empty screen flashes.
   val diamondAlpha = remember { Animatable(0f) }
-  val diamondScale = remember { Animatable(0.8f) }
+  val diamondScale = remember { Animatable(0.92f) }
 
   val titleAlpha = remember { Animatable(0f) }
+  val titleScale = remember { Animatable(0.92f) }
+
   val taskLogoAlpha = remember { Animatable(0f) }
+  val taskLogoScale = remember { Animatable(0.92f) }
+
   val subtitleAlpha = remember { Animatable(0f) }
+  val subtitleScale = remember { Animatable(0.92f) }
+
   val welcomeAlpha = remember { Animatable(0f) }
+  val welcomeScale = remember { Animatable(0.92f) }
 
   LaunchedEffect(Unit) {
     if (showAnimations) {
-      // Calculate scaled animation duration and step delay (each is 10% of welcome duration)
-      val animDuration = (welcomeDuration * 0.10f).toInt()
-      val stepDelay = (welcomeDuration * 0.10f).toLong()
+      // Calculate dynamic step duration and delay proportional to the total welcome duration
+      val stepDuration = (welcomeDuration * 0.20f).coerceIn(350f, 900f).toInt()
+      val stepDelay = (welcomeDuration * 0.08f).coerceIn(100f, 350f).toLong()
 
-      // Animation 1: Official Althaki Diamond (💎)
+      // 1. 💎 (Althaki Diamond Logo) starts instantly
       launch {
         diamondAlpha.animateTo(
           targetValue = 1f,
-          animationSpec = tween(durationMillis = animDuration, easing = FastOutSlowInEasing)
+          animationSpec = tween(durationMillis = stepDuration, easing = FastOutSlowInEasing)
         )
       }
       launch {
         diamondScale.animateTo(
           targetValue = 1f,
-          animationSpec = tween(durationMillis = animDuration, easing = FastOutSlowInEasing)
+          animationSpec = tween(durationMillis = stepDuration, easing = FastOutSlowInEasing)
         )
       }
 
-      // Animation 2: Below the Diamond - "الذكي" Fade In
+      // 2. Brand text "الذكي"
       delay(stepDelay)
       launch {
         titleAlpha.animateTo(
           targetValue = 1f,
-          animationSpec = tween(durationMillis = animDuration, easing = FastOutSlowInEasing)
+          animationSpec = tween(durationMillis = stepDuration, easing = FastOutSlowInEasing)
+        )
+      }
+      launch {
+        titleScale.animateTo(
+          targetValue = 1f,
+          animationSpec = tween(durationMillis = stepDuration, easing = FastOutSlowInEasing)
         )
       }
 
-      // Animation 3: Below "الذكي" - Custom Task Manager Logo (📝) Fade In
+      // 3. 📝 (Custom Task Manager Logo)
       delay(stepDelay)
       launch {
         taskLogoAlpha.animateTo(
           targetValue = 1f,
-          animationSpec = tween(durationMillis = animDuration, easing = FastOutSlowInEasing)
+          animationSpec = tween(durationMillis = stepDuration, easing = FastOutSlowInEasing)
+        )
+      }
+      launch {
+        taskLogoScale.animateTo(
+          targetValue = 1f,
+          animationSpec = tween(durationMillis = stepDuration, easing = FastOutSlowInEasing)
         )
       }
 
-      // Animation 4: Below the Task Logo - "مدير المهام" Subtitle Fade In
+      // 4. "مدير المهام" Subtitle
       delay(stepDelay)
       launch {
         subtitleAlpha.animateTo(
           targetValue = 1f,
-          animationSpec = tween(durationMillis = animDuration, easing = FastOutSlowInEasing)
+          animationSpec = tween(durationMillis = stepDuration, easing = FastOutSlowInEasing)
+        )
+      }
+      launch {
+        subtitleScale.animateTo(
+          targetValue = 1f,
+          animationSpec = tween(durationMillis = stepDuration, easing = FastOutSlowInEasing)
         )
       }
 
-      // Animation 5: Bottom area - "مرحبًا بك 🌹" Fade In gently
+      // 5. Welcome text "مرحبًا بك 🌹"
       delay(stepDelay)
       launch {
         welcomeAlpha.animateTo(
           targetValue = 1f,
-          animationSpec = tween(durationMillis = animDuration, easing = FastOutSlowInEasing)
+          animationSpec = tween(durationMillis = stepDuration, easing = FastOutSlowInEasing)
+        )
+      }
+      launch {
+        welcomeScale.animateTo(
+          targetValue = 1f,
+          animationSpec = tween(durationMillis = stepDuration, easing = FastOutSlowInEasing)
         )
       }
 
-      // Complete the remaining welcome duration (rest time)
-      val totalSpent = stepDelay * 4 + animDuration
+      // Keep screen visible until the chosen welcomeDuration expires
+      val totalSpent = (stepDelay * 4) + stepDuration
       val remaining = (welcomeDuration - totalSpent).coerceAtLeast(0L)
       delay(remaining)
     } else {
-      // If animations are disabled, immediately snap all elements to visible, and wait welcomeDuration
+      // If animations are disabled, immediately snap all elements to fully visible
       diamondAlpha.snapTo(1f)
       diamondScale.snapTo(1f)
       titleAlpha.snapTo(1f)
+      titleScale.snapTo(1f)
       taskLogoAlpha.snapTo(1f)
+      taskLogoScale.snapTo(1f)
       subtitleAlpha.snapTo(1f)
+      subtitleScale.snapTo(1f)
       welcomeAlpha.snapTo(1f)
+      welcomeScale.snapTo(1f)
 
       delay(welcomeDuration)
     }
 
+    // Single top transition popUpTo inclusive home
     navController.navigate(Screen.Home.route) {
+      launchSingleTop = true
       popUpTo(Screen.Splash.route) { inclusive = true }
     }
   }
@@ -151,15 +189,15 @@ fun SplashScreen(navController: NavController) {
           .fillMaxSize()
           .padding(top = 80.dp, bottom = 60.dp, start = 24.dp, end = 24.dp)
       ) {
-        // Top spacer for visual balance
+        // Top spacer for perfect layout balance
         Spacer(modifier = Modifier.height(1.dp))
 
-        // Central visual identity stack
+        // Center section: Identity stack containing Althaki Diamond, Brand name, Task Manager Logo and Subtitle
         Column(
           horizontalAlignment = Alignment.CenterHorizontally,
           verticalArrangement = Arrangement.Center
         ) {
-          // Animation 1: Official Althaki Diamond
+          // 1. Official Althaki Diamond (💎)
           Box(
             modifier = Modifier
               .size(100.dp)
@@ -178,7 +216,7 @@ fun SplashScreen(navController: NavController) {
 
           Spacer(modifier = Modifier.height(24.dp))
 
-          // Animation 2: Brand text "الذكي"
+          // 2. Brand text "الذكي"
           Text(
             text = stringResource(R.string.splash_title),
             style = MaterialTheme.typography.displayMedium.copy(
@@ -188,17 +226,25 @@ fun SplashScreen(navController: NavController) {
               letterSpacing = 0.5.sp
             ),
             modifier = Modifier
-              .graphicsLayer(alpha = titleAlpha.value)
+              .graphicsLayer(
+                scaleX = titleScale.value,
+                scaleY = titleScale.value,
+                alpha = titleAlpha.value
+              )
               .testTag("splash_brand_title")
           )
 
           Spacer(modifier = Modifier.height(44.dp))
 
-          // Animation 3: Custom Task Manager Logo
+          // 3. Custom Task Manager Logo (📝)
           Box(
             modifier = Modifier
               .size(72.dp)
-              .graphicsLayer(alpha = taskLogoAlpha.value),
+              .graphicsLayer(
+                scaleX = taskLogoScale.value,
+                scaleY = taskLogoScale.value,
+                alpha = taskLogoAlpha.value
+              ),
             contentAlignment = Alignment.Center
           ) {
             TaskManagerCustomLogo(
@@ -209,7 +255,7 @@ fun SplashScreen(navController: NavController) {
 
           Spacer(modifier = Modifier.height(16.dp))
 
-          // Animation 4: "مدير المهام" Subtitle
+          // 4. "مدير المهام" Subtitle
           Text(
             text = stringResource(R.string.splash_subtitle),
             style = MaterialTheme.typography.titleLarge.copy(
@@ -219,12 +265,16 @@ fun SplashScreen(navController: NavController) {
               letterSpacing = 0.5.sp
             ),
             modifier = Modifier
-              .graphicsLayer(alpha = subtitleAlpha.value)
+              .graphicsLayer(
+                scaleX = subtitleScale.value,
+                scaleY = subtitleScale.value,
+                alpha = subtitleAlpha.value
+              )
               .testTag("splash_subtitle")
           )
         }
 
-        // Animation 5: Welcome text "مرحبًا بك 🌹"
+        // 5. Welcome text "مرحبًا بك 🌹"
         Text(
           text = stringResource(R.string.splash_welcome) + " 🌹",
           style = MaterialTheme.typography.bodyLarge.copy(
@@ -234,7 +284,11 @@ fun SplashScreen(navController: NavController) {
             letterSpacing = 0.5.sp
           ),
           modifier = Modifier
-            .graphicsLayer(alpha = welcomeAlpha.value)
+            .graphicsLayer(
+              scaleX = welcomeScale.value,
+              scaleY = welcomeScale.value,
+              alpha = welcomeAlpha.value
+            )
             .testTag("splash_welcome_text")
             .padding(bottom = 24.dp)
         )
