@@ -13,12 +13,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -30,25 +28,26 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.R
+import com.example.features.settings.GeneralSettingsManager
 import com.example.navigation.Screen
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
 fun SplashScreen(navController: NavController) {
-  val showAnimations = com.example.features.settings.GeneralSettingsManager.enableAnimations
-  val durationType = com.example.features.settings.GeneralSettingsManager.splashDuration
+  val showAnimations = GeneralSettingsManager.enableAnimations
+  val durationType = GeneralSettingsManager.splashDuration
 
-  // Adjust welcome duration based on the custom settings selection
+  // Resolve the total display duration purely from the settings selection
   val welcomeDuration = when (durationType) {
-    com.example.features.settings.GeneralSettingsManager.DURATION_SHORT -> 1500L
-    com.example.features.settings.GeneralSettingsManager.DURATION_NORMAL -> 3000L
-    com.example.features.settings.GeneralSettingsManager.DURATION_LONG -> 5000L
+    GeneralSettingsManager.DURATION_SHORT -> 1500L
+    GeneralSettingsManager.DURATION_NORMAL -> 3000L
+    GeneralSettingsManager.DURATION_LONG -> 5000L
     else -> 4000L // Default (Recommended)
   }
 
-  // All 5 brand elements are created in the first frame.
-  // They start with Alpha = 0f and Scale = 0.92f to prevent empty screen flashes.
+  // All 5 identity elements are present in the composition from the very first frame.
+  // They start with Alpha = 0f and Scale = 0.92f to ensure smooth transition without blank flashes.
   val diamondAlpha = remember { Animatable(0f) }
   val diamondScale = remember { Animatable(0.92f) }
 
@@ -66,7 +65,7 @@ fun SplashScreen(navController: NavController) {
 
   LaunchedEffect(Unit) {
     if (showAnimations) {
-      // Calculate dynamic step duration and delay proportional to the total welcome duration
+      // Calculate smooth dynamic transition timing based on welcomeDuration
       val stepDuration = (welcomeDuration * 0.20f).coerceIn(350f, 900f).toInt()
       val stepDelay = (welcomeDuration * 0.08f).coerceIn(100f, 350f).toLong()
 
@@ -84,7 +83,7 @@ fun SplashScreen(navController: NavController) {
         )
       }
 
-      // 2. Brand text "الذكي"
+      // 2. "الذكي" Brand Title
       delay(stepDelay)
       launch {
         titleAlpha.animateTo(
@@ -129,7 +128,7 @@ fun SplashScreen(navController: NavController) {
         )
       }
 
-      // 5. Welcome text "مرحبًا بك 🌹"
+      // 5. "مرحبًا بك 🌹" Welcome Message at the bottom
       delay(stepDelay)
       launch {
         welcomeAlpha.animateTo(
@@ -144,12 +143,12 @@ fun SplashScreen(navController: NavController) {
         )
       }
 
-      // Keep screen visible until the chosen welcomeDuration expires
+      // Wait out the remainder of the total splash screen duration
       val totalSpent = (stepDelay * 4) + stepDuration
       val remaining = (welcomeDuration - totalSpent).coerceAtLeast(0L)
       delay(remaining)
     } else {
-      // If animations are disabled, immediately snap all elements to fully visible
+      // Direct snap for immediate display if animations are disabled
       diamondAlpha.snapTo(1f)
       diamondScale.snapTo(1f)
       titleAlpha.snapTo(1f)
@@ -164,136 +163,118 @@ fun SplashScreen(navController: NavController) {
       delay(welcomeDuration)
     }
 
-    // Single top transition popUpTo inclusive home
+    // Direct single-top navigation to the Home screen
     navController.navigate(Screen.Home.route) {
       launchSingleTop = true
       popUpTo(Screen.Splash.route) { inclusive = true }
     }
   }
 
-  Surface(
-    modifier = Modifier.fillMaxSize(),
-    color = Color(0xFF0EA5E9)
+  // Pure sky blue canvas filling the entire screen perfectly from the very first frame
+  Box(
+    modifier = Modifier
+      .fillMaxSize()
+      .background(Color(0xFF0EA5E9))
   ) {
-    Box(
+    // Center Column hosting the core brand identity stack
+    Column(
       modifier = Modifier
-        .fillMaxSize()
-        .background(Color(0xFF0EA5E9))
-        .testTag("splash_screen_root"),
-      contentAlignment = Alignment.Center
+        .align(Alignment.Center)
+        .padding(horizontal = 24.dp),
+      horizontalAlignment = Alignment.CenterHorizontally,
+      verticalArrangement = Arrangement.Center
     ) {
-      Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.SpaceBetween,
+      // 1. 💎 (Althaki Diamond Logo)
+      AlthakiDiamondLogo(
         modifier = Modifier
-          .fillMaxSize()
-          .padding(top = 80.dp, bottom = 60.dp, start = 24.dp, end = 24.dp)
-      ) {
-        // Top spacer for perfect layout balance
-        Spacer(modifier = Modifier.height(1.dp))
-
-        // Center section: Identity stack containing Althaki Diamond, Brand name, Task Manager Logo and Subtitle
-        Column(
-          horizontalAlignment = Alignment.CenterHorizontally,
-          verticalArrangement = Arrangement.Center
-        ) {
-          // 1. Official Althaki Diamond (💎)
-          Box(
-            modifier = Modifier
-              .size(100.dp)
-              .graphicsLayer(
-                scaleX = diamondScale.value,
-                scaleY = diamondScale.value,
-                alpha = diamondAlpha.value
-              ),
-            contentAlignment = Alignment.Center
-          ) {
-            AlthakiDiamondLogo(
-              modifier = Modifier.size(80.dp),
-              color = Color.White
-            )
-          }
-
-          Spacer(modifier = Modifier.height(24.dp))
-
-          // 2. Brand text "الذكي"
-          Text(
-            text = stringResource(R.string.splash_title),
-            style = MaterialTheme.typography.displayMedium.copy(
-              fontSize = 38.sp,
-              fontWeight = FontWeight.Bold,
-              color = Color.White,
-              letterSpacing = 0.5.sp
-            ),
-            modifier = Modifier
-              .graphicsLayer(
-                scaleX = titleScale.value,
-                scaleY = titleScale.value,
-                alpha = titleAlpha.value
-              )
-              .testTag("splash_brand_title")
+          .size(100.dp)
+          .graphicsLayer(
+            alpha = diamondAlpha.value,
+            scaleX = diamondScale.value,
+            scaleY = diamondScale.value
           )
+          .testTag("splash_diamond_logo")
+      )
 
-          Spacer(modifier = Modifier.height(44.dp))
+      Spacer(modifier = Modifier.height(24.dp))
 
-          // 3. Custom Task Manager Logo (📝)
-          Box(
-            modifier = Modifier
-              .size(72.dp)
-              .graphicsLayer(
-                scaleX = taskLogoScale.value,
-                scaleY = taskLogoScale.value,
-                alpha = taskLogoAlpha.value
-              ),
-            contentAlignment = Alignment.Center
-          ) {
-            TaskManagerCustomLogo(
-              modifier = Modifier.size(54.dp),
-              color = Color.White
-            )
-          }
-
-          Spacer(modifier = Modifier.height(16.dp))
-
-          // 4. "مدير المهام" Subtitle
-          Text(
-            text = stringResource(R.string.splash_subtitle),
-            style = MaterialTheme.typography.titleLarge.copy(
-              fontSize = 22.sp,
-              fontWeight = FontWeight.Medium,
-              color = Color.White.copy(alpha = 0.9f),
-              letterSpacing = 0.5.sp
-            ),
-            modifier = Modifier
-              .graphicsLayer(
-                scaleX = subtitleScale.value,
-                scaleY = subtitleScale.value,
-                alpha = subtitleAlpha.value
-              )
-              .testTag("splash_subtitle")
+      // 2. "الذكي" Brand Title
+      Text(
+        text = stringResource(R.string.splash_title),
+        style = MaterialTheme.typography.displayMedium.copy(
+          fontSize = 38.sp,
+          fontWeight = FontWeight.Bold,
+          color = Color.White,
+          letterSpacing = 0.5.sp
+        ),
+        modifier = Modifier
+          .graphicsLayer(
+            alpha = titleAlpha.value,
+            scaleX = titleScale.value,
+            scaleY = titleScale.value
           )
-        }
+          .testTag("splash_brand_title")
+      )
 
-        // 5. Welcome text "مرحبًا بك 🌹"
-        Text(
-          text = stringResource(R.string.splash_welcome) + " 🌹",
-          style = MaterialTheme.typography.bodyLarge.copy(
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Medium,
-            color = Color.White.copy(alpha = 0.85f),
-            letterSpacing = 0.5.sp
+      Spacer(modifier = Modifier.height(44.dp))
+
+      // 3. 📝 (Custom Task Manager Logo)
+      Box(
+        modifier = Modifier
+          .size(72.dp)
+          .graphicsLayer(
+            alpha = taskLogoAlpha.value,
+            scaleX = taskLogoScale.value,
+            scaleY = taskLogoScale.value
           ),
-          modifier = Modifier
-            .graphicsLayer(
-              scaleX = welcomeScale.value,
-              scaleY = welcomeScale.value,
-              alpha = welcomeAlpha.value
-            )
-            .testTag("splash_welcome_text")
-            .padding(bottom = 24.dp)
+        contentAlignment = Alignment.Center
+      ) {
+        TaskManagerCustomLogo(
+          modifier = Modifier.size(54.dp),
+          color = Color.White
         )
       }
+
+      Spacer(modifier = Modifier.height(16.dp))
+
+      // 4. "مدير المهام" Subtitle
+      Text(
+        text = stringResource(R.string.splash_subtitle),
+        style = MaterialTheme.typography.titleLarge.copy(
+          fontSize = 22.sp,
+          fontWeight = FontWeight.Medium,
+          color = Color.White.copy(alpha = 0.9f),
+          letterSpacing = 0.5.sp
+        ),
+        modifier = Modifier
+          .graphicsLayer(
+            alpha = subtitleAlpha.value,
+            scaleX = subtitleScale.value,
+            scaleY = subtitleScale.value
+          )
+          .testTag("splash_subtitle")
+      )
     }
+
+    // 5. "مرحبًا بك 🌹" Welcome message aligned at the bottom
+    Text(
+      text = stringResource(R.string.splash_welcome) + " 🌹",
+      style = MaterialTheme.typography.bodyLarge.copy(
+        fontSize = 18.sp,
+        fontWeight = FontWeight.Medium,
+        color = Color.White.copy(alpha = 0.85f),
+        letterSpacing = 0.5.sp
+      ),
+      modifier = Modifier
+        .align(Alignment.BottomCenter)
+        .padding(bottom = 60.dp)
+        .graphicsLayer(
+          alpha = welcomeAlpha.value,
+          scaleX = welcomeScale.value,
+          scaleY = welcomeScale.value
+        )
+        .testTag("splash_welcome_text")
+    )
   }
 }
 
@@ -480,7 +461,7 @@ fun GeometricLogo(
     val scaleX = width / 108f
     val scaleY = height / 108f
 
-    // 1. Large White Outer Circle (Radius 30)
+    // 1. Large Outer Circle (Radius 30)
     drawCircle(
       color = color,
       radius = 30f * scaleX,
@@ -497,7 +478,6 @@ fun GeometricLogo(
     )
 
     // 3. Official Althaki Diamond Logo (centered at Y=44)
-    // Outer Crystal Outline
     val outerDiamond = androidx.compose.ui.graphics.Path().apply {
       moveTo(45f * scaleX, 34f * scaleY)
       lineTo(63f * scaleX, 34f * scaleY)
@@ -569,7 +549,6 @@ fun GeometricLogo(
     drawLine(color = color, start = androidx.compose.ui.geometry.Offset(45f * scaleX, 44f * scaleY), end = androidx.compose.ui.geometry.Offset(49.5f * scaleX, 44f * scaleY), strokeWidth = 0.8f * scaleX, cap = androidx.compose.ui.graphics.StrokeCap.Round)
 
     // 4. Custom Task Manager Symbol (centered at Y=71)
-    // Paper Outline
     val paperPath = androidx.compose.ui.graphics.Path().apply {
       moveTo(49f * scaleX, 64f * scaleY)
       lineTo(57f * scaleX, 64f * scaleY)
