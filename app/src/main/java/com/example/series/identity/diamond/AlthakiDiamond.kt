@@ -234,133 +234,187 @@ fun AlthakiDiamond(
     }
 
     // ----------------------------------------------------
-    // MAIN DIAMOND FACET COLOR FILLS (With customized gradients)
+    // PROGRESSIVE MATERIALIZATION CALCULATOR & STAGGER ENGINE
     // ----------------------------------------------------
-    val fAlpha = alpha * bloomProgress
+    fun getLocalAlpha(start: Float, end: Float): Float {
+      if (bloomProgress < start) return 0f
+      if (bloomProgress >= end) return alpha
+      return ((bloomProgress - start) / (end - start)) * alpha
+    }
+
+    // 0% - 10%: Draw point of light in the center
+    if (bloomProgress < 0.35f) {
+      val lightAlpha = if (bloomProgress < 0.10f) {
+        // 0% to 10%: intensity rises from 0.3f to 1.0f
+        0.3f + (bloomProgress / 0.10f) * 0.7f
+      } else {
+        // 10% to 35%: slowly fade out and integrate into the crystal structures
+        1.0f - ((bloomProgress - 0.10f) / 0.25f)
+      }
+      val lightRadius = if (bloomProgress < 0.10f) {
+        (2.5f + (bloomProgress / 0.10f) * 6.5f) * scaleX
+      } else {
+        (9.0f + ((bloomProgress - 0.10f) / 0.25f) * 11.0f) * scaleX
+      }
+
+      drawCircle(
+        color = Color.White.copy(alpha = lightAlpha * alpha),
+        radius = lightRadius,
+        center = Offset(cx, cy)
+      )
+    }
+
+    // 20% - 55%: Delicate crystal wireframe lines (subtle lines build up first)
+    // 55% - 90%: Crisp solid crystal borders/edges
+    val wireframeAlpha = getLocalAlpha(0.20f, 0.55f) * 0.25f
+    val solidBorderAlpha = getLocalAlpha(0.55f, 0.90f) * 0.70f
+    val edgeColor = cWhite.copy(alpha = (wireframeAlpha + solidBorderAlpha).coerceIn(0f, 1f))
+    val edgeW = 1.2f * scaleX
+
+    // 35% - 75%: Facet Color Fills Materializing Facet-by-Facet (Staggered progression)
+    // Table (Top Flat Face): 35% - 45%
+    val f1Alpha = getLocalAlpha(0.35f, 0.45f)
+    // Crown Left & Right: 40% - 50%
+    val f2Alpha = getLocalAlpha(0.40f, 0.50f)
+    val f4Alpha = getLocalAlpha(0.40f, 0.50f)
+    // Crown Far Left & Far Right: 45% - 55%
+    val f3Alpha = getLocalAlpha(0.45f, 0.55f)
+    val f5Alpha = getLocalAlpha(0.45f, 0.55f)
+    // Crown Center-Top & Mid Left / Right: 50% - 65%
+    val f6Alpha = getLocalAlpha(0.50f, 0.65f)
+    val f7Alpha = getLocalAlpha(0.50f, 0.65f)
+    val f8Alpha = getLocalAlpha(0.50f, 0.65f)
+    // Pavilion Bottom Facets: 55% - 75%
+    val f9Alpha = getLocalAlpha(0.55f, 0.70f)
+    val f10Alpha = getLocalAlpha(0.57f, 0.72f)
+    val f11Alpha = getLocalAlpha(0.59f, 0.74f)
+    val f12Alpha = getLocalAlpha(0.61f, 0.75f)
 
     // 1. Table Face (Top flat Octagon/Quad)
     drawFacet(this, tLeft, tRight, tMidRight, tMidLeft, Brush.linearGradient(
-      colors = listOf(cWhite.copy(alpha = fAlpha), cDiamondWhite.copy(alpha = fAlpha)),
+      colors = listOf(cWhite.copy(alpha = f1Alpha), cDiamondWhite.copy(alpha = f1Alpha)),
       start = tLeft, end = tMidRight
     ))
 
     // 2. Crown Left facet
     drawFacet(this, tLeft, tMidLeft, gMidLeft, null, Brush.linearGradient(
-      colors = listOf(cWhite.copy(alpha = fAlpha), cBlue.copy(alpha = fAlpha)),
+      colors = listOf(cWhite.copy(alpha = f2Alpha), cBlue.copy(alpha = f2Alpha)),
       start = tLeft, end = gMidLeft
     ))
 
     // 3. Crown Far Left facet
     drawFacet(this, tLeft, gLeft, gMidLeft, null, Brush.linearGradient(
-      colors = listOf(cSky.copy(alpha = fAlpha), cPrimary.copy(alpha = fAlpha)),
+      colors = listOf(cSky.copy(alpha = f3Alpha), cPrimary.copy(alpha = f3Alpha)),
       start = tLeft, end = gLeft
     ))
 
     // 4. Crown Right facet
     drawFacet(this, tRight, tMidRight, gMidRight, null, Brush.linearGradient(
-      colors = listOf(cDiamondWhite.copy(alpha = fAlpha), cSky.copy(alpha = fAlpha)),
+      colors = listOf(cDiamondWhite.copy(alpha = f4Alpha), cSky.copy(alpha = f4Alpha)),
       start = tRight, end = gMidRight
     ))
 
     // 5. Crown Far Right facet
     drawFacet(this, tRight, gRight, gMidRight, null, Brush.linearGradient(
-      colors = listOf(cPrimary.copy(alpha = fAlpha), cDeepBlue.copy(alpha = fAlpha)),
+      colors = listOf(cPrimary.copy(alpha = f5Alpha), cDeepBlue.copy(alpha = f5Alpha)),
       start = tRight, end = gRight
     ))
 
     // 6. Crown Center-Top facet
     drawFacet(this, tMidLeft, tMidRight, gCenter, null, Brush.linearGradient(
-      colors = listOf(cWhite.copy(alpha = fAlpha), cSky.copy(alpha = fAlpha)),
+      colors = listOf(cWhite.copy(alpha = f6Alpha), cSky.copy(alpha = f6Alpha)),
       start = tMidLeft, end = gCenter
     ))
 
     // 7. Crown Mid-Left facet
     drawFacet(this, tMidLeft, gMidLeft, gCenter, null, Brush.linearGradient(
-      colors = listOf(cCrystalBlue.copy(alpha = fAlpha), cBlue.copy(alpha = fAlpha)),
+      colors = listOf(cCrystalBlue.copy(alpha = f7Alpha), cBlue.copy(alpha = f7Alpha)),
       start = tMidLeft, end = gCenter
     ))
 
     // 8. Crown Mid-Right facet
     drawFacet(this, tMidRight, gMidRight, gCenter, null, Brush.linearGradient(
-      colors = listOf(cDiamondWhite.copy(alpha = fAlpha), cPrimary.copy(alpha = fAlpha)),
+      colors = listOf(cDiamondWhite.copy(alpha = f8Alpha), cPrimary.copy(alpha = f8Alpha)),
       start = tMidRight, end = gCenter
     ))
 
     // 9. Pavilion Far Left facet
     drawFacet(this, gLeft, gMidLeft, pCulet, null, Brush.linearGradient(
-      colors = listOf(cPrimary.copy(alpha = fAlpha), cDarkBlue.copy(alpha = fAlpha)),
+      colors = listOf(cPrimary.copy(alpha = f9Alpha), cDarkBlue.copy(alpha = f9Alpha)),
       start = gLeft, end = pCulet
     ))
 
     // 10. Pavilion Mid Left facet
     drawFacet(this, gMidLeft, gCenter, pCulet, null, Brush.linearGradient(
-      colors = listOf(cSky.copy(alpha = fAlpha), cDeepBlue.copy(alpha = fAlpha)),
+      colors = listOf(cSky.copy(alpha = f10Alpha), cDeepBlue.copy(alpha = f10Alpha)),
       start = gMidLeft, end = pCulet
     ))
 
     // 11. Pavilion Mid Right facet
     drawFacet(this, gCenter, gMidRight, pCulet, null, Brush.linearGradient(
-      colors = listOf(cCrystalBlue.copy(alpha = fAlpha), cPrimary.copy(alpha = fAlpha)),
+      colors = listOf(cCrystalBlue.copy(alpha = f11Alpha), cPrimary.copy(alpha = f11Alpha)),
       start = gCenter, end = pCulet
     ))
 
     // 12. Pavilion Far Right facet
     drawFacet(this, gMidRight, gRight, pCulet, null, Brush.linearGradient(
-      colors = listOf(cBlue.copy(alpha = fAlpha), cDarkBlue.copy(alpha = fAlpha)),
+      colors = listOf(cBlue.copy(alpha = f12Alpha), cDarkBlue.copy(alpha = f12Alpha)),
       start = gMidRight, end = pCulet
     ))
 
-    // ----------------------------------------------------
-    // FINE EDGE HIGHLIGHT MESH (Polished Glass Bevel Lines)
-    // ----------------------------------------------------
-    val edgeColor = cWhite.copy(alpha = 0.55f * fAlpha)
-    val edgeW = 1.2f * scaleX
+    // Draw Bevel Edge outlines (only if visible progress has reached active line stages)
+    if (bloomProgress >= 0.20f) {
+      drawFacetEdges(this, tLeft, tRight, tMidRight, tMidLeft, edgeColor, edgeW)
+      drawFacetEdges(this, tLeft, tMidLeft, gMidLeft, null, edgeColor, edgeW)
+      drawFacetEdges(this, tLeft, gLeft, gMidLeft, null, edgeColor, edgeW)
+      drawFacetEdges(this, tRight, tMidRight, gMidRight, null, edgeColor, edgeW)
+      drawFacetEdges(this, tRight, gRight, gMidRight, null, edgeColor, edgeW)
+      drawFacetEdges(this, tMidLeft, tMidRight, gCenter, null, edgeColor, edgeW)
+      drawFacetEdges(this, tMidLeft, gMidLeft, gCenter, null, edgeColor, edgeW)
+      drawFacetEdges(this, tMidRight, gMidRight, gCenter, null, edgeColor, edgeW)
+      drawFacetEdges(this, gLeft, gMidLeft, pCulet, null, edgeColor, edgeW)
+      drawFacetEdges(this, gMidLeft, gCenter, pCulet, null, edgeColor, edgeW)
+      drawFacetEdges(this, gCenter, gMidRight, pCulet, null, edgeColor, edgeW)
+      drawFacetEdges(this, gMidRight, gRight, pCulet, null, edgeColor, edgeW)
+    }
 
-    drawFacetEdges(this, tLeft, tRight, tMidRight, tMidLeft, edgeColor, edgeW)
-    drawFacetEdges(this, tLeft, tMidLeft, gMidLeft, null, edgeColor, edgeW)
-    drawFacetEdges(this, tLeft, gLeft, gMidLeft, null, edgeColor, edgeW)
-    drawFacetEdges(this, tRight, tMidRight, gMidRight, null, edgeColor, edgeW)
-    drawFacetEdges(this, tRight, gRight, gMidRight, null, edgeColor, edgeW)
-    drawFacetEdges(this, tMidLeft, tMidRight, gCenter, null, edgeColor, edgeW)
-    drawFacetEdges(this, tMidLeft, gMidLeft, gCenter, null, edgeColor, edgeW)
-    drawFacetEdges(this, tMidRight, gMidRight, gCenter, null, edgeColor, edgeW)
-    drawFacetEdges(this, gLeft, gMidLeft, pCulet, null, edgeColor, edgeW)
-    drawFacetEdges(this, gMidLeft, gCenter, pCulet, null, edgeColor, edgeW)
-    drawFacetEdges(this, gCenter, gMidRight, pCulet, null, edgeColor, edgeW)
-    drawFacetEdges(this, gMidRight, gRight, pCulet, null, edgeColor, edgeW)
+    // 90% - 100%: Internal crystal reflections and sparkles appear
+    val reflectionAndSparkleAlpha = getLocalAlpha(0.90f, 1.0f)
 
-    // ----------------------------------------------------
-    // SHIMMER SPECULAR REFLECTION SWEEP ( Diagonal light sliding )
-    // ----------------------------------------------------
-    val shimmerOffset = shimmerProgress * (width + height * 1.5f) - (width * 0.4f)
-    val shimmerBrush = Brush.linearGradient(
-      colors = listOf(
-        Color.White.copy(alpha = 0f),
-        Color.White.copy(alpha = 0.15f),
-        Color.White.copy(alpha = 0.82f), // Core gleam highlight
-        Color.White.copy(alpha = 0.15f),
-        Color.White.copy(alpha = 0f)
-      ),
-      start = Offset(shimmerOffset, shimmerOffset - 40f * scaleY),
-      end = Offset(shimmerOffset + 50f * scaleX, shimmerOffset + 40f * scaleY)
-    )
+    if (reflectionAndSparkleAlpha > 0f) {
+      // ----------------------------------------------------
+      // SHIMMER SPECULAR REFLECTION SWEEP ( Diagonal light sliding )
+      // ----------------------------------------------------
+      val shimmerOffset = shimmerProgress * (width + height * 1.5f) - (width * 0.4f)
+      val shimmerBrush = Brush.linearGradient(
+        colors = listOf(
+          Color.White.copy(alpha = 0f),
+          Color.White.copy(alpha = 0.15f * reflectionAndSparkleAlpha),
+          Color.White.copy(alpha = 0.82f * reflectionAndSparkleAlpha), // Core gleam highlight
+          Color.White.copy(alpha = 0.15f * reflectionAndSparkleAlpha),
+          Color.White.copy(alpha = 0f)
+        ),
+        start = Offset(shimmerOffset, shimmerOffset - 40f * scaleY),
+        end = Offset(shimmerOffset + 50f * scaleX, shimmerOffset + 40f * scaleY)
+      )
 
-    // Clip shimmer strictly to the diamond's outer borders
-    drawContext.canvas.save()
-    drawContext.canvas.clipPath(silhouettePath)
-    drawRect(
-      brush = shimmerBrush,
-      blendMode = BlendMode.SrcOver
-    )
-    drawContext.canvas.restore()
+      // Clip shimmer strictly to the diamond's outer borders
+      drawContext.canvas.save()
+      drawContext.canvas.clipPath(silhouettePath)
+      drawRect(
+        brush = shimmerBrush,
+        blendMode = BlendMode.SrcOver
+      )
+      drawContext.canvas.restore()
 
-    // ----------------------------------------------------
-    // TWINKLING SPARKLES (Magic glass highlights)
-    // ----------------------------------------------------
-    drawSparkle(this, 16f * scaleX, 28f * scaleY + finalYOffset, 4.5f * scaleX, sparkleA * alpha * bloomProgress)
-    drawSparkle(this, 84f * scaleX, 32f * scaleY + finalYOffset, 5f * scaleX, sparkleB * alpha * bloomProgress)
-    drawSparkle(this, 22f * scaleX, 70f * scaleY + finalYOffset, 4f * scaleX, sparkleC * alpha * bloomProgress)
-    drawSparkle(this, 78f * scaleX, 64f * scaleY + finalYOffset, 4.5f * scaleX, sparkleA * alpha * bloomProgress)
+      // ----------------------------------------------------
+      // TWINKLING SPARKLES (Magic glass highlights)
+      // ----------------------------------------------------
+      drawSparkle(this, 16f * scaleX, 28f * scaleY + finalYOffset, 4.5f * scaleX, sparkleA * reflectionAndSparkleAlpha)
+      drawSparkle(this, 84f * scaleX, 32f * scaleY + finalYOffset, 5f * scaleX, sparkleB * reflectionAndSparkleAlpha)
+      drawSparkle(this, 22f * scaleX, 70f * scaleY + finalYOffset, 4f * scaleX, sparkleC * reflectionAndSparkleAlpha)
+      drawSparkle(this, 78f * scaleX, 64f * scaleY + finalYOffset, 4.5f * scaleX, sparkleA * reflectionAndSparkleAlpha)
+    }
   }
 }
 

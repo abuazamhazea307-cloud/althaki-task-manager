@@ -11,8 +11,7 @@ import com.example.features.settings.SettingsScreen
 import com.example.features.settings.GeneralSettingsScreen
 import com.example.features.settings.TaskSettingsScreen
 import com.example.features.settings.ReminderSettingsScreen
-import com.example.series.identity.diamond.AlthakiDiamondSplashEngine
-import com.example.features.welcome.WelcomeScreen
+import com.example.series.identity.diamond.MagicDiamondSplashEngine
 import com.example.features.tasks.TasksScreen
 import com.example.features.tasks.TomorrowTasksScreen
 
@@ -26,10 +25,7 @@ fun NavGraph(navController: NavHostController) {
     startDestination = startRoute
   ) {
     composable(Screen.Splash.route) {
-      AlthakiDiamondSplashEngine(navController = navController)
-    }
-    composable(Screen.Welcome.route) {
-      WelcomeScreen(navController = navController)
+      MagicDiamondSplashEngine(navController = navController)
     }
     composable(Screen.Home.route) {
       HomeScreen(navController = navController)

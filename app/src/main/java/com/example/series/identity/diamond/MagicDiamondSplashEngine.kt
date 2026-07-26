@@ -1,7 +1,8 @@
-package com.example.features.welcome
+package com.example.series.identity.diamond
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -13,13 +14,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -41,107 +35,110 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.R
-import com.example.features.settings.GeneralSettingsManager
 import com.example.navigation.Screen
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 /**
- * Stage 2: Welcome Screen.
- * Displays the Althaki Series brand identity with high-end, premium animations.
- * Features:
- * - Brand Title: "الذكي" (R.string.splash_title)
- * - Custom Task Manager Logo (📝) procedurally drawn on Canvas
- * - Subtitle: "مدير المهام" (R.string.splash_subtitle)
- * - Welcome Text: "مرحبًا بك 🌹" (R.string.splash_welcome)
- * - Premium Material 3 CTA Button ("ابدأ الآن") for instant access
- * - Smart auto-transition to Home Screen after 3 seconds if button is not pressed
+ * MagicDiamondSplashEngine - Official Althaki Identity
+ * The single master intro splash & materialization engine.
+ * Avoids multiple screen transitions and completely eliminates intermediate blank states.
+ *
+ * Runs sequentially:
+ * SCENE 1 (THE BIRTH OF THE DIAMOND) - 1200ms: Staggered wireframe and facet bloom.
+ * SCENE 2 (THE LIVING DIAMOND) - 2500ms: Soft breathing glow and single slow shimmer diagonal sweep.
+ * SCENE 3 (WELCOME MATERIALIZATION) - Seamless fade/slide-in of brand title, logo (📝), and subtitle, while the living gem stays centered.
  */
 @Composable
-fun WelcomeScreen(navController: NavController) {
-  val showAnimations = GeneralSettingsManager.enableAnimations
+fun MagicDiamondSplashEngine(navController: NavController) {
+  // Birth & specular sweep progress
+  val bloomProgress = remember { Animatable(0f) }
+  val shimmerProgress = remember { Animatable(0f) }
 
-  // Core visual elements animations (Fade-in and subtle translation)
+  // Welcome element materialization animatables
   val brandTitleAlpha = remember { Animatable(0f) }
-  val brandTitleScale = remember { Animatable(0.9f) }
+  val brandTitleOffsetY = remember { Animatable(25f) }
 
-  val logoAlpha = remember { Animatable(0f) }
-  val logoScale = remember { Animatable(0.9f) }
+  val taskLogoAlpha = remember { Animatable(0f) }
+  val taskLogoOffsetY = remember { Animatable(25f) }
 
   val subtitleAlpha = remember { Animatable(0f) }
-  val subtitleScale = remember { Animatable(0.9f) }
+  val subtitleOffsetY = remember { Animatable(25f) }
 
-  val ctaAlpha = remember { Animatable(0f) }
-  val ctaScale = remember { Animatable(0.9f) }
-
-  val welcomeAlpha = remember { Animatable(0f) }
-
-  fun navigateToHome() {
-    navController.navigate(Screen.Home.route) {
-      launchSingleTop = true
-      popUpTo(Screen.Welcome.route) { inclusive = true }
-    }
-  }
+  val footerAlpha = remember { Animatable(0f) }
+  val footerOffsetY = remember { Animatable(25f) }
 
   LaunchedEffect(Unit) {
-    if (showAnimations) {
-      // Elegant staggered animation reveal sequence
-      launch {
-        brandTitleAlpha.animateTo(1f, tween(500, easing = FastOutSlowInEasing))
-      }
-      launch {
-        brandTitleScale.animateTo(1f, tween(500, easing = FastOutSlowInEasing))
-      }
+    // ----------------------------------------------------
+    // SCENE 1: THE BIRTH OF THE DIAMOND (1200ms)
+    // ----------------------------------------------------
+    bloomProgress.animateTo(
+      targetValue = 1f,
+      animationSpec = tween(durationMillis = 1200, easing = LinearEasing)
+    )
 
-      delay(150L)
-      launch {
-        logoAlpha.animateTo(1f, tween(500, easing = FastOutSlowInEasing))
-      }
-      launch {
-        logoScale.animateTo(1f, tween(500, easing = FastOutSlowInEasing))
-      }
+    // ----------------------------------------------------
+    // SCENE 2: THE LIVING DIAMOND (2500ms)
+    // Runs the diagonal shimmer sweep once across the crystal facets.
+    // ----------------------------------------------------
+    shimmerProgress.animateTo(
+      targetValue = 1f,
+      animationSpec = tween(durationMillis = 2500, easing = FastOutSlowInEasing)
+    )
 
-      delay(150L)
-      launch {
-        subtitleAlpha.animateTo(1f, tween(500, easing = FastOutSlowInEasing))
-      }
-      launch {
-        subtitleScale.animateTo(1f, tween(500, easing = FastOutSlowInEasing))
-      }
+    // ----------------------------------------------------
+    // SCENE 3: WELCOME MATERIALIZATION
+    // Staggered reveal: "الذكي" -> 💎 (stays in place) -> 📝 -> "مدير المهام" -> "مرحباً بك 🌹"
+    // ----------------------------------------------------
+    // 1. Brand Title: "الذكي"
+    launch {
+      brandTitleAlpha.animateTo(1f, tween(600, easing = FastOutSlowInEasing))
+    }
+    launch {
+      brandTitleOffsetY.animateTo(0f, tween(600, easing = FastOutSlowInEasing))
+    }
 
-      delay(200L)
-      launch {
-        ctaAlpha.animateTo(1f, tween(500, easing = FastOutSlowInEasing))
-      }
-      launch {
-        ctaScale.animateTo(1f, tween(500, easing = FastOutSlowInEasing))
-      }
+    delay(350L)
 
-      delay(150L)
-      launch {
-        welcomeAlpha.animateTo(1f, tween(600, easing = FastOutSlowInEasing))
-      }
+    // 2. Custom Task Symbol: 📝
+    launch {
+      taskLogoAlpha.animateTo(1f, tween(600, easing = FastOutSlowInEasing))
+    }
+    launch {
+      taskLogoOffsetY.animateTo(0f, tween(600, easing = FastOutSlowInEasing))
+    }
 
-      // 3-second auto-transition to the home screen if user doesn't press CTA button
-      delay(3000L)
-      navigateToHome()
-    } else {
-      brandTitleAlpha.snapTo(1f)
-      brandTitleScale.snapTo(1f)
-      logoAlpha.snapTo(1f)
-      logoScale.snapTo(1f)
-      subtitleAlpha.snapTo(1f)
-      subtitleScale.snapTo(1f)
-      ctaAlpha.snapTo(1f)
-      ctaScale.snapTo(1f)
-      welcomeAlpha.snapTo(1f)
+    delay(350L)
 
-      delay(1500L)
-      navigateToHome()
+    // 3. Subtitle: "مدير المهام"
+    launch {
+      subtitleAlpha.animateTo(1f, tween(600, easing = FastOutSlowInEasing))
+    }
+    launch {
+      subtitleOffsetY.animateTo(0f, tween(600, easing = FastOutSlowInEasing))
+    }
+
+    delay(350L)
+
+    // 4. Welcome Footer text: "مرحبًا بك 🌹"
+    launch {
+      footerAlpha.animateTo(1f, tween(600, easing = FastOutSlowInEasing))
+    }
+    launch {
+      footerOffsetY.animateTo(0f, tween(600, easing = FastOutSlowInEasing))
+    }
+
+    // Hold everything beautifully visible on screen before transitioning
+    delay(1500L)
+
+    // One-time smooth transition to Home Screen
+    navController.navigate(Screen.Home.route) {
+      launchSingleTop = true
+      popUpTo(Screen.Splash.route) { inclusive = true }
     }
   }
 
-  // Pure premium sky blue background matching Stage 1 but with identity elements
+  // Brand main background color (Pure Sky Blue)
   Box(
     modifier = Modifier
       .fillMaxSize()
@@ -158,7 +155,7 @@ fun WelcomeScreen(navController: NavController) {
       Text(
         text = stringResource(R.string.splash_title),
         style = MaterialTheme.typography.displayMedium.copy(
-          fontSize = 40.sp,
+          fontSize = 42.sp,
           fontWeight = FontWeight.Bold,
           color = Color.White,
           textAlign = TextAlign.Center,
@@ -167,34 +164,42 @@ fun WelcomeScreen(navController: NavController) {
         modifier = Modifier
           .graphicsLayer {
             alpha = brandTitleAlpha.value
-            scaleX = brandTitleScale.value
-            scaleY = brandTitleScale.value
+            translationY = brandTitleOffsetY.value
           }
-          .testTag("welcome_brand_title")
+          .testTag("splash_brand_title")
       )
 
-      Spacer(modifier = Modifier.height(28.dp))
+      Spacer(modifier = Modifier.height(24.dp))
 
-      // 2. Custom Task Manager Procedural Canvas Logo (📝)
+      // 2. Althaki Diamond (💎) - Centered and stays alive continuously in place
+      AlthakiDiamond(
+        sizeDp = 180.dp,
+        bloomProgress = bloomProgress.value,
+        shimmerProgress = shimmerProgress.value,
+        modifier = Modifier.testTag("splash_althaki_diamond")
+      )
+
+      Spacer(modifier = Modifier.height(24.dp))
+
+      // 3. Custom Procedural Task Manager Welcome Logo (📝)
       Box(
         modifier = Modifier
-          .size(90.dp)
+          .size(70.dp)
           .graphicsLayer {
-            alpha = logoAlpha.value
-            scaleX = logoScale.value
-            scaleY = logoScale.value
+            alpha = taskLogoAlpha.value
+            translationY = taskLogoOffsetY.value
           },
         contentAlignment = Alignment.Center
       ) {
         TaskManagerWelcomeLogo(
-          modifier = Modifier.size(70.dp),
+          modifier = Modifier.size(60.dp),
           color = Color.White
         )
       }
 
-      Spacer(modifier = Modifier.height(20.dp))
+      Spacer(modifier = Modifier.height(14.dp))
 
-      // 3. "مدير المهام" Subtitle
+      // 4. "مدير المهام" Subtitle
       Text(
         text = stringResource(R.string.splash_subtitle),
         style = MaterialTheme.typography.titleLarge.copy(
@@ -207,49 +212,10 @@ fun WelcomeScreen(navController: NavController) {
         modifier = Modifier
           .graphicsLayer {
             alpha = subtitleAlpha.value
-            scaleX = subtitleScale.value
-            scaleY = subtitleScale.value
+            translationY = subtitleOffsetY.value
           }
-          .testTag("welcome_subtitle")
+          .testTag("splash_subtitle")
       )
-
-      Spacer(modifier = Modifier.height(48.dp))
-
-      // 4. Premium CTA Button "ابدأ الآن"
-      Button(
-        onClick = { navigateToHome() },
-        colors = ButtonDefaults.buttonColors(
-          containerColor = Color.White,
-          contentColor = Color(0xFF0EA5E9)
-        ),
-        shape = RoundedCornerShape(16.dp),
-        elevation = ButtonDefaults.buttonElevation(
-          defaultElevation = 6.dp,
-          pressedElevation = 2.dp
-        ),
-        modifier = Modifier
-          .widthIn(min = 200.dp, max = 320.dp)
-          .height(54.dp)
-          .graphicsLayer {
-            alpha = ctaAlpha.value
-            scaleX = ctaScale.value
-            scaleY = ctaScale.value
-          }
-          .testTag("welcome_cta_button")
-      ) {
-        Box(
-          modifier = Modifier.fillMaxSize(),
-          contentAlignment = Alignment.Center
-        ) {
-          Text(
-            text = "ابدأ الآن",
-            style = MaterialTheme.typography.titleMedium.copy(
-              fontSize = 18.sp,
-              fontWeight = FontWeight.Bold
-            )
-          )
-        }
-      }
     }
 
     // 5. Welcome Text at the bottom ("مرحبًا بك 🌹")
@@ -265,9 +231,10 @@ fun WelcomeScreen(navController: NavController) {
         .align(Alignment.BottomCenter)
         .padding(bottom = 54.dp)
         .graphicsLayer {
-          alpha = welcomeAlpha.value
+          alpha = footerAlpha.value
+          translationY = footerOffsetY.value
         }
-        .testTag("welcome_footer")
+        .testTag("splash_welcome_footer")
     )
   }
 }
