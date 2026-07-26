@@ -694,6 +694,16 @@ fun TaskRow(
             modifier = Modifier.weight(1f).testTag("task_title_${task.id}")
           )
 
+          if (task.reminderEnabled) {
+            Text(
+              text = "🔔",
+              fontSize = 14.sp,
+              modifier = Modifier
+                .padding(horizontal = 4.dp)
+                .testTag("task_reminder_bell_${task.id}")
+            )
+          }
+
           if (task.isRolledOver && !task.isCompleted) {
             Box(
               modifier = Modifier

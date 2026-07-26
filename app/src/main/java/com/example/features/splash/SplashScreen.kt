@@ -3,6 +3,10 @@ package com.example.features.splash
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.RepeatMode
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,6 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -47,20 +52,34 @@ fun SplashScreen(navController: NavController) {
   }
 
   // State to track if we have transitioned from Phase 1 (Splash Background) to Phase 2 (Welcome Splash)
-  val isWelcomePhase = remember { androidx.compose.runtime.mutableStateOf(true) }
+  val isWelcomePhase = remember { androidx.compose.runtime.mutableStateOf(false) }
 
-  // Animatables start at 0.4f (if animations are enabled) so elements are visible from the first frame
-  val initialAlpha = if (showAnimations) 0.4f else 1f
-  val diamondAlpha = remember { Animatable(initialAlpha) }
-  val diamondScale = remember { Animatable(if (showAnimations) 0.8f else 1f) }
+  // Pulsing animation for Stage 1 (Loading screen)
+  val infiniteTransition = rememberInfiniteTransition()
+  val pulseScale by infiniteTransition.animateFloat(
+    initialValue = 0.9f,
+    targetValue = 1.1f,
+    animationSpec = infiniteRepeatable(
+      animation = tween(800, easing = FastOutSlowInEasing),
+      repeatMode = RepeatMode.Reverse
+    )
+  )
 
-  val titleAlpha = remember { Animatable(initialAlpha) }
-  val taskLogoAlpha = remember { Animatable(initialAlpha) }
-  val subtitleAlpha = remember { Animatable(initialAlpha) }
-  val welcomeAlpha = remember { Animatable(initialAlpha) }
+  // Animatables start at 0f (except scale) so elements are hidden during Stage 1
+  val diamondAlpha = remember { Animatable(0f) }
+  val diamondScale = remember { Animatable(0.8f) }
+
+  val titleAlpha = remember { Animatable(0f) }
+  val taskLogoAlpha = remember { Animatable(0f) }
+  val subtitleAlpha = remember { Animatable(0f) }
+  val welcomeAlpha = remember { Animatable(0f) }
 
   LaunchedEffect(Unit) {
-    // No initial blank delay - show the Welcome Splash immediately from the first frame
+    // Stage 1: Loading screen with pulsing diamond (1 second)
+    delay(1000L)
+    
+    // Transition to Phase 2 (Welcome Splash)
+    isWelcomePhase.value = true
 
     if (showAnimations) {
       // Calculate scaled animation duration and step delay (each is 10% of welcome duration)
@@ -245,6 +264,17 @@ fun SplashScreen(navController: NavController) {
               .padding(bottom = 24.dp)
           )
         }
+      } else {
+        // Professional loading screen with pulsing Althaki Diamond Logo
+        AlthakiDiamondLogo(
+          modifier = Modifier
+            .size(100.dp)
+            .graphicsLayer(
+              scaleX = pulseScale,
+              scaleY = pulseScale
+            ),
+          color = Color.White
+        )
       }
     }
   }
