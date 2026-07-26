@@ -3,8 +3,8 @@ package com.example.features.splash
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -19,7 +19,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -30,9 +35,16 @@ import androidx.navigation.NavController
 import com.example.R
 import com.example.features.settings.GeneralSettingsManager
 import com.example.navigation.Screen
+import com.example.series.identity.diamond.MagicDiamond
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+/**
+ * Clean Rebuilt SplashScreen utilizing the unified MagicDiamondSplashEngine.
+ * Implements a flawless, fluid double-phase flow with absolutely no blank screens or lag.
+ * Phase 1: 0ms - 1000ms: Standalone 3D procedural MagicDiamond.
+ * Phase 2: 1000ms onwards: Morphological shift into the grand "Althaki" series welcoming stack.
+ */
 @Composable
 fun SplashScreen(navController: NavController) {
   val showAnimations = GeneralSettingsManager.enableAnimations
@@ -43,16 +55,16 @@ fun SplashScreen(navController: NavController) {
     GeneralSettingsManager.DURATION_SHORT -> 1500L
     GeneralSettingsManager.DURATION_NORMAL -> 3000L
     GeneralSettingsManager.DURATION_LONG -> 5000L
-    else -> 4000L // Default (Recommended)
+    else -> 4000L // Default (Recommended): 4000L
   }
 
-  // All 5 identity elements are present in the composition from the very first frame.
-  // They start with Alpha = 0f and Scale = 0.92f to ensure smooth transition without blank flashes.
-  val diamondAlpha = remember { Animatable(0f) }
-  val diamondScale = remember { Animatable(0.92f) }
+  // 1. Core Magic Diamond Animation states (Procedural Bloom & Shimmer)
+  val bloomProgress = remember { Animatable(0f) }
+  val shimmerProgress = remember { Animatable(-0.5f) }
 
-  val titleAlpha = remember { Animatable(0f) }
-  val titleScale = remember { Animatable(0.92f) }
+  // 2. Welcome Stack elements (Fade-in + Scale-up animations)
+  val brandTitleAlpha = remember { Animatable(0f) }
+  val brandTitleScale = remember { Animatable(0.92f) }
 
   val taskLogoAlpha = remember { Animatable(0f) }
   val taskLogoScale = remember { Animatable(0.92f) }
@@ -60,145 +72,156 @@ fun SplashScreen(navController: NavController) {
   val subtitleAlpha = remember { Animatable(0f) }
   val subtitleScale = remember { Animatable(0.92f) }
 
-  val welcomeAlpha = remember { Animatable(0f) }
-  val welcomeScale = remember { Animatable(0.92f) }
+  val welcomeTextAlpha = remember { Animatable(0f) }
+  val welcomeTextScale = remember { Animatable(0.92f) }
+
+  // 3. Layout Morphological Transition progress
+  val layoutShiftProgress = remember { Animatable(0f) }
 
   LaunchedEffect(Unit) {
     if (showAnimations) {
-      // Calculate smooth dynamic transition timing based on welcomeDuration
-      val stepDuration = (welcomeDuration * 0.20f).coerceIn(350f, 900f).toInt()
-      val stepDelay = (welcomeDuration * 0.08f).coerceIn(100f, 350f).toLong()
-
-      // 1. 💎 (Althaki Diamond Logo) starts instantly
+      // PHASE 1: The Magic Diamond materializes (Bloom) and shines (Shimmer)
       launch {
-        diamondAlpha.animateTo(
+        bloomProgress.animateTo(
           targetValue = 1f,
-          animationSpec = tween(durationMillis = stepDuration, easing = FastOutSlowInEasing)
+          animationSpec = tween(durationMillis = 1000, easing = FastOutSlowInEasing)
         )
       }
       launch {
-        diamondScale.animateTo(
-          targetValue = 1f,
-          animationSpec = tween(durationMillis = stepDuration, easing = FastOutSlowInEasing)
+        shimmerProgress.animateTo(
+          targetValue = 1.5f,
+          animationSpec = tween(durationMillis = 1000, easing = FastOutSlowInEasing)
         )
       }
 
-      // 2. "الذكي" Brand Title
-      delay(stepDelay)
+      // Wait exactly 1000ms for Phase 1 to finish completely
+      delay(1000L)
+
+      // PHASE 2: Morph/Shift layout dynamically and fade in the welcoming identity stack
       launch {
-        titleAlpha.animateTo(
+        layoutShiftProgress.animateTo(
           targetValue = 1f,
-          animationSpec = tween(durationMillis = stepDuration, easing = FastOutSlowInEasing)
-        )
-      }
-      launch {
-        titleScale.animateTo(
-          targetValue = 1f,
-          animationSpec = tween(durationMillis = stepDuration, easing = FastOutSlowInEasing)
+          animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing)
         )
       }
 
-      // 3. 📝 (Custom Task Manager Logo)
-      delay(stepDelay)
+      // Brand Title "الذكي"
+      launch {
+        brandTitleAlpha.animateTo(
+          targetValue = 1f,
+          animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing)
+        )
+      }
+      launch {
+        brandTitleScale.animateTo(
+          targetValue = 1f,
+          animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing)
+        )
+      }
+
+      // Task Logo (📝)
+      delay(150L)
       launch {
         taskLogoAlpha.animateTo(
           targetValue = 1f,
-          animationSpec = tween(durationMillis = stepDuration, easing = FastOutSlowInEasing)
+          animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing)
         )
       }
       launch {
         taskLogoScale.animateTo(
           targetValue = 1f,
-          animationSpec = tween(durationMillis = stepDuration, easing = FastOutSlowInEasing)
+          animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing)
         )
       }
 
-      // 4. "مدير المهام" Subtitle
-      delay(stepDelay)
+      // Subtitle "مدير المهام"
+      delay(150L)
       launch {
         subtitleAlpha.animateTo(
           targetValue = 1f,
-          animationSpec = tween(durationMillis = stepDuration, easing = FastOutSlowInEasing)
+          animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing)
         )
       }
       launch {
         subtitleScale.animateTo(
           targetValue = 1f,
-          animationSpec = tween(durationMillis = stepDuration, easing = FastOutSlowInEasing)
+          animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing)
         )
       }
 
-      // 5. "مرحبًا بك 🌹" Welcome Message at the bottom
-      delay(stepDelay)
+      // Welcome Message at the bottom "مرحباً بك 🌹"
+      delay(150L)
       launch {
-        welcomeAlpha.animateTo(
+        welcomeTextAlpha.animateTo(
           targetValue = 1f,
-          animationSpec = tween(durationMillis = stepDuration, easing = FastOutSlowInEasing)
+          animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing)
         )
       }
       launch {
-        welcomeScale.animateTo(
+        welcomeTextScale.animateTo(
           targetValue = 1f,
-          animationSpec = tween(durationMillis = stepDuration, easing = FastOutSlowInEasing)
+          animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing)
         )
       }
 
-      // Wait out the remainder of the total splash screen duration
-      val totalSpent = (stepDelay * 4) + stepDuration
-      val remaining = (welcomeDuration - totalSpent).coerceAtLeast(0L)
-      delay(remaining)
+      // Remain visible until the chosen welcome duration has completed
+      delay(welcomeDuration)
     } else {
-      // Direct snap for immediate display if animations are disabled
-      diamondAlpha.snapTo(1f)
-      diamondScale.snapTo(1f)
-      titleAlpha.snapTo(1f)
-      titleScale.snapTo(1f)
+      // Direct instant snapping of all components if animations are disabled by user settings
+      bloomProgress.snapTo(1f)
+      shimmerProgress.snapTo(1.5f)
+      layoutShiftProgress.snapTo(1f)
+      brandTitleAlpha.snapTo(1f)
+      brandTitleScale.snapTo(1f)
       taskLogoAlpha.snapTo(1f)
       taskLogoScale.snapTo(1f)
       subtitleAlpha.snapTo(1f)
       subtitleScale.snapTo(1f)
-      welcomeAlpha.snapTo(1f)
-      welcomeScale.snapTo(1f)
+      welcomeTextAlpha.snapTo(1f)
+      welcomeTextScale.snapTo(1f)
 
       delay(welcomeDuration)
     }
 
-    // Direct single-top navigation to the Home screen
+    // Secure navigation to home screen
     navController.navigate(Screen.Home.route) {
       launchSingleTop = true
       popUpTo(Screen.Splash.route) { inclusive = true }
     }
   }
 
-  // Pure sky blue canvas filling the entire screen perfectly from the very first frame
+  // Pure static sky blue background filling the screen from frame 1
   Box(
     modifier = Modifier
       .fillMaxSize()
       .background(Color(0xFF0EA5E9))
   ) {
-    // Center Column hosting the core brand identity stack
+    // 1. Unified 3D MagicDiamond Composable
+    // Shifts dynamically vertically as part of the morphological welcome transition
+    Box(
+      modifier = Modifier
+        .align(Alignment.Center)
+        .graphicsLayer {
+          val shiftPx = layoutShiftProgress.value * 160.dp.toPx()
+          translationY = -shiftPx
+        }
+    ) {
+      MagicDiamond(
+        modifier = Modifier.size(170.dp),
+        bloomProgress = bloomProgress.value,
+        shimmerProgress = shimmerProgress.value,
+        alpha = 1f
+      )
+    }
+
+    // 2. Core welcoming elements layout (Grown from first frame, animated in Phase 2)
     Column(
       modifier = Modifier
         .align(Alignment.Center)
-        .padding(horizontal = 24.dp),
-      horizontalAlignment = Alignment.CenterHorizontally,
-      verticalArrangement = Arrangement.Center
+        .padding(top = 110.dp),
+      horizontalAlignment = Alignment.CenterHorizontally
     ) {
-      // 1. 💎 (Althaki Diamond Logo)
-      AlthakiDiamondLogo(
-        modifier = Modifier
-          .size(100.dp)
-          .graphicsLayer(
-            alpha = diamondAlpha.value,
-            scaleX = diamondScale.value,
-            scaleY = diamondScale.value
-          )
-          .testTag("splash_diamond_logo")
-      )
-
-      Spacer(modifier = Modifier.height(24.dp))
-
-      // 2. "الذكي" Brand Title
+      // A. "الذكي" Brand Title
       Text(
         text = stringResource(R.string.splash_title),
         style = MaterialTheme.typography.displayMedium.copy(
@@ -208,25 +231,25 @@ fun SplashScreen(navController: NavController) {
           letterSpacing = 0.5.sp
         ),
         modifier = Modifier
-          .graphicsLayer(
-            alpha = titleAlpha.value,
-            scaleX = titleScale.value,
-            scaleY = titleScale.value
-          )
+          .graphicsLayer {
+            alpha = brandTitleAlpha.value
+            scaleX = brandTitleScale.value
+            scaleY = brandTitleScale.value
+          }
           .testTag("splash_brand_title")
       )
 
-      Spacer(modifier = Modifier.height(44.dp))
+      Spacer(modifier = Modifier.height(30.dp))
 
-      // 3. 📝 (Custom Task Manager Logo)
+      // B. 📝 Custom Task Manager Logo
       Box(
         modifier = Modifier
           .size(72.dp)
-          .graphicsLayer(
-            alpha = taskLogoAlpha.value,
-            scaleX = taskLogoScale.value,
+          .graphicsLayer {
+            alpha = taskLogoAlpha.value
+            scaleX = taskLogoScale.value
             scaleY = taskLogoScale.value
-          ),
+          },
         contentAlignment = Alignment.Center
       ) {
         TaskManagerCustomLogo(
@@ -235,9 +258,9 @@ fun SplashScreen(navController: NavController) {
         )
       }
 
-      Spacer(modifier = Modifier.height(16.dp))
+      Spacer(modifier = Modifier.height(14.dp))
 
-      // 4. "مدير المهام" Subtitle
+      // C. "مدير المهام" Subtitle
       Text(
         text = stringResource(R.string.splash_subtitle),
         style = MaterialTheme.typography.titleLarge.copy(
@@ -247,16 +270,16 @@ fun SplashScreen(navController: NavController) {
           letterSpacing = 0.5.sp
         ),
         modifier = Modifier
-          .graphicsLayer(
-            alpha = subtitleAlpha.value,
-            scaleX = subtitleScale.value,
+          .graphicsLayer {
+            alpha = subtitleAlpha.value
+            scaleX = subtitleScale.value
             scaleY = subtitleScale.value
-          )
+          }
           .testTag("splash_subtitle")
       )
     }
 
-    // 5. "مرحبًا بك 🌹" Welcome message aligned at the bottom
+    // 3. Welcome Text ("مرحبًا بك 🌹") at the bottom of the screen
     Text(
       text = stringResource(R.string.splash_welcome) + " 🌹",
       style = MaterialTheme.typography.bodyLarge.copy(
@@ -268,113 +291,32 @@ fun SplashScreen(navController: NavController) {
       modifier = Modifier
         .align(Alignment.BottomCenter)
         .padding(bottom = 60.dp)
-        .graphicsLayer(
-          alpha = welcomeAlpha.value,
-          scaleX = welcomeScale.value,
-          scaleY = welcomeScale.value
-        )
+        .graphicsLayer {
+          alpha = welcomeTextAlpha.value
+          scaleX = welcomeTextScale.value
+          scaleY = welcomeTextScale.value
+        }
         .testTag("splash_welcome_text")
     )
   }
 }
 
-@Composable
-fun AlthakiDiamondLogo(
-  modifier: Modifier = Modifier,
-  color: Color = Color.White
-) {
-  androidx.compose.foundation.Canvas(modifier = modifier) {
-    val width = size.width
-    val height = size.height
-    val scaleX = width / 108f
-    val scaleY = height / 108f
-
-    // 1. Outer Crystal Outline
-    val outerPath = androidx.compose.ui.graphics.Path().apply {
-      moveTo(45f * scaleX, 44f * scaleY)
-      lineTo(63f * scaleX, 44f * scaleY)
-      lineTo(68f * scaleX, 54f * scaleY)
-      lineTo(54f * scaleX, 68f * scaleY)
-      lineTo(40f * scaleX, 54f * scaleY)
-      close()
-    }
-    drawPath(
-      path = outerPath,
-      color = color,
-      style = androidx.compose.ui.graphics.drawscope.Stroke(
-        width = 2.0f * scaleX,
-        cap = androidx.compose.ui.graphics.StrokeCap.Round,
-        join = androidx.compose.ui.graphics.StrokeJoin.Round
-      )
-    )
-
-    // 2. Inner Crystal Outline
-    val innerPath = androidx.compose.ui.graphics.Path().apply {
-      moveTo(48f * scaleX, 48f * scaleY)
-      lineTo(60f * scaleX, 48f * scaleY)
-      lineTo(63f * scaleX, 54f * scaleY)
-      lineTo(54f * scaleX, 63f * scaleY)
-      lineTo(45f * scaleX, 54f * scaleY)
-      close()
-    }
-    drawPath(
-      path = innerPath,
-      color = color,
-      style = androidx.compose.ui.graphics.drawscope.Stroke(
-        width = 1.2f * scaleX,
-        cap = androidx.compose.ui.graphics.StrokeCap.Round,
-        join = androidx.compose.ui.graphics.StrokeJoin.Round
-      )
-    )
-
-    // 3. Tiny Center Crystal
-    val centerPath = androidx.compose.ui.graphics.Path().apply {
-      moveTo(51f * scaleX, 51.5f * scaleY)
-      lineTo(57f * scaleX, 51.5f * scaleY)
-      lineTo(58.5f * scaleX, 54f * scaleY)
-      lineTo(54f * scaleX, 58f * scaleY)
-      lineTo(49.5f * scaleX, 54f * scaleY)
-      close()
-    }
-    drawPath(
-      path = centerPath,
-      color = color,
-      style = androidx.compose.ui.graphics.drawscope.Stroke(
-        width = 0.8f * scaleX,
-        cap = androidx.compose.ui.graphics.StrokeCap.Round,
-        join = androidx.compose.ui.graphics.StrokeJoin.Round
-      )
-    )
-
-    // 4. Facet Lines Outer to Inner
-    drawLine(color = color, start = androidx.compose.ui.geometry.Offset(45f * scaleX, 44f * scaleY), end = androidx.compose.ui.geometry.Offset(48f * scaleX, 48f * scaleY), strokeWidth = 1.5f * scaleX, cap = androidx.compose.ui.graphics.StrokeCap.Round)
-    drawLine(color = color, start = androidx.compose.ui.geometry.Offset(63f * scaleX, 44f * scaleY), end = androidx.compose.ui.geometry.Offset(60f * scaleX, 48f * scaleY), strokeWidth = 1.5f * scaleX, cap = androidx.compose.ui.graphics.StrokeCap.Round)
-    drawLine(color = color, start = androidx.compose.ui.geometry.Offset(68f * scaleX, 54f * scaleY), end = androidx.compose.ui.geometry.Offset(63f * scaleX, 54f * scaleY), strokeWidth = 1.5f * scaleX, cap = androidx.compose.ui.graphics.StrokeCap.Round)
-    drawLine(color = color, start = androidx.compose.ui.geometry.Offset(54f * scaleX, 68f * scaleY), end = androidx.compose.ui.geometry.Offset(54f * scaleX, 63f * scaleY), strokeWidth = 1.5f * scaleX, cap = androidx.compose.ui.graphics.StrokeCap.Round)
-    drawLine(color = color, start = androidx.compose.ui.geometry.Offset(40f * scaleX, 54f * scaleY), end = androidx.compose.ui.geometry.Offset(45f * scaleX, 54f * scaleY), strokeWidth = 1.5f * scaleX, cap = androidx.compose.ui.graphics.StrokeCap.Round)
-
-    // 5. Facet Lines Inner to Center
-    drawLine(color = color, start = androidx.compose.ui.geometry.Offset(48f * scaleX, 48f * scaleY), end = androidx.compose.ui.geometry.Offset(51f * scaleX, 51.5f * scaleY), strokeWidth = 0.8f * scaleX, cap = androidx.compose.ui.graphics.StrokeCap.Round)
-    drawLine(color = color, start = androidx.compose.ui.geometry.Offset(60f * scaleX, 48f * scaleY), end = androidx.compose.ui.geometry.Offset(57f * scaleX, 51.5f * scaleY), strokeWidth = 0.8f * scaleX, cap = androidx.compose.ui.graphics.StrokeCap.Round)
-    drawLine(color = color, start = androidx.compose.ui.geometry.Offset(63f * scaleX, 54f * scaleY), end = androidx.compose.ui.geometry.Offset(58.5f * scaleX, 54f * scaleY), strokeWidth = 0.8f * scaleX, cap = androidx.compose.ui.graphics.StrokeCap.Round)
-    drawLine(color = color, start = androidx.compose.ui.geometry.Offset(54f * scaleX, 63f * scaleY), end = androidx.compose.ui.geometry.Offset(54f * scaleX, 58f * scaleY), strokeWidth = 0.8f * scaleX, cap = androidx.compose.ui.graphics.StrokeCap.Round)
-    drawLine(color = color, start = androidx.compose.ui.geometry.Offset(45f * scaleX, 54f * scaleY), end = androidx.compose.ui.geometry.Offset(49.5f * scaleX, 54f * scaleY), strokeWidth = 0.8f * scaleX, cap = androidx.compose.ui.graphics.StrokeCap.Round)
-  }
-}
-
+/**
+ * Custom procedurally drawn TaskManager Logo.
+ */
 @Composable
 fun TaskManagerCustomLogo(
   modifier: Modifier = Modifier,
   color: Color = Color.White
 ) {
-  androidx.compose.foundation.Canvas(modifier = modifier) {
+  Canvas(modifier = modifier) {
     val width = size.width
     val height = size.height
     val scaleX = width / 108f
     val scaleY = height / 108f
 
-    // Paper Outline
-    val paperPath = androidx.compose.ui.graphics.Path().apply {
+    // Paper outline
+    val paperPath = Path().apply {
       moveTo(49f * scaleX, 47f * scaleY)
       lineTo(57f * scaleX, 47f * scaleY)
       lineTo(61f * scaleX, 51f * scaleY)
@@ -389,15 +331,15 @@ fun TaskManagerCustomLogo(
     drawPath(
       path = paperPath,
       color = color,
-      style = androidx.compose.ui.graphics.drawscope.Stroke(
+      style = Stroke(
         width = 1.6f * scaleX,
-        cap = androidx.compose.ui.graphics.StrokeCap.Round,
-        join = androidx.compose.ui.graphics.StrokeJoin.Round
+        cap = StrokeCap.Round,
+        join = StrokeJoin.Round
       )
     )
 
     // Folded Corner Flap
-    val flapPath = androidx.compose.ui.graphics.Path().apply {
+    val flapPath = Path().apply {
       moveTo(57f * scaleX, 47f * scaleY)
       lineTo(57f * scaleX, 51f * scaleY)
       lineTo(61f * scaleX, 51f * scaleY)
@@ -405,10 +347,10 @@ fun TaskManagerCustomLogo(
     drawPath(
       path = flapPath,
       color = color,
-      style = androidx.compose.ui.graphics.drawscope.Stroke(
+      style = Stroke(
         width = 1.6f * scaleX,
-        cap = androidx.compose.ui.graphics.StrokeCap.Round,
-        join = androidx.compose.ui.graphics.StrokeJoin.Round
+        cap = StrokeCap.Round,
+        join = StrokeJoin.Round
       )
     )
 
@@ -418,11 +360,11 @@ fun TaskManagerCustomLogo(
       start = androidx.compose.ui.geometry.Offset(50f * scaleX, 53f * scaleY),
       end = androidx.compose.ui.geometry.Offset(58f * scaleX, 53f * scaleY),
       strokeWidth = 1.4f * scaleX,
-      cap = androidx.compose.ui.graphics.StrokeCap.Round
+      cap = StrokeCap.Round
     )
 
     // Row 2: Checkmark
-    val checkPath = androidx.compose.ui.graphics.Path().apply {
+    val checkPath = Path().apply {
       moveTo(49.5f * scaleX, 56.5f * scaleY)
       lineTo(51f * scaleX, 58f * scaleY)
       lineTo(53f * scaleX, 55f * scaleY)
@@ -430,10 +372,10 @@ fun TaskManagerCustomLogo(
     drawPath(
       path = checkPath,
       color = color,
-      style = androidx.compose.ui.graphics.drawscope.Stroke(
+      style = Stroke(
         width = 1.4f * scaleX,
-        cap = androidx.compose.ui.graphics.StrokeCap.Round,
-        join = androidx.compose.ui.graphics.StrokeJoin.Round
+        cap = StrokeCap.Round,
+        join = StrokeJoin.Round
       )
     )
 
@@ -443,17 +385,20 @@ fun TaskManagerCustomLogo(
       start = androidx.compose.ui.geometry.Offset(54.5f * scaleX, 57f * scaleY),
       end = androidx.compose.ui.geometry.Offset(58.5f * scaleX, 57f * scaleY),
       strokeWidth = 1.4f * scaleX,
-      cap = androidx.compose.ui.graphics.StrokeCap.Round
+      cap = StrokeCap.Round
     )
   }
 }
 
+/**
+ * Geometric Diamond Logo for Backward Compatibility (e.g. Settings, About).
+ */
 @Composable
 fun GeometricLogo(
   modifier: Modifier = Modifier,
   color: Color = MaterialTheme.colorScheme.primary
 ) {
-  androidx.compose.foundation.Canvas(modifier = modifier) {
+  Canvas(modifier = modifier) {
     val width = size.width
     val height = size.height
 
@@ -466,7 +411,7 @@ fun GeometricLogo(
       color = color,
       radius = 30f * scaleX,
       center = androidx.compose.ui.geometry.Offset(54f * scaleX, 54f * scaleY),
-      style = androidx.compose.ui.graphics.drawscope.Stroke(width = 2.5f * scaleX)
+      style = Stroke(width = 2.5f * scaleX)
     )
 
     // 2. Thin Inner Circular Ring (Radius 26)
@@ -474,11 +419,11 @@ fun GeometricLogo(
       color = color,
       radius = 26f * scaleX,
       center = androidx.compose.ui.geometry.Offset(54f * scaleX, 54f * scaleY),
-      style = androidx.compose.ui.graphics.drawscope.Stroke(width = 1.0f * scaleX)
+      style = Stroke(width = 1.0f * scaleX)
     )
 
     // 3. Official Althaki Diamond Logo (centered at Y=44)
-    val outerDiamond = androidx.compose.ui.graphics.Path().apply {
+    val outerDiamond = Path().apply {
       moveTo(45f * scaleX, 34f * scaleY)
       lineTo(63f * scaleX, 34f * scaleY)
       lineTo(68f * scaleX, 44f * scaleY)
@@ -489,15 +434,15 @@ fun GeometricLogo(
     drawPath(
       path = outerDiamond,
       color = color,
-      style = androidx.compose.ui.graphics.drawscope.Stroke(
+      style = Stroke(
         width = 2.0f * scaleX,
-        cap = androidx.compose.ui.graphics.StrokeCap.Round,
-        join = androidx.compose.ui.graphics.StrokeJoin.Round
+        cap = StrokeCap.Round,
+        join = StrokeJoin.Round
       )
     )
 
     // Inner Crystal Outline
-    val innerDiamond = androidx.compose.ui.graphics.Path().apply {
+    val innerDiamond = Path().apply {
       moveTo(48f * scaleX, 38f * scaleY)
       lineTo(60f * scaleX, 38f * scaleY)
       lineTo(63f * scaleX, 44f * scaleY)
@@ -508,15 +453,15 @@ fun GeometricLogo(
     drawPath(
       path = innerDiamond,
       color = color,
-      style = androidx.compose.ui.graphics.drawscope.Stroke(
+      style = Stroke(
         width = 1.2f * scaleX,
-        cap = androidx.compose.ui.graphics.StrokeCap.Round,
-        join = androidx.compose.ui.graphics.StrokeJoin.Round
+        cap = StrokeCap.Round,
+        join = StrokeJoin.Round
       )
     )
 
     // Tiny Center Crystal
-    val centerDiamond = androidx.compose.ui.graphics.Path().apply {
+    val centerDiamond = Path().apply {
       moveTo(51f * scaleX, 41.5f * scaleY)
       lineTo(57f * scaleX, 41.5f * scaleY)
       lineTo(58.5f * scaleX, 44f * scaleY)
@@ -527,29 +472,29 @@ fun GeometricLogo(
     drawPath(
       path = centerDiamond,
       color = color,
-      style = androidx.compose.ui.graphics.drawscope.Stroke(
+      style = Stroke(
         width = 0.8f * scaleX,
-        cap = androidx.compose.ui.graphics.StrokeCap.Round,
-        join = androidx.compose.ui.graphics.StrokeJoin.Round
+        cap = StrokeCap.Round,
+        join = StrokeJoin.Round
       )
     )
 
     // Facet Lines Outer to Inner
-    drawLine(color = color, start = androidx.compose.ui.geometry.Offset(45f * scaleX, 34f * scaleY), end = androidx.compose.ui.geometry.Offset(48f * scaleX, 38f * scaleY), strokeWidth = 1.5f * scaleX, cap = androidx.compose.ui.graphics.StrokeCap.Round)
-    drawLine(color = color, start = androidx.compose.ui.geometry.Offset(63f * scaleX, 34f * scaleY), end = androidx.compose.ui.geometry.Offset(60f * scaleX, 38f * scaleY), strokeWidth = 1.5f * scaleX, cap = androidx.compose.ui.graphics.StrokeCap.Round)
-    drawLine(color = color, start = androidx.compose.ui.geometry.Offset(68f * scaleX, 44f * scaleY), end = androidx.compose.ui.geometry.Offset(63f * scaleX, 44f * scaleY), strokeWidth = 1.5f * scaleX, cap = androidx.compose.ui.graphics.StrokeCap.Round)
-    drawLine(color = color, start = androidx.compose.ui.geometry.Offset(54f * scaleX, 58f * scaleY), end = androidx.compose.ui.geometry.Offset(54f * scaleX, 53f * scaleY), strokeWidth = 1.5f * scaleX, cap = androidx.compose.ui.graphics.StrokeCap.Round)
-    drawLine(color = color, start = androidx.compose.ui.geometry.Offset(40f * scaleX, 44f * scaleY), end = androidx.compose.ui.geometry.Offset(45f * scaleX, 44f * scaleY), strokeWidth = 1.5f * scaleX, cap = androidx.compose.ui.graphics.StrokeCap.Round)
+    drawLine(color = color, start = androidx.compose.ui.geometry.Offset(45f * scaleX, 34f * scaleY), end = androidx.compose.ui.geometry.Offset(48f * scaleX, 38f * scaleY), strokeWidth = 1.5f * scaleX, cap = StrokeCap.Round)
+    drawLine(color = color, start = androidx.compose.ui.geometry.Offset(63f * scaleX, 34f * scaleY), end = androidx.compose.ui.geometry.Offset(60f * scaleX, 38f * scaleY), strokeWidth = 1.5f * scaleX, cap = StrokeCap.Round)
+    drawLine(color = color, start = androidx.compose.ui.geometry.Offset(68f * scaleX, 44f * scaleY), end = androidx.compose.ui.geometry.Offset(63f * scaleX, 44f * scaleY), strokeWidth = 1.5f * scaleX, cap = StrokeCap.Round)
+    drawLine(color = color, start = androidx.compose.ui.geometry.Offset(54f * scaleX, 58f * scaleY), end = androidx.compose.ui.geometry.Offset(54f * scaleX, 53f * scaleY), strokeWidth = 1.5f * scaleX, cap = StrokeCap.Round)
+    drawLine(color = color, start = androidx.compose.ui.geometry.Offset(40f * scaleX, 44f * scaleY), end = androidx.compose.ui.geometry.Offset(45f * scaleX, 44f * scaleY), strokeWidth = 1.5f * scaleX, cap = StrokeCap.Round)
 
     // Facet Lines Inner to Center
-    drawLine(color = color, start = androidx.compose.ui.geometry.Offset(48f * scaleX, 38f * scaleY), end = androidx.compose.ui.geometry.Offset(51f * scaleX, 41.5f * scaleY), strokeWidth = 0.8f * scaleX, cap = androidx.compose.ui.graphics.StrokeCap.Round)
-    drawLine(color = color, start = androidx.compose.ui.geometry.Offset(60f * scaleX, 38f * scaleY), end = androidx.compose.ui.geometry.Offset(57f * scaleX, 41.5f * scaleY), strokeWidth = 0.8f * scaleX, cap = androidx.compose.ui.graphics.StrokeCap.Round)
-    drawLine(color = color, start = androidx.compose.ui.geometry.Offset(63f * scaleX, 44f * scaleY), end = androidx.compose.ui.geometry.Offset(58.5f * scaleX, 44f * scaleY), strokeWidth = 0.8f * scaleX, cap = androidx.compose.ui.graphics.StrokeCap.Round)
-    drawLine(color = color, start = androidx.compose.ui.geometry.Offset(54f * scaleX, 53f * scaleY), end = androidx.compose.ui.geometry.Offset(54f * scaleX, 48f * scaleY), strokeWidth = 0.8f * scaleX, cap = androidx.compose.ui.graphics.StrokeCap.Round)
-    drawLine(color = color, start = androidx.compose.ui.geometry.Offset(45f * scaleX, 44f * scaleY), end = androidx.compose.ui.geometry.Offset(49.5f * scaleX, 44f * scaleY), strokeWidth = 0.8f * scaleX, cap = androidx.compose.ui.graphics.StrokeCap.Round)
+    drawLine(color = color, start = androidx.compose.ui.geometry.Offset(48f * scaleX, 38f * scaleY), end = androidx.compose.ui.geometry.Offset(51f * scaleX, 41.5f * scaleY), strokeWidth = 0.8f * scaleX, cap = StrokeCap.Round)
+    drawLine(color = color, start = androidx.compose.ui.geometry.Offset(60f * scaleX, 38f * scaleY), end = androidx.compose.ui.geometry.Offset(57f * scaleX, 41.5f * scaleY), strokeWidth = 0.8f * scaleX, cap = StrokeCap.Round)
+    drawLine(color = color, start = androidx.compose.ui.geometry.Offset(63f * scaleX, 44f * scaleY), end = androidx.compose.ui.geometry.Offset(58.5f * scaleX, 44f * scaleY), strokeWidth = 0.8f * scaleX, cap = StrokeCap.Round)
+    drawLine(color = color, start = androidx.compose.ui.geometry.Offset(54f * scaleX, 53f * scaleY), end = androidx.compose.ui.geometry.Offset(54f * scaleX, 48f * scaleY), strokeWidth = 0.8f * scaleX, cap = StrokeCap.Round)
+    drawLine(color = color, start = androidx.compose.ui.geometry.Offset(45f * scaleX, 44f * scaleY), end = androidx.compose.ui.geometry.Offset(49.5f * scaleX, 44f * scaleY), strokeWidth = 0.8f * scaleX, cap = StrokeCap.Round)
 
     // 4. Custom Task Manager Symbol (centered at Y=71)
-    val paperPath = androidx.compose.ui.graphics.Path().apply {
+    val paperPath = Path().apply {
       moveTo(49f * scaleX, 64f * scaleY)
       lineTo(57f * scaleX, 64f * scaleY)
       lineTo(61f * scaleX, 68f * scaleY)
@@ -564,15 +509,15 @@ fun GeometricLogo(
     drawPath(
       path = paperPath,
       color = color,
-      style = androidx.compose.ui.graphics.drawscope.Stroke(
+      style = Stroke(
         width = 1.6f * scaleX,
-        cap = androidx.compose.ui.graphics.StrokeCap.Round,
-        join = androidx.compose.ui.graphics.StrokeJoin.Round
+        cap = StrokeCap.Round,
+        join = StrokeJoin.Round
       )
     )
 
     // Folded Corner Flap
-    val flapPath = androidx.compose.ui.graphics.Path().apply {
+    val flapPath = Path().apply {
       moveTo(57f * scaleX, 64f * scaleY)
       lineTo(57f * scaleX, 68f * scaleY)
       lineTo(61f * scaleX, 68f * scaleY)
@@ -580,10 +525,10 @@ fun GeometricLogo(
     drawPath(
       path = flapPath,
       color = color,
-      style = androidx.compose.ui.graphics.drawscope.Stroke(
+      style = Stroke(
         width = 1.6f * scaleX,
-        cap = androidx.compose.ui.graphics.StrokeCap.Round,
-        join = androidx.compose.ui.graphics.StrokeJoin.Round
+        cap = StrokeCap.Round,
+        join = StrokeJoin.Round
       )
     )
 
@@ -593,11 +538,11 @@ fun GeometricLogo(
       start = androidx.compose.ui.geometry.Offset(50f * scaleX, 70f * scaleY),
       end = androidx.compose.ui.geometry.Offset(58f * scaleX, 70f * scaleY),
       strokeWidth = 1.4f * scaleX,
-      cap = androidx.compose.ui.graphics.StrokeCap.Round
+      cap = StrokeCap.Round
     )
 
     // Row 2: Checkmark
-    val checkPath = androidx.compose.ui.graphics.Path().apply {
+    val checkPath = Path().apply {
       moveTo(49.5f * scaleX, 73.5f * scaleY)
       lineTo(51f * scaleX, 75f * scaleY)
       lineTo(53f * scaleX, 72f * scaleY)
@@ -605,10 +550,10 @@ fun GeometricLogo(
     drawPath(
       path = checkPath,
       color = color,
-      style = androidx.compose.ui.graphics.drawscope.Stroke(
+      style = Stroke(
         width = 1.4f * scaleX,
-        cap = androidx.compose.ui.graphics.StrokeCap.Round,
-        join = androidx.compose.ui.graphics.StrokeJoin.Round
+        cap = StrokeCap.Round,
+        join = StrokeJoin.Round
       )
     )
 
@@ -618,7 +563,7 @@ fun GeometricLogo(
       start = androidx.compose.ui.geometry.Offset(54.5f * scaleX, 74f * scaleY),
       end = androidx.compose.ui.geometry.Offset(58.5f * scaleX, 74f * scaleY),
       strokeWidth = 1.4f * scaleX,
-      cap = androidx.compose.ui.graphics.StrokeCap.Round
+      cap = StrokeCap.Round
     )
   }
 }
