@@ -52,8 +52,7 @@ class MainActivity : ComponentActivity() {
 
     setContent {
       MyApplicationTheme {
-        val navController = rememberNavController()
-        NavGraph(navController = navController)
+        com.example.features.splash.MagicDiamondSplashEngine()
       }
     }
   }
