@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import androidx.navigation.compose.rememberNavController
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import com.example.features.tasks.createNotificationChannel
 import com.example.navigation.NavGraph
 import com.example.ui.theme.MyApplicationTheme
@@ -30,10 +32,6 @@ class MainActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     ThemeManager.init(this)
-    com.example.features.settings.GeneralSettingsManager.init(this)
-    com.example.features.settings.TaskSettingsManager.init(this)
-    com.example.features.settings.ReminderSettingsManager.init(this)
-    com.example.features.tasks.TomorrowAutoMigrationEngine.checkAndMigrate(this)
     enableEdgeToEdge()
 
     // Initialize notification channel
@@ -51,6 +49,17 @@ class MainActivity : ComponentActivity() {
     }
 
     setContent {
+      // Run background initialization after composition starts, keeping the main thread free
+      androidx.compose.runtime.LaunchedEffect(Unit) {
+        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+          com.example.features.settings.GeneralSettingsManager.init(applicationContext)
+          com.example.features.settings.TaskSettingsManager.init(applicationContext)
+          com.example.features.settings.ReminderSettingsManager.init(applicationContext)
+          com.example.features.tasks.TaskLocalStore.initAsync(applicationContext)
+          com.example.features.tasks.TomorrowAutoMigrationEngine.checkAndMigrate(applicationContext)
+        }
+      }
+
       MyApplicationTheme {
         val navController = rememberNavController()
         NavGraph(navController = navController)
@@ -60,7 +69,9 @@ class MainActivity : ComponentActivity() {
 
   override fun onStart() {
     super.onStart()
-    com.example.features.tasks.TomorrowAutoMigrationEngine.checkAndMigrate(this)
+    lifecycleScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+      com.example.features.tasks.TomorrowAutoMigrationEngine.checkAndMigrate(applicationContext)
+    }
   }
 }
 

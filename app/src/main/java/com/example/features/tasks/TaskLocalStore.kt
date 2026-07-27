@@ -23,11 +23,33 @@ class TaskLocalStore(private val context: Context) {
         val tasksFlow: StateFlow<List<Task>> = _tasksFlow.asStateFlow()
         @Volatile
         private var isInitialized = false
+        @Volatile
+        private var isInitializing = false
+
+        fun initAsync(context: Context) {
+            synchronized(TaskLocalStore::class.java) {
+                if (isInitialized || isInitializing) return
+                isInitializing = true
+            }
+            try {
+                val store = TaskLocalStore(context)
+                val loaded = store.loadTasksInternal() ?: emptyList()
+                synchronized(TaskLocalStore::class.java) {
+                    _tasksFlow.value = loaded
+                    isInitialized = true
+                    isInitializing = false
+                }
+            } catch (e: Exception) {
+                synchronized(TaskLocalStore::class.java) {
+                    isInitializing = false
+                }
+            }
+        }
     }
 
     init {
         synchronized(TaskLocalStore::class.java) {
-            if (!isInitialized) {
+            if (!isInitialized && !isInitializing) {
                 val loaded = loadTasksInternal() ?: emptyList()
                 _tasksFlow.value = loaded
                 isInitialized = true
