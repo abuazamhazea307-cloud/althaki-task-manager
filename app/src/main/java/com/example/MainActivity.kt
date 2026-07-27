@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import androidx.navigation.compose.rememberNavController
 import androidx.lifecycle.lifecycleScope
+import androidx.compose.ui.draw.drawWithContent
 import kotlinx.coroutines.launch
 import com.example.features.tasks.createNotificationChannel
 import com.example.navigation.NavGraph
@@ -23,6 +24,10 @@ import com.example.ui.theme.ThemeManager
 @SuppressLint("InvalidFragmentVersionForActivityResult")
 class MainActivity : ComponentActivity() {
 
+  init {
+    com.example.debug.StartupTracer.mark("MAIN_ACTIVITY_CONSTRUCTOR")
+  }
+
   private val requestPermissionLauncher = registerForActivityResult(
     ActivityResultContracts.RequestPermission()
   ) { isGranted: Boolean ->
@@ -30,6 +35,7 @@ class MainActivity : ComponentActivity() {
   }
 
   override fun onCreate(savedInstanceState: Bundle?) {
+    com.example.debug.StartupTracer.mark("MAIN_ACTIVITY_ONCREATE_BEGIN")
     super.onCreate(savedInstanceState)
     ThemeManager.init(this)
     enableEdgeToEdge()
@@ -48,7 +54,14 @@ class MainActivity : ComponentActivity() {
       }
     }
 
+    com.example.debug.StartupTracer.mark("BEFORE_SET_CONTENT")
+
     setContent {
+      com.example.debug.StartupTracer.mark("SET_CONTENT_BEGIN")
+      androidx.compose.runtime.SideEffect {
+        com.example.debug.StartupTracer.mark("FIRST_COMPOSITION")
+      }
+
       // Run background initialization after composition starts, keeping the main thread free
       androidx.compose.runtime.LaunchedEffect(Unit) {
         kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
@@ -60,9 +73,19 @@ class MainActivity : ComponentActivity() {
         }
       }
 
-      MyApplicationTheme {
-        val navController = rememberNavController()
-        NavGraph(navController = navController)
+      androidx.compose.foundation.layout.Box(
+        modifier = androidx.compose.ui.Modifier
+          .fillMaxSize()
+          .drawWithContent {
+            drawContent()
+            com.example.debug.StartupTracer.mark("FIRST_FRAME_DRAWN")
+            com.example.debug.StartupTracer.mark("FIRST_FRAME_VISIBLE")
+          }
+      ) {
+        MyApplicationTheme {
+          val navController = rememberNavController()
+          NavGraph(navController = navController)
+        }
       }
     }
   }

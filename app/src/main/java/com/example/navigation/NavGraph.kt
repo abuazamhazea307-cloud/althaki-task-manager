@@ -16,6 +16,7 @@ import com.example.features.tasks.TomorrowTasksScreen
 
 @Composable
 fun NavGraph(navController: NavHostController) {
+  com.example.debug.StartupTracer.mark("NAVGRAPH_CREATED")
   NavHost(
     navController = navController,
     startDestination = Screen.Home.route

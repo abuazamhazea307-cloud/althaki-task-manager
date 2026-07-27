@@ -61,6 +61,7 @@ object ReminderSettingsManager {
      * Initializes the settings from local storage.
      */
     fun init(context: Context) {
+        com.example.debug.StartupTracer.mark("REMINDER_BEGIN")
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         reminderByDefault = prefs.getBoolean(KEY_REMINDER_BY_DEFAULT, false)
         
@@ -82,6 +83,7 @@ object ReminderSettingsManager {
                 genericCache[key] = value
             }
         }
+        com.example.debug.StartupTracer.mark("REMINDER_END")
     }
 
     fun setReminderByDefault(context: Context, value: Boolean) {

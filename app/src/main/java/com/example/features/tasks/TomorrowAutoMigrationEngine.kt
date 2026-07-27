@@ -18,6 +18,7 @@ object TomorrowAutoMigrationEngine {
      */
     @Synchronized
     fun checkAndMigrate(context: Context) {
+        com.example.debug.StartupTracer.mark("MIGRATION_BEGIN")
         val today = getCurrentDateString()
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         val lastMigrationDate = prefs.getString(KEY_LAST_MIGRATION_DATE, null)
@@ -53,5 +54,6 @@ object TomorrowAutoMigrationEngine {
             // Save the new migration date to ensure it only runs once per day
             prefs.edit().putString(KEY_LAST_MIGRATION_DATE, today).apply()
         }
+        com.example.debug.StartupTracer.mark("MIGRATION_END")
     }
 }

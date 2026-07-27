@@ -80,6 +80,10 @@ private fun isUserTask(task: Task): Boolean {
 
 @Composable
 fun HomeScreen(navController: NavController) {
+  com.example.debug.StartupTracer.mark("HOME_SCREEN_CREATED")
+  androidx.compose.runtime.SideEffect {
+    com.example.debug.StartupTracer.mark("HOME_SCREEN_FIRST_COMPOSITION")
+  }
   val navBackStackEntry by navController.currentBackStackEntryAsState()
   val current = navBackStackEntry?.destination?.route
 

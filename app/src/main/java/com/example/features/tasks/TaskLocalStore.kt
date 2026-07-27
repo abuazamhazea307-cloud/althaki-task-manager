@@ -32,6 +32,7 @@ class TaskLocalStore(private val context: Context) {
                 isInitializing = true
             }
             try {
+                com.example.debug.StartupTracer.mark("TASK_STORE_BEGIN")
                 val store = TaskLocalStore(context)
                 val loaded = store.loadTasksInternal() ?: emptyList()
                 synchronized(TaskLocalStore::class.java) {
@@ -39,6 +40,7 @@ class TaskLocalStore(private val context: Context) {
                     isInitialized = true
                     isInitializing = false
                 }
+                com.example.debug.StartupTracer.mark("TASK_STORE_END")
             } catch (e: Exception) {
                 synchronized(TaskLocalStore::class.java) {
                     isInitializing = false
@@ -50,9 +52,11 @@ class TaskLocalStore(private val context: Context) {
     init {
         synchronized(TaskLocalStore::class.java) {
             if (!isInitialized && !isInitializing) {
+                com.example.debug.StartupTracer.mark("TASK_STORE_BEGIN")
                 val loaded = loadTasksInternal() ?: emptyList()
                 _tasksFlow.value = loaded
                 isInitialized = true
+                com.example.debug.StartupTracer.mark("TASK_STORE_END")
             }
         }
     }
