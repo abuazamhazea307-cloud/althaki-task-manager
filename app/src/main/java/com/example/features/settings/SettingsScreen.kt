@@ -62,6 +62,10 @@ import com.example.R
 import com.example.navigation.Screen
 import com.example.ui.theme.ThemeManager
 
+private val settingsShape24 = RoundedCornerShape(24.dp)
+private val settingsShape16 = RoundedCornerShape(16.dp)
+private val settingsShape12 = RoundedCornerShape(12.dp)
+
 @Composable
 fun SettingsScreen(navController: NavController) {
   val context = LocalContext.current
@@ -124,7 +128,7 @@ fun SettingsScreen(navController: NavController) {
           Text(text = stringResource(R.string.bottom_sheet_cancel))
         }
       },
-      shape = RoundedCornerShape(24.dp),
+      shape = settingsShape24,
       containerColor = MaterialTheme.colorScheme.surface
     )
   }
@@ -331,10 +335,10 @@ fun SettingsItemCard(
   Card(
     modifier = Modifier
       .fillMaxWidth()
-      .clip(RoundedCornerShape(16.dp))
+      .clip(settingsShape16)
       .clickable { onClick() }
       .testTag(testTag),
-    shape = RoundedCornerShape(16.dp),
+    shape = settingsShape16,
     colors = CardDefaults.cardColors(
       containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
     ),
@@ -414,7 +418,7 @@ fun ThemeOptionRow(
   Row(
     modifier = Modifier
       .fillMaxWidth()
-      .clip(RoundedCornerShape(12.dp))
+      .clip(settingsShape12)
       .clickable { onClick() }
       .padding(vertical = 12.dp, horizontal = 16.dp),
     verticalAlignment = Alignment.CenterVertically,
