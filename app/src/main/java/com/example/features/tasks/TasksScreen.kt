@@ -66,8 +66,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -87,21 +85,6 @@ import com.example.features.settings.TaskSettingsManager
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-
-private val taskShape16 = RoundedCornerShape(16.dp)
-private val taskShape12 = RoundedCornerShape(12.dp)
-private val taskShape6 = RoundedCornerShape(6.dp)
-
-private val colorPendingDark = Color(0xFF1B3A1E)
-private val colorPendingLight = Color(0xFFE8F5E9)
-private val colorRolledOverDark = Color(0xFF221F17)
-private val colorRolledOverLight = Color(0xFFFFFBEB)
-private val colorGreenDark = Color(0xFF81C784)
-private val colorGreenLight = Color(0xFF2E7D32)
-private val colorRolledOverBadgeBgDark = Color(0x993E2723)
-private val colorRolledOverBadgeBgLight = Color(0xFFFFE0B2)
-private val colorRolledOverBadgeTextDark = Color(0xFFFFB74D)
-private val colorRolledOverBadgeTextLight = Color(0xFFE65100)
 
 fun getYesterdayDateString(): String {
   val cal = java.util.Calendar.getInstance()
@@ -126,11 +109,9 @@ fun TasksScreen(navController: NavController) {
     list
   }
 
-  // Save tasks to local storage reactively using snapshotFlow
-  LaunchedEffect(tasks) {
-    snapshotFlow { tasks.toList() }.collect { list ->
-      taskStore.saveTasks(list)
-    }
+  // Save tasks to local storage whenever the list changes
+  LaunchedEffect(tasks.toList()) {
+    taskStore.saveTasks(tasks.toList())
   }
 
   var showAddDialog by remember { mutableStateOf(false) }
@@ -161,39 +142,44 @@ fun TasksScreen(navController: NavController) {
 
   // Filter tasks: display only those targeted for the current day (Today).
   // This correctly excludes completed tasks from previous days, while including rolled over incomplete tasks.
-  val sortedTasks by remember(today) {
-    derivedStateOf {
-      val todayTasks = tasks.filter { it.targetDate == today && it.taskDay == "today" }
-      val filtered = if (TaskSettingsManager.showCompleted) {
-        todayTasks
-      } else {
-        todayTasks.filter { !it.isCompleted }
-      }
+  val sortedTasks = remember(
+    tasks.size,
+    tasks.toList(),
+    today,
+    TaskSettingsManager.showCompleted,
+    TaskSettingsManager.sortBy,
+    TaskSettingsManager.taskOrder
+  ) {
+    val todayTasks = tasks.filter { it.targetDate == today && it.taskDay == "today" }
+    val filtered = if (TaskSettingsManager.showCompleted) {
+      todayTasks
+    } else {
+      todayTasks.filter { !it.isCompleted }
+    }
 
-      val sorted = when (TaskSettingsManager.sortBy) {
-        TaskSettingsManager.SORT_START_TIME -> {
-          filtered.sortedWith(
-            compareBy<Task> { it.startTime.isNullOrBlank() }
-              .thenBy { it.startTime ?: "" }
-              .thenBy { it.createdAt }
-          )
-        }
-        TaskSettingsManager.SORT_TITLE -> {
-          filtered.sortedWith(
-            compareBy<Task> { it.title.lowercase() }
-              .thenBy { it.createdAt }
-          )
-        }
-        else -> { // SORT_CREATION_DATE
-          filtered.sortedBy { it.createdAt }
-        }
+    val sorted = when (TaskSettingsManager.sortBy) {
+      TaskSettingsManager.SORT_START_TIME -> {
+        filtered.sortedWith(
+          compareBy<Task> { it.startTime.isNullOrBlank() }
+            .thenBy { it.startTime ?: "" }
+            .thenBy { it.createdAt }
+        )
       }
+      TaskSettingsManager.SORT_TITLE -> {
+        filtered.sortedWith(
+          compareBy<Task> { it.title.lowercase() }
+            .thenBy { it.createdAt }
+        )
+      }
+      else -> { // SORT_CREATION_DATE
+        filtered.sortedBy { it.createdAt }
+      }
+    }
 
-      if (TaskSettingsManager.taskOrder == TaskSettingsManager.ORDER_NEWEST_FIRST) {
-        sorted.reversed()
-      } else {
-        sorted
-      }
+    if (TaskSettingsManager.taskOrder == TaskSettingsManager.ORDER_NEWEST_FIRST) {
+      sorted.reversed()
+    } else {
+      sorted
     }
   }
 
@@ -331,11 +317,7 @@ fun TasksScreen(navController: NavController) {
           modifier = Modifier.fillMaxWidth().weight(1f),
           verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-          items(
-            items = sortedTasks,
-            key = { it.id },
-            contentType = { "task_row" }
-          ) { task ->
+          items(sortedTasks, key = { it.id }) { task ->
             val isPending = pendingTasks.containsKey(task.id)
             TaskRow(
               task = task,
@@ -619,16 +601,16 @@ fun TaskRow(
 
   // Soft sage/mint green background for pending state compatible with themes
   val basePendingColor = if (isSystemInDarkTheme()) {
-    colorPendingDark
+    Color(0xFF1B3A1E)
   } else {
-    colorPendingLight
+    Color(0xFFE8F5E9)
   }
 
   // Choose card background based on state. If rolled over, use a beautiful, quiet warm amber/gold color tint.
   val cardBg = if (isPending) {
     basePendingColor.copy(alpha = basePendingColor.alpha * pulseAlpha)
   } else if (task.isRolledOver && !task.isCompleted) {
-    if (isSystemInDarkTheme()) colorRolledOverDark else colorRolledOverLight
+    if (isSystemInDarkTheme()) Color(0xFF221F17) else Color(0xFFFFFBEB)
   } else {
     MaterialTheme.colorScheme.surface
   }
@@ -642,7 +624,7 @@ fun TaskRow(
         onLongClick = { onLongClick(task) }
       )
       .testTag("task_item_${task.id}"),
-    shape = taskShape16,
+    shape = RoundedCornerShape(16.dp),
     colors = CardDefaults.cardColors(
       containerColor = cardBg
     ),
@@ -659,7 +641,7 @@ fun TaskRow(
       Box(
         modifier = Modifier
           .size(24.dp)
-          .clip(taskShape6)
+          .clip(RoundedCornerShape(6.dp))
           .background(
             if (task.isCompleted) MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
             else Color.Transparent
@@ -669,11 +651,11 @@ fun TaskRow(
             color = if (task.isCompleted) {
               MaterialTheme.colorScheme.primary
             } else if (isPending) {
-              if (isSystemInDarkTheme()) colorGreenDark else colorGreenLight
+              if (isSystemInDarkTheme()) Color(0xFF81C784) else Color(0xFF2E7D32)
             } else {
               MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
             },
-            shape = taskShape6
+            shape = RoundedCornerShape(6.dp)
           )
           .clickable { onToggleComplete(task) }
           .testTag("task_checkbox_${task.id}"),
@@ -705,7 +687,7 @@ fun TaskRow(
               color = if (task.isCompleted) {
                 MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
               } else if (isPending) {
-                if (isSystemInDarkTheme()) colorPendingLight else Color(0xFF1B5E20)
+                if (isSystemInDarkTheme()) Color(0xFFE8F5E9) else Color(0xFF1B5E20)
               } else {
                 MaterialTheme.colorScheme.onSurface
               },
@@ -730,8 +712,8 @@ fun TaskRow(
             Box(
               modifier = Modifier
                 .background(
-                  color = if (isSystemInDarkTheme()) colorRolledOverBadgeBgDark else colorRolledOverBadgeBgLight,
-                  shape = taskShape6
+                  color = if (isSystemInDarkTheme()) Color(0xFF3E2723).copy(alpha = 0.6f) else Color(0xFFFFE0B2),
+                  shape = RoundedCornerShape(6.dp)
                 )
                 .padding(horizontal = 8.dp, vertical = 2.dp)
                 .testTag("task_rolled_over_badge_${task.id}")
@@ -741,7 +723,7 @@ fun TaskRow(
                 style = MaterialTheme.typography.labelSmall.copy(
                   fontSize = 10.sp,
                   fontWeight = FontWeight.Bold,
-                  color = if (isSystemInDarkTheme()) colorRolledOverBadgeTextDark else colorRolledOverBadgeTextLight
+                  color = if (isSystemInDarkTheme()) Color(0xFFFFB74D) else Color(0xFFE65100)
                 )
               )
             }
@@ -772,12 +754,12 @@ fun TaskRow(
                 modifier = Modifier
                   .background(
                     color = categoryColor.copy(alpha = 0.08f),
-                    shape = taskShape6
+                    shape = RoundedCornerShape(6.dp)
                   )
                   .border(
                     width = 0.5.dp,
                     color = categoryColor.copy(alpha = 0.25f),
-                    shape = taskShape6
+                    shape = RoundedCornerShape(6.dp)
                   )
                   .padding(horizontal = 8.dp, vertical = 2.dp)
                   .testTag("task_category_badge_${task.id}")

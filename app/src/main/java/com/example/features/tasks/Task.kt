@@ -1,6 +1,5 @@
 package com.example.features.tasks
 
-import androidx.compose.runtime.Immutable
 import com.squareup.moshi.JsonClass
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -23,7 +22,6 @@ fun getTomorrowDateString(): String {
  * Clean data model representing a Task in the "Al-Thaki" (الذكي) application.
  * Adheres to standard Clean Architecture guidelines.
  */
-@Immutable
 @JsonClass(generateAdapter = true)
 data class Task(
     val id: String = UUID.randomUUID().toString(),

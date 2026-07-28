@@ -66,8 +66,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -104,11 +102,9 @@ fun TomorrowTasksScreen(navController: NavController) {
     list
   }
 
-  // Save tasks to local storage reactively using snapshotFlow
-  LaunchedEffect(tasks) {
-    snapshotFlow { tasks.toList() }.collect { list ->
-      taskStore.saveTasks(list)
-    }
+  // Save tasks to local storage whenever the list changes
+  LaunchedEffect(tasks.toList()) {
+    taskStore.saveTasks(tasks.toList())
   }
 
   var showAddDialog by remember { mutableStateOf(false) }
@@ -129,39 +125,44 @@ fun TomorrowTasksScreen(navController: NavController) {
   val tomorrow = getTomorrowDateString()
 
   // Filter tasks: display only those targeted for tomorrow and of type "tomorrow".
-  val sortedTasks by remember(tomorrow) {
-    derivedStateOf {
-      val tomorrowTasks = tasks.filter { it.targetDate == tomorrow && it.taskDay == "tomorrow" }
-      val filtered = if (TaskSettingsManager.showCompleted) {
-        tomorrowTasks
-      } else {
-        tomorrowTasks.filter { !it.isCompleted }
-      }
+  val sortedTasks = remember(
+    tasks.size,
+    tasks.toList(),
+    tomorrow,
+    TaskSettingsManager.showCompleted,
+    TaskSettingsManager.sortBy,
+    TaskSettingsManager.taskOrder
+  ) {
+    val tomorrowTasks = tasks.filter { it.targetDate == tomorrow && it.taskDay == "tomorrow" }
+    val filtered = if (TaskSettingsManager.showCompleted) {
+      tomorrowTasks
+    } else {
+      tomorrowTasks.filter { !it.isCompleted }
+    }
 
-      val sorted = when (TaskSettingsManager.sortBy) {
-        TaskSettingsManager.SORT_START_TIME -> {
-          filtered.sortedWith(
-            compareBy<Task> { it.startTime.isNullOrBlank() }
-              .thenBy { it.startTime ?: "" }
-              .thenBy { it.createdAt }
-          )
-        }
-        TaskSettingsManager.SORT_TITLE -> {
-          filtered.sortedWith(
-            compareBy<Task> { it.title.lowercase() }
-              .thenBy { it.createdAt }
-          )
-        }
-        else -> { // SORT_CREATION_DATE
-          filtered.sortedBy { it.createdAt }
-        }
+    val sorted = when (TaskSettingsManager.sortBy) {
+      TaskSettingsManager.SORT_START_TIME -> {
+        filtered.sortedWith(
+          compareBy<Task> { it.startTime.isNullOrBlank() }
+            .thenBy { it.startTime ?: "" }
+            .thenBy { it.createdAt }
+        )
       }
+      TaskSettingsManager.SORT_TITLE -> {
+        filtered.sortedWith(
+          compareBy<Task> { it.title.lowercase() }
+            .thenBy { it.createdAt }
+        )
+      }
+      else -> { // SORT_CREATION_DATE
+        filtered.sortedBy { it.createdAt }
+      }
+    }
 
-      if (TaskSettingsManager.taskOrder == TaskSettingsManager.ORDER_NEWEST_FIRST) {
-        sorted.reversed()
-      } else {
-        sorted
-      }
+    if (TaskSettingsManager.taskOrder == TaskSettingsManager.ORDER_NEWEST_FIRST) {
+      sorted.reversed()
+    } else {
+      sorted
     }
   }
 
@@ -299,11 +300,7 @@ fun TomorrowTasksScreen(navController: NavController) {
           modifier = Modifier.fillMaxWidth().weight(1f),
           verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-          items(
-            items = sortedTasks,
-            key = { it.id },
-            contentType = { "task_row" }
-          ) { task ->
+          items(sortedTasks, key = { it.id }) { task ->
             val isPending = pendingTasks.containsKey(task.id)
             TaskRow(
               task = task,
