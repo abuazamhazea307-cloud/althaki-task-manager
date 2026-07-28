@@ -139,6 +139,7 @@ fun HomeScreen(navController: NavController) {
       NavigationBar {
           NavigationBarItem(
               selected = current == Screen.Home.route,
+              modifier = Modifier.testTag("nav_tab_home"),
               onClick = {
                   navController.navigate(Screen.Home.route) {
                       popUpTo(Screen.Home.route) { inclusive = true }
@@ -155,6 +156,7 @@ fun HomeScreen(navController: NavController) {
 
           NavigationBarItem(
               selected = current == Screen.Tasks.route,
+              modifier = Modifier.testTag("nav_tab_tasks"),
               onClick = {
                   navController.navigate(Screen.Tasks.route) {
                       popUpTo(Screen.Home.route) { saveState = true }
@@ -172,6 +174,7 @@ fun HomeScreen(navController: NavController) {
 
           NavigationBarItem(
               selected = current == Screen.TomorrowTasks.route,
+              modifier = Modifier.testTag("nav_tab_tomorrow_tasks"),
               onClick = {
                   navController.navigate(Screen.TomorrowTasks.route) {
                       popUpTo(Screen.Home.route) { saveState = true }
@@ -189,6 +192,7 @@ fun HomeScreen(navController: NavController) {
 
           NavigationBarItem(
               selected = current == Screen.Settings.route,
+              modifier = Modifier.testTag("nav_tab_settings"),
               onClick = {
                   navController.navigate(Screen.Settings.route) {
                       popUpTo(Screen.Home.route) { saveState = true }

@@ -173,6 +173,7 @@ fun SettingsScreen(navController: NavController) {
       ) {
         NavigationBarItem(
           selected = false,
+          modifier = Modifier.testTag("nav_tab_home"),
           onClick = {
             navController.navigate(Screen.Home.route) {
               popUpTo(Screen.Home.route) { inclusive = true }
@@ -184,6 +185,7 @@ fun SettingsScreen(navController: NavController) {
         )
         NavigationBarItem(
           selected = false,
+          modifier = Modifier.testTag("nav_tab_tasks"),
           onClick = {
             navController.navigate(Screen.Tasks.route) {
               popUpTo(Screen.Home.route) { saveState = true }
@@ -196,6 +198,7 @@ fun SettingsScreen(navController: NavController) {
         )
         NavigationBarItem(
           selected = false,
+          modifier = Modifier.testTag("nav_tab_tomorrow_tasks"),
           onClick = {
             navController.navigate(Screen.TomorrowTasks.route) {
               popUpTo(Screen.Home.route) { saveState = true }
@@ -208,6 +211,7 @@ fun SettingsScreen(navController: NavController) {
         )
         NavigationBarItem(
           selected = true,
+          modifier = Modifier.testTag("nav_tab_settings"),
           onClick = { /* Already on Settings */ },
           icon = { Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.settings)) },
           label = { Text(stringResource(R.string.settings), style = MaterialTheme.typography.labelSmall) }

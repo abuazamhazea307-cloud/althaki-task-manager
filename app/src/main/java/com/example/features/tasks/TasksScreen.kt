@@ -192,6 +192,7 @@ fun TasksScreen(navController: NavController) {
       ) {
         NavigationBarItem(
           selected = false,
+          modifier = Modifier.testTag("nav_tab_home"),
           onClick = {
             navController.navigate(Screen.Home.route) {
               popUpTo(Screen.Home.route) { inclusive = true }
@@ -203,12 +204,14 @@ fun TasksScreen(navController: NavController) {
         )
         NavigationBarItem(
           selected = true,
+          modifier = Modifier.testTag("nav_tab_tasks"),
           onClick = { /* Already on Tasks */ },
           icon = { Icon(Icons.Default.CheckCircle, contentDescription = stringResource(R.string.today_tasks)) },
           label = { Text(stringResource(R.string.today_tasks), style = MaterialTheme.typography.labelSmall) }
         )
         NavigationBarItem(
           selected = false,
+          modifier = Modifier.testTag("nav_tab_tomorrow_tasks"),
           onClick = {
             navController.navigate(Screen.TomorrowTasks.route) {
               popUpTo(Screen.Home.route) { saveState = true }
@@ -221,6 +224,7 @@ fun TasksScreen(navController: NavController) {
         )
         NavigationBarItem(
           selected = false,
+          modifier = Modifier.testTag("nav_tab_settings"),
           onClick = {
             navController.navigate(Screen.Settings.route) {
               popUpTo(Screen.Home.route) { saveState = true }

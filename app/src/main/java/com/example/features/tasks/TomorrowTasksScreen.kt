@@ -175,6 +175,7 @@ fun TomorrowTasksScreen(navController: NavController) {
       ) {
         NavigationBarItem(
           selected = false,
+          modifier = Modifier.testTag("nav_tab_home"),
           onClick = {
             navController.navigate(Screen.Home.route) {
               popUpTo(Screen.Home.route) { inclusive = true }
@@ -186,6 +187,7 @@ fun TomorrowTasksScreen(navController: NavController) {
         )
         NavigationBarItem(
           selected = false,
+          modifier = Modifier.testTag("nav_tab_tasks"),
           onClick = {
             navController.navigate(Screen.Tasks.route) {
               popUpTo(Screen.Home.route) { saveState = true }
@@ -198,12 +200,14 @@ fun TomorrowTasksScreen(navController: NavController) {
         )
         NavigationBarItem(
           selected = true,
+          modifier = Modifier.testTag("nav_tab_tomorrow_tasks"),
           onClick = { /* Already on Tomorrow Tasks */ },
           icon = { Icon(Icons.Default.Event, contentDescription = stringResource(R.string.tomorrow_tasks)) },
           label = { Text(stringResource(R.string.tomorrow_tasks), style = MaterialTheme.typography.labelSmall) }
         )
         NavigationBarItem(
           selected = false,
+          modifier = Modifier.testTag("nav_tab_settings"),
           onClick = {
             navController.navigate(Screen.Settings.route) {
               popUpTo(Screen.Home.route) { saveState = true }
