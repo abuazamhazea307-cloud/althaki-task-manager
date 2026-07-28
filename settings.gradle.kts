@@ -25,3 +25,4 @@ dependencyResolutionManagement {
 rootProject.name = "alzhaki_task_manager"
 
 include(":app")
+include(":baselineprofile")

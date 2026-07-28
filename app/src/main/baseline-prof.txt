@@ -1,0 +1,22 @@
+Lcom/example/MyApplication;
+Lcom/example/MainActivity;
+Lcom/example/debug/StartupTracer;
+Lcom/example/features/home/**;
+Lcom/example/features/tasks/**;
+Lcom/example/features/settings/**;
+Lcom/example/navigation/**;
+Lcom/example/db/**;
+Lcom/example/di/**;
+Lcom/example/models/**;
+
+# Core AndroidX and Jetpack Compose optimization
+Landroidx/compose/runtime/**;
+Landroidx/compose/ui/**;
+Landroidx/compose/foundation/**;
+Landroidx/compose/material3/**;
+Landroidx/navigation/compose/**;
+Landroidx/room/**;
+Lorg/jetbrains/kotlinx/coroutines/**;
+Lcom/squareup/moshi/**;
+Lretrofit2/**;
+Lokhttp3/**;
