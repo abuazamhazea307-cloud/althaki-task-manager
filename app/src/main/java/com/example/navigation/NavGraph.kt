@@ -16,7 +16,10 @@ import com.example.features.tasks.TomorrowTasksScreen
 
 @Composable
 fun NavGraph(navController: NavHostController) {
-  com.example.debug.StartupTracer.mark("NAVGRAPH_CREATED")
+  androidx.compose.runtime.remember {
+    com.example.debug.StartupTracer.mark("NAVGRAPH_CREATED")
+    Unit
+  }
   NavHost(
     navController = navController,
     startDestination = Screen.Home.route

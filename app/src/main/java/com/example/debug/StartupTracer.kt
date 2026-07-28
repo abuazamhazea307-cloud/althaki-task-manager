@@ -16,11 +16,8 @@ object StartupTracer {
 
     fun mark(stage: String) {
         synchronized(markedStages) {
-            // Some events might compose multiple times, but we only want to track the first occurrence
-            if (stage == "FIRST_COMPOSITION" || stage == "FIRST_FRAME_DRAWN" || stage == "HOME_SCREEN_FIRST_COMPOSITION" || stage == "FIRST_FRAME_VISIBLE") {
-                if (markedStages.contains(stage)) return
-                markedStages.add(stage)
-            }
+            if (markedStages.contains(stage)) return
+            markedStages.add(stage)
         }
 
         val elapsed = SystemClock.elapsedRealtime() - appStartTime

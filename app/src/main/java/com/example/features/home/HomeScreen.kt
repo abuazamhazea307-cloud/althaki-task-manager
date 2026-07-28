@@ -80,7 +80,10 @@ private fun isUserTask(task: Task): Boolean {
 
 @Composable
 fun HomeScreen(navController: NavController) {
-  com.example.debug.StartupTracer.mark("HOME_SCREEN_CREATED")
+  androidx.compose.runtime.remember {
+    com.example.debug.StartupTracer.mark("HOME_SCREEN_CREATED")
+    Unit
+  }
   androidx.compose.runtime.SideEffect {
     com.example.debug.StartupTracer.mark("HOME_SCREEN_FIRST_COMPOSITION")
   }

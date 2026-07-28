@@ -74,7 +74,10 @@ class MainActivity : ComponentActivity() {
     com.example.debug.StartupTracer.mark("BEFORE_SET_CONTENT")
 
     setContent {
-      com.example.debug.StartupTracer.mark("SET_CONTENT_BEGIN")
+      androidx.compose.runtime.remember {
+        com.example.debug.StartupTracer.mark("SET_CONTENT_BEGIN")
+        Unit
+      }
       androidx.compose.runtime.SideEffect {
         com.example.debug.StartupTracer.mark("FIRST_COMPOSITION")
       }
@@ -84,9 +87,11 @@ class MainActivity : ComponentActivity() {
           .fillMaxSize()
           .drawWithContent {
             drawContent()
-            isFirstFrameDrawn = true
-            com.example.debug.StartupTracer.mark("FIRST_FRAME_DRAWN")
-            com.example.debug.StartupTracer.mark("FIRST_FRAME_VISIBLE")
+            if (!isFirstFrameDrawn) {
+              isFirstFrameDrawn = true
+              com.example.debug.StartupTracer.mark("FIRST_FRAME_DRAWN")
+              com.example.debug.StartupTracer.mark("FIRST_FRAME_VISIBLE")
+            }
           }
       ) {
         MyApplicationTheme {
