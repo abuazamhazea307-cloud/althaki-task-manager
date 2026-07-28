@@ -44,6 +44,16 @@ class MainActivity : ComponentActivity() {
     splashScreen.setKeepOnScreenCondition {
       !isFirstFrameDrawn
     }
+
+    // Start background initialization ASAP on a background dispatcher, running in parallel with UI setup
+    lifecycleScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+      com.example.features.settings.GeneralSettingsManager.init(applicationContext)
+      com.example.features.settings.TaskSettingsManager.init(applicationContext)
+      com.example.features.settings.ReminderSettingsManager.init(applicationContext)
+      com.example.features.tasks.TaskLocalStore.initAsync(applicationContext)
+      com.example.features.tasks.TomorrowAutoMigrationEngine.checkAndMigrate(applicationContext)
+    }
+
     ThemeManager.init(this)
     enableEdgeToEdge()
 
@@ -67,17 +77,6 @@ class MainActivity : ComponentActivity() {
       com.example.debug.StartupTracer.mark("SET_CONTENT_BEGIN")
       androidx.compose.runtime.SideEffect {
         com.example.debug.StartupTracer.mark("FIRST_COMPOSITION")
-      }
-
-      // Run background initialization after composition starts, keeping the main thread free
-      androidx.compose.runtime.LaunchedEffect(Unit) {
-        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-          com.example.features.settings.GeneralSettingsManager.init(applicationContext)
-          com.example.features.settings.TaskSettingsManager.init(applicationContext)
-          com.example.features.settings.ReminderSettingsManager.init(applicationContext)
-          com.example.features.tasks.TaskLocalStore.initAsync(applicationContext)
-          com.example.features.tasks.TomorrowAutoMigrationEngine.checkAndMigrate(applicationContext)
-        }
       }
 
       androidx.compose.foundation.layout.Box(

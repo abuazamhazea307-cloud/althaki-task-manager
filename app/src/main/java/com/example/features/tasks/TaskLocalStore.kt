@@ -14,9 +14,6 @@ import kotlinx.coroutines.flow.asStateFlow
  */
 class TaskLocalStore(private val context: Context) {
     private val sharedPreferences = context.getSharedPreferences("tasks_prefs", Context.MODE_PRIVATE)
-    private val moshi = Moshi.Builder().build()
-    private val taskListType = Types.newParameterizedType(List::class.java, Task::class.java)
-    private val jsonAdapter = moshi.adapter<List<Task>>(taskListType)
 
     companion object {
         private val _tasksFlow = MutableStateFlow<List<Task>>(emptyList())
@@ -25,6 +22,10 @@ class TaskLocalStore(private val context: Context) {
         private var isInitialized = false
         @Volatile
         private var isInitializing = false
+
+        private val moshi by lazy { Moshi.Builder().build() }
+        private val taskListType by lazy { Types.newParameterizedType(List::class.java, Task::class.java) }
+        private val jsonAdapter by lazy { moshi.adapter<List<Task>>(taskListType) }
 
         fun initAsync(context: Context) {
             synchronized(TaskLocalStore::class.java) {
@@ -50,15 +51,8 @@ class TaskLocalStore(private val context: Context) {
     }
 
     init {
-        synchronized(TaskLocalStore::class.java) {
-            if (!isInitialized && !isInitializing) {
-                com.example.debug.StartupTracer.mark("TASK_STORE_BEGIN")
-                val loaded = loadTasksInternal() ?: emptyList()
-                _tasksFlow.value = loaded
-                isInitialized = true
-                com.example.debug.StartupTracer.mark("TASK_STORE_END")
-            }
-        }
+        // No heavy synchronous loading in constructor init.
+        // It will be loaded asynchronously via initAsync, or on-demand via loadTasks() if accessed synchronously.
     }
 
     private fun loadTasksInternal(): List<Task>? {
