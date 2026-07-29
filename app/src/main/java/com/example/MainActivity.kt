@@ -43,7 +43,7 @@ class MainActivity : ComponentActivity() {
     super.onCreate(savedInstanceState)
     val startTime = System.currentTimeMillis()
     splashScreen.setKeepOnScreenCondition {
-      !isFirstFrameDrawn && (System.currentTimeMillis() - startTime < 800)
+      !isFirstFrameDrawn
     }
 
     // Start background initialization ASAP on a background dispatcher, running in parallel with UI setup
