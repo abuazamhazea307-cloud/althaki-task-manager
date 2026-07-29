@@ -26,9 +26,9 @@ class SplashActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            // Keep on screen for 3000ms, then launch MainActivity
+            // Keep on screen for 2000ms, then launch MainActivity
             LaunchedEffect(Unit) {
-                delay(3000)
+                delay(2000)
                 startActivity(Intent(this@SplashActivity, MainActivity::class.java))
                 finish()
             }
@@ -36,7 +36,7 @@ class SplashActivity : ComponentActivity() {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color(0xFF030406)),
+                    .background(Color(0xFF00B4D8)),
                 contentAlignment = Alignment.Center
             ) {
                 Column(

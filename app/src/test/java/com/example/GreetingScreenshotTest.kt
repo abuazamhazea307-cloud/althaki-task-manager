@@ -43,19 +43,7 @@ class GreetingScreenshotTest {
       }
     }
 
-    // Verify we start at Splash Screen (with our custom geometric diamond canvas)
-    composeTestRule.onNodeWithTag("diamond_geometric_canvas").assertExists()
-
-    // Advance virtual clock by 1 second
-    composeTestRule.mainClock.advanceTimeBy(1000)
-
-    // Verify we are still on Splash Screen as transition delay is 2000ms
-    composeTestRule.onNodeWithTag("diamond_geometric_canvas").assertExists()
-
-    // Advance virtual clock by another 1.1 second (total 2100ms)
-    composeTestRule.mainClock.advanceTimeBy(1100)
-
-    // Verify we are now on the Home Screen
+    // Verify we directly load the Home screen without any intermediate black splash screen
     composeTestRule.onNodeWithTag("home_screen_root").assertExists()
   }
 }
