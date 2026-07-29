@@ -68,8 +68,9 @@ import com.example.features.tasks.getCurrentDateString
 import androidx.compose.runtime.collectAsState
 import androidx.navigation.compose.currentBackStackEntryAsState
 
+private val demoIds = setOf("1", "2", "3", "4")
+
 private fun isUserTask(task: Task): Boolean {
-  val demoIds = setOf("1", "2", "3", "4")
   if (task.id in demoIds) return false
   val title = task.title.lowercase(Locale.US)
   val desc = task.description.lowercase(Locale.US)
@@ -114,16 +115,16 @@ fun HomeScreen(navController: NavController) {
     updatedTasksList.filter { it.targetDate == today && isUserTask(it) }
   }
 
-  val totalTasksCount = todaysTasks.size
-  val completedTasksCount = todaysTasks.count { it.isCompleted }
-  val pendingTasksCount = todaysTasks.count { !it.isCompleted }
+  val totalTasksCount = remember(todaysTasks) { todaysTasks.size }
+  val completedTasksCount = remember(todaysTasks) { todaysTasks.count { it.isCompleted } }
+  val pendingTasksCount = remember(todaysTasks) { todaysTasks.count { !it.isCompleted } }
 
   LaunchedEffect(Unit) {
+    val dayFormat = SimpleDateFormat("EEEE", Locale.getDefault())
+    val dateFormat = SimpleDateFormat("dd MMMM yyyy", Locale.getDefault())
+    val timeFormat = SimpleDateFormat("hh:mm:ss a", Locale.getDefault())
     while (true) {
       val calendar = Calendar.getInstance()
-      val dayFormat = SimpleDateFormat("EEEE", Locale.getDefault())
-      val dateFormat = SimpleDateFormat("dd MMMM yyyy", Locale.getDefault())
-      val timeFormat = SimpleDateFormat("hh:mm:ss a", Locale.getDefault())
 
       currentDayName = dayFormat.format(calendar.time)
       currentDate = dateFormat.format(calendar.time)
