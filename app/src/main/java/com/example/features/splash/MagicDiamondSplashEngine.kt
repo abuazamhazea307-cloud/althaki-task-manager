@@ -25,54 +25,24 @@ private data class Face(val v1: Int, val v2: Int, val v3: Int, val colorType: In
 fun MagicDiamondSplashEngine() {
     val infiniteTransition = rememberInfiniteTransition(label = "SplashTransition")
 
-    // Slow 360-degree rotation around Y axis (12-second cycle)
+    // Very slow, extremely smooth 360-degree rotation around Y axis (15-second cycle for 60FPS precision)
     val rotationY by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 2 * PI.toFloat(),
         animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 12000, easing = LinearEasing),
+            animation = tween(durationMillis = 15000, easing = LinearEasing),
             repeatMode = RepeatMode.Restart
         ),
         label = "rotationY"
     )
 
-    // Gentle wobble around X axis (4.5-second cycle)
-    val rotationX by infiniteTransition.animateFloat(
-        initialValue = -0.15f,
-        targetValue = -0.35f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 4500, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "rotationX"
-    )
+    // Extremely stable, slight tilt around X axis (constant -0.25f, no wobble/shaking)
+    val rotationX = -0.25f
 
-    // Breathing pulse scale for the entire view (3.5-second cycle)
-    val pulseScale by infiniteTransition.animateFloat(
-        initialValue = 0.95f,
-        targetValue = 1.05f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 3500, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "pulseScale"
-    )
-
-    // Vertical floating hover offset for the logo below (3-second cycle, out of phase)
-    val hoverOffset by infiniteTransition.animateFloat(
-        initialValue = -6f,
-        targetValue = 6f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 3000, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "hoverOffset"
-    )
-
-    // Dynamic light sweep factor (passes from left to right over the diamond)
+    // Dynamic light sweep factor passing from left to right over the facets (3.2-second cycle)
     val lightSweepFactor by infiniteTransition.animateFloat(
-        initialValue = -1.8f,
-        targetValue = 1.8f,
+        initialValue = -2.0f,
+        targetValue = 2.0f,
         animationSpec = infiniteRepeatable(
             animation = tween(durationMillis = 3200, easing = LinearEasing),
             repeatMode = RepeatMode.Restart
@@ -99,24 +69,22 @@ fun MagicDiamondSplashEngine() {
                 contentAlignment = Alignment.Center
             ) {
                 DiamondGeometricModel(
-                    pulseScale = pulseScale,
                     rotationY = rotationY,
                     rotationX = rotationX,
                     lightSweepFactor = lightSweepFactor
                 )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
-            // 2. Luxury Task Manager Pen and Paper Logo (matching design style)
+            // 2. Luxury Task Manager Document and Checkmark Logo (matching design style)
             Box(
                 modifier = Modifier
                     .size(160.dp)
-                    .testTag("luxury_task_logo_container")
-                    .offset(y = hoverOffset.dp),
+                    .testTag("luxury_task_logo_container"),
                 contentAlignment = Alignment.Center
             ) {
-                LuxuryPenAndPaperModel(pulseScale = pulseScale)
+                LuxuryDocumentCheckModel()
             }
         }
     }
@@ -124,7 +92,6 @@ fun MagicDiamondSplashEngine() {
 
 @Composable
 private fun DiamondGeometricModel(
-    pulseScale: Float,
     rotationY: Float,
     rotationX: Float,
     lightSweepFactor: Float
@@ -137,9 +104,9 @@ private fun DiamondGeometricModel(
         val centerX = size.width / 2f
         val centerY = size.height / 2f
 
-        // scale sized beautifully within canvas
-        val baseScale = min(size.width, size.height) * 0.45f
-        val scale = baseScale * pulseScale
+        // scale sized beautifully within canvas (approx 40% of the smallest screen dimension)
+        val baseScale = min(size.width, size.height) * 0.40f
+        val scale = baseScale
 
         // Symmetrical brilliant cut diamond model vertices
         val vertices = listOf(
@@ -225,7 +192,7 @@ private fun DiamondGeometricModel(
             Vertex3D(x1, y2, z2)
         }
 
-        // Project 3D rotated coordinates onto 2D screen
+        // Project 3D rotated coordinates onto 2D screen with Perspective
         val projected = rotated3D.map { vertex ->
             val cameraDepth = 600f
             val perspectiveFactor = cameraDepth / (cameraDepth + vertex.z)
@@ -236,9 +203,8 @@ private fun DiamondGeometricModel(
             Pair(Offset(screenX, screenY), vertex.z)
         }
 
-        // Fixed light source direction in world space (top-front-right of the viewer)
-        // High luxury shine vector
-        val lx = 0.5f
+        // Fixed light source direction in world space (top-front-left of the viewer)
+        val lx = -0.6f
         val ly = -0.8f
         val lz = -1.0f
         val lLen = sqrt(lx * lx + ly * ly + lz * lz)
@@ -303,8 +269,8 @@ private fun DiamondGeometricModel(
             val faceCenterX = (p1.x + p2.x + p3.x) / 3f
             val normalizedX = (faceCenterX - centerX) / (scale.coerceAtLeast(1f))
             val sweepDist = abs(normalizedX - lightSweepFactor)
-            val sweepShine = if (sweepDist < 0.22f) {
-                (1.0f - sweepDist / 0.22f) * 0.45f
+            val sweepShine = if (sweepDist < 0.25f) {
+                (1.0f - sweepDist / 0.25f) * 0.50f
             } else {
                 0f
             }
@@ -314,8 +280,8 @@ private fun DiamondGeometricModel(
 
             // Map face groups to luxury gradient palettes (Crystal White, Light Blue, Cyan, Royal Blue)
             val (colorStart, colorEnd) = when (face.colorType) {
-                0, 1 -> Pair(Color(0xFFF8FAFC), Color(0xFFE0F2FE)) // Crystal White -> Light Sky Blue
-                2, 3 -> Pair(Color(0xFFBAE6FD), Color(0xFF38BDF8)) // Light Blue -> Cyan
+                0, 1 -> Pair(Color(0xFFF8FAFC), Color(0xFFE0F2FE)) // Crystal White -> Ice Blue
+                2, 3 -> Pair(Color(0xFFBAE6FD), Color(0xFF38BDF8)) // Light Cyan -> Ice Cyan
                 4, 5 -> Pair(Color(0xFF0EA5E9), Color(0xFF1D4ED8)) // Cyan -> Royal Blue
                 else -> Pair(Color(0xFF1E40AF), Color(0xFF0369A1)) // Royal Blue -> Deep Sapphire
             }
@@ -347,14 +313,95 @@ private fun DiamondGeometricModel(
                 color = Color(0xFFFFFFFF).copy(alpha = 0.55f),
                 start = p1,
                 end = p2,
-                strokeWidth = 2f
+                strokeWidth = 2.0f
+            )
+        }
+
+        // Calculate light facing factor for each vertex to place the spectacular dynamic sparkle
+        val vertexSpecular = rotated3D.mapIndexed { index, rotated ->
+            val rLen = sqrt(rotated.x * rotated.x + rotated.y * rotated.y + rotated.z * rotated.z)
+            if (rLen > 0f) {
+                val rnx = rotated.x / rLen
+                val rny = rotated.y / rLen
+                val rnz = rotated.z / rLen
+                // Dot product of vertex outward normal with light source vector (top-front-left)
+                val dot = rnx * lnx + rny * lny + rnz * lnz
+                val spec = max(0f, dot).pow(12f)
+                Pair(index, spec)
+            } else {
+                Pair(index, 0f)
+            }
+        }
+
+        val brightestVertex = vertexSpecular.maxByOrNull { it.second }
+        if (brightestVertex != null && brightestVertex.second > 0.3f) {
+            val vertexId = brightestVertex.first
+            val intensity = brightestVertex.second
+            val screenPos = projected[vertexId].first
+
+            // Draw a soft radial glow under the sparkle
+            drawCircle(
+                color = Color(0xFF38BDF8).copy(alpha = 0.35f * intensity),
+                radius = 24.dp.toPx() * intensity,
+                center = screenPos
+            )
+            drawCircle(
+                color = Color.White.copy(alpha = 0.65f * intensity),
+                radius = 10.dp.toPx() * intensity,
+                center = screenPos
+            )
+
+            // Draw main horizontal flare beam
+            drawLine(
+                brush = Brush.linearGradient(
+                    colors = listOf(Color.Transparent, Color.White.copy(alpha = 0.95f * intensity), Color.Transparent),
+                    start = Offset(screenPos.x - 35.dp.toPx() * intensity, screenPos.y),
+                    end = Offset(screenPos.x + 35.dp.toPx() * intensity, screenPos.y)
+                ),
+                start = Offset(screenPos.x - 35.dp.toPx() * intensity, screenPos.y),
+                end = Offset(screenPos.x + 35.dp.toPx() * intensity, screenPos.y),
+                strokeWidth = 3.dp.toPx() * intensity
+            )
+
+            // Draw main vertical flare beam
+            drawLine(
+                brush = Brush.linearGradient(
+                    colors = listOf(Color.Transparent, Color.White.copy(alpha = 0.95f * intensity), Color.Transparent),
+                    start = Offset(screenPos.x, screenPos.y - 35.dp.toPx() * intensity),
+                    end = Offset(screenPos.x, screenPos.y + 35.dp.toPx() * intensity)
+                ),
+                start = Offset(screenPos.x, screenPos.y - 35.dp.toPx() * intensity),
+                end = Offset(screenPos.x, screenPos.y + 35.dp.toPx() * intensity),
+                strokeWidth = 3.dp.toPx() * intensity
+            )
+
+            // Draw diagonal flare beams (X shape) for the ultimate premium starry look
+            drawLine(
+                brush = Brush.linearGradient(
+                    colors = listOf(Color.Transparent, Color(0xFFBAE6FD).copy(alpha = 0.75f * intensity), Color.Transparent),
+                    start = Offset(screenPos.x - 18.dp.toPx() * intensity, screenPos.y - 18.dp.toPx() * intensity),
+                    end = Offset(screenPos.x + 18.dp.toPx() * intensity, screenPos.y + 18.dp.toPx() * intensity)
+                ),
+                start = Offset(screenPos.x - 18.dp.toPx() * intensity, screenPos.y - 18.dp.toPx() * intensity),
+                end = Offset(screenPos.x + 18.dp.toPx() * intensity, screenPos.y + 18.dp.toPx() * intensity),
+                strokeWidth = 1.5.dp.toPx() * intensity
+            )
+            drawLine(
+                brush = Brush.linearGradient(
+                    colors = listOf(Color.Transparent, Color(0xFFBAE6FD).copy(alpha = 0.75f * intensity), Color.Transparent),
+                    start = Offset(screenPos.x + 18.dp.toPx() * intensity, screenPos.y - 18.dp.toPx() * intensity),
+                    end = Offset(screenPos.x - 18.dp.toPx() * intensity, screenPos.y + 18.dp.toPx() * intensity)
+                ),
+                start = Offset(screenPos.x + 18.dp.toPx() * intensity, screenPos.y - 18.dp.toPx() * intensity),
+                end = Offset(screenPos.x - 18.dp.toPx() * intensity, screenPos.y + 18.dp.toPx() * intensity),
+                strokeWidth = 1.5.dp.toPx() * intensity
             )
         }
     }
 }
 
 @Composable
-private fun LuxuryPenAndPaperModel(pulseScale: Float) {
+private fun LuxuryDocumentCheckModel() {
     Canvas(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -363,175 +410,103 @@ private fun LuxuryPenAndPaperModel(pulseScale: Float) {
         val centerX = w / 2f
         val centerY = h / 2f
 
-        // Draw Paper (semi-translucent glassmorphic sheet with neon borders)
+        val docW = w * 0.45f
+        val docH = h * 0.55f
+
+        // Document card path with folded top-right corner to make it look professional
+        val docPath = Path().apply {
+            val radius = 10.dp.toPx()
+            val foldSize = docW * 0.28f
+
+            // Start at top-left
+            moveTo(-docW / 2f + radius, -docH / 2f)
+            // Go to the beginning of the fold
+            lineTo(docW / 2f - foldSize, -docH / 2f)
+            // Fold corner
+            lineTo(docW / 2f, -docH / 2f + foldSize)
+            // Go to bottom-right
+            lineTo(docW / 2f, docH / 2f - radius)
+            // Round bottom-right corner
+            quadraticTo(docW / 2f, docH / 2f, docW / 2f - radius, docH / 2f)
+            // Go to bottom-left
+            lineTo(-docW / 2f + radius, docH / 2f)
+            // Round bottom-left corner
+            quadraticTo(-docW / 2f, docH / 2f, -docW / 2f, docH / 2f - radius)
+            // Go to top-left
+            lineTo(-docW / 2f, -docH / 2f + radius)
+            // Round top-left corner
+            quadraticTo(-docW / 2f, -docH / 2f, -docW / 2f + radius, -docH / 2f)
+            close()
+        }
+
         withTransform({
-            translate(left = centerX, top = centerY + 10f)
-            rotate(degrees = -10f) // slight artistic tilt
-            scale(scaleX = pulseScale, scaleY = pulseScale)
+            translate(left = centerX, top = centerY)
         }) {
-            val paperW = w * 0.45f
-            val paperH = h * 0.55f
-
-            val paperPath = Path().apply {
-                addRoundRect(
-                    RoundRect(
-                        rect = Rect(-paperW / 2f, -paperH / 2f, paperW / 2f, paperH / 2f),
-                        cornerRadius = CornerRadius(10.dp.toPx())
-                    )
-                )
-            }
-
-            // Translucent crystal blue background
+            // Document gradient fill (crystalline deep sapphire, cyan & translucent space)
             drawPath(
-                path = paperPath,
+                path = docPath,
                 brush = Brush.linearGradient(
                     colors = listOf(
-                        Color(0x330EA5E9), // Neon blue glow
-                        Color(0x11030406), // Deep space dark
-                        Color(0x221E40AF)  // Sapphire translucent
+                        Color(0x330EA5E9), // Neon crystal cyan
+                        Color(0x1A030406), // Deep black-blue
+                        Color(0x2B1E40AF)  // Sapphire royal blue translucent
                     ),
-                    start = Offset(-paperW / 2f, -paperH / 2f),
-                    end = Offset(paperW / 2f, paperH / 2f)
+                    start = Offset(-docW / 2f, -docH / 2f),
+                    end = Offset(docW / 2f, docH / 2f)
                 )
             )
 
-            // Glowing border stroke
+            // Neon glowing crystalline edge border
             drawPath(
-                path = paperPath,
+                path = docPath,
                 brush = Brush.linearGradient(
                     colors = listOf(
-                        Color(0xFF38BDF8).copy(alpha = 0.8f),
-                        Color(0xFF1D4ED8).copy(alpha = 0.2f),
-                        Color(0xFF0EA5E9).copy(alpha = 0.9f)
+                        Color(0xFF38BDF8).copy(alpha = 0.85f),
+                        Color(0xFF1D4ED8).copy(alpha = 0.25f),
+                        Color(0xFF0EA5E9).copy(alpha = 0.90f)
                     ),
-                    start = Offset(-paperW / 2f, -paperH / 2f),
-                    end = Offset(paperW / 2f, paperH / 2f)
+                    start = Offset(-docW / 2f, -docH / 2f),
+                    end = Offset(docW / 2f, docH / 2f)
                 ),
                 style = Stroke(width = 2.5f)
             )
 
-            // Draw task list items
-            val lineStartX = -paperW * 0.28f
-            val lineEndX = paperW * 0.32f
-            val startY = -paperH * 0.28f
-            val lineSpacing = paperH * 0.19f
-
-            for (i in 0 until 4) {
-                val lineY = startY + i * lineSpacing
-                val boxX = lineStartX - 10f
-                val boxSize = 12f
-
-                // Draw tiny checklist boxes
-                drawRoundRect(
-                    color = Color(0xFF38BDF8).copy(alpha = 0.65f),
-                    topLeft = Offset(boxX - boxSize / 2f, lineY - boxSize / 2f),
-                    size = Size(boxSize, boxSize),
-                    cornerRadius = CornerRadius(2.5f),
-                    style = Stroke(width = 1.5f)
-                )
-
-                // Render checkmarks inside some boxes
-                if (i == 0 || i == 2) {
-                    val checkPath = Path().apply {
-                        moveTo(boxX - boxSize / 3f, lineY)
-                        lineTo(boxX - boxSize / 12f, lineY + boxSize / 3f)
-                        lineTo(boxX + boxSize / 2f, lineY - boxSize / 3f)
-                    }
-                    drawPath(
-                        path = checkPath,
-                        color = Color(0xFF38BDF8),
-                        style = Stroke(width = 1.8f, cap = StrokeCap.Round)
-                    )
-                }
-
-                // Draw horizontal writing lines
-                drawLine(
-                    brush = Brush.linearGradient(
-                        colors = listOf(
-                            Color(0xFFE0F2FE).copy(alpha = 0.8f),
-                            Color(0xFF38BDF8).copy(alpha = 0.15f)
-                        )
-                    ),
-                    start = Offset(lineStartX + 12f, lineY),
-                    end = Offset(lineEndX, lineY),
-                    strokeWidth = 3f,
-                    cap = StrokeCap.Round
-                )
-            }
-        }
-
-        // Draw Pen (diagonal luxury stylus pen with metallic gold tips and cyan highlights)
-        withTransform({
-            translate(left = centerX + 18f, top = centerY - 15f)
-            rotate(degrees = -35f) // Pen pointing towards paper tip
-            scale(scaleX = pulseScale, scaleY = pulseScale)
-        }) {
-            val penLength = h * 0.5f
-            val penWidth = 12f
-
-            // 1. Tip (Luxury golden stylus nib)
-            val tipPath = Path().apply {
-                moveTo(-penWidth / 2f, penLength * 0.32f)
-                lineTo(0f, penLength * 0.42f) // Pointy stylus tip
-                lineTo(penWidth / 2f, penLength * 0.32f)
+            // Fold accent corner piece
+            val foldSize = docW * 0.28f
+            val foldPath = Path().apply {
+                moveTo(docW / 2f - foldSize, -docH / 2f)
+                lineTo(docW / 2f - foldSize, -docH / 2f + foldSize)
+                lineTo(docW / 2f, -docH / 2f + foldSize)
                 close()
             }
             drawPath(
-                path = tipPath,
+                path = foldPath,
                 brush = Brush.linearGradient(
                     colors = listOf(
-                        Color(0xFFFBBF24), // Gold
-                        Color(0xFFD97706)  // Bronze/Deep Gold
+                        Color(0xFFBAE6FD).copy(alpha = 0.85f),
+                        Color(0xFF0EA5E9).copy(alpha = 0.50f)
                     )
                 )
             )
 
-            // 2. Sleek crystal-blue metallic body
-            val bodyPath = Path().apply {
-                addRoundRect(
-                    RoundRect(
-                        rect = Rect(-penWidth / 2f, -penLength * 0.38f, penWidth / 2f, penLength * 0.32f),
-                        cornerRadius = CornerRadius(3f)
-                    )
-                )
+            // Draw a large, luxury glowing Checkmark (علامة صح) in the middle of the document
+            val checkPath = Path().apply {
+                moveTo(-docW * 0.18f, docH * 0.05f)
+                lineTo(-docW * 0.03f, docH * 0.20f)
+                lineTo(docW * 0.22f, -docH * 0.12f)
             }
+
+            // Draw checkmark stroke (Neon cyan / Royal blue premium glow)
             drawPath(
-                path = bodyPath,
+                path = checkPath,
                 brush = Brush.linearGradient(
                     colors = listOf(
-                        Color(0xFF0EA5E9), // Glowing cyan
-                        Color(0xFF1E3A8A), // Metallic sapphire blue
-                        Color(0xFF38BDF8)  // Bright cyan edge
-                    ),
-                    start = Offset(-penWidth / 2f, 0f),
-                    end = Offset(penWidth / 2f, 0f)
-                )
-            )
-
-            // Highlight stroke
-            drawPath(
-                path = bodyPath,
-                color = Color(0xFFFFFFFF).copy(alpha = 0.5f),
-                style = Stroke(width = 1.2f)
-            )
-
-            // 3. Golden pen clip/cap at the top
-            val capPath = Path().apply {
-                addRoundRect(
-                    RoundRect(
-                        rect = Rect(-penWidth / 2f - 2f, -penLength * 0.43f, penWidth / 2f + 2f, -penLength * 0.36f),
-                        cornerRadius = CornerRadius(2f)
+                        Color(0xFFE0F2FE), // Ice white
+                        Color(0xFF38BDF8), // Cyan
+                        Color(0xFF0EA5E9)  // Deep Cyan
                     )
-                )
-            }
-            drawPath(
-                path = capPath,
-                brush = Brush.linearGradient(
-                    colors = listOf(
-                        Color(0xFFFBBF24),
-                        Color(0xFFD97706)
-                    )
-                )
+                ),
+                style = Stroke(width = 5.0f, cap = StrokeCap.Round, join = StrokeJoin.Round)
             )
         }
     }

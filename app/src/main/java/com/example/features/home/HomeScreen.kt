@@ -67,6 +67,12 @@ import com.example.features.tasks.Task
 import com.example.features.tasks.getCurrentDateString
 import androidx.compose.runtime.collectAsState
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 
 private val demoIds = setOf("1", "2", "3", "4")
 
@@ -471,14 +477,23 @@ fun StatCard(
         )
       }
       Spacer(modifier = Modifier.height(12.dp))
-      Text(
-        text = value,
-        style = MaterialTheme.typography.titleLarge.copy(
-          fontWeight = FontWeight.Bold,
-          color = MaterialTheme.colorScheme.onSurface,
-          fontSize = 24.sp
+      AnimatedContent(
+        targetState = value,
+        transitionSpec = {
+          slideInVertically { height -> height } + fadeIn() togetherWith
+              slideOutVertically { height -> -height } + fadeOut()
+        },
+        label = "stat_value_anim"
+      ) { targetValue ->
+        Text(
+          text = targetValue,
+          style = MaterialTheme.typography.titleLarge.copy(
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface,
+            fontSize = 24.sp
+          )
         )
-      )
+      }
       Spacer(modifier = Modifier.height(4.dp))
       Text(
         text = title,

@@ -49,7 +49,13 @@ class GreetingScreenshotTest {
     // Advance virtual clock by 2 seconds
     composeTestRule.mainClock.advanceTimeBy(2000)
 
-    // Verify we are still on Splash Screen as transition has been removed
+    // Verify we are still on Splash Screen as transition delay is 3000ms
     composeTestRule.onNodeWithTag("diamond_geometric_canvas").assertExists()
+
+    // Advance virtual clock by another 1.5 seconds (total 3500ms)
+    composeTestRule.mainClock.advanceTimeBy(1500)
+
+    // Verify we are now on the Home Screen
+    composeTestRule.onNodeWithTag("home_screen_root").assertExists()
   }
 }

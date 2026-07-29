@@ -372,7 +372,8 @@ fun TasksScreen(navController: NavController) {
               onLongClick = { clickedTask ->
                 selectedTaskForSheet = clickedTask
                 showBottomSheet = true
-              }
+              },
+              modifier = Modifier.animateItem()
             )
           }
         }
@@ -583,7 +584,8 @@ fun TaskRow(
   task: Task,
   isPending: Boolean,
   onToggleComplete: (Task) -> Unit,
-  onLongClick: (Task) -> Unit
+  onLongClick: (Task) -> Unit,
+  modifier: Modifier = Modifier
 ) {
   // Subtle pulse scale animation on the card
   val scale by if (isPending) {
@@ -634,7 +636,7 @@ fun TaskRow(
   }
 
   Card(
-    modifier = Modifier
+    modifier = modifier
       .fillMaxWidth()
       .scale(scale)
       .combinedClickable(

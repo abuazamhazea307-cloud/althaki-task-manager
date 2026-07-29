@@ -340,7 +340,8 @@ fun TomorrowTasksScreen(navController: NavController) {
               onLongClick = { clickedTask ->
                 selectedTaskForSheet = clickedTask
                 showBottomSheet = true
-              }
+              },
+              modifier = Modifier.animateItem()
             )
           }
         }
