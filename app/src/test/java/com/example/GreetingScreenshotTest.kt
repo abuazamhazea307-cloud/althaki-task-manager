@@ -46,14 +46,14 @@ class GreetingScreenshotTest {
     // Verify we start at Splash Screen (with our custom geometric diamond canvas)
     composeTestRule.onNodeWithTag("diamond_geometric_canvas").assertExists()
 
-    // Advance virtual clock by 2 seconds
-    composeTestRule.mainClock.advanceTimeBy(2000)
+    // Advance virtual clock by 1 second
+    composeTestRule.mainClock.advanceTimeBy(1000)
 
-    // Verify we are still on Splash Screen as transition delay is 3000ms
+    // Verify we are still on Splash Screen as transition delay is 1500ms
     composeTestRule.onNodeWithTag("diamond_geometric_canvas").assertExists()
 
-    // Advance virtual clock by another 1.5 seconds (total 3500ms)
-    composeTestRule.mainClock.advanceTimeBy(1500)
+    // Advance virtual clock by another 1 second (total 2000ms)
+    composeTestRule.mainClock.advanceTimeBy(1000)
 
     // Verify we are now on the Home Screen
     composeTestRule.onNodeWithTag("home_screen_root").assertExists()

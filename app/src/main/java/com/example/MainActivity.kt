@@ -42,9 +42,6 @@ class MainActivity : ComponentActivity() {
     val splashScreen = installSplashScreen()
     super.onCreate(savedInstanceState)
     val startTime = System.currentTimeMillis()
-    splashScreen.setKeepOnScreenCondition {
-      !isFirstFrameDrawn
-    }
 
     // Start background initialization ASAP on a background dispatcher, running in parallel with UI setup
     lifecycleScope.launch(kotlinx.coroutines.Dispatchers.IO) {
