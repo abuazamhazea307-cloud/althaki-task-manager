@@ -25,8 +25,8 @@ fun NavGraph(navController: NavHostController) {
     startDestination = Screen.Splash.route
   ) {
     composable(Screen.Splash.route) {
-      androidx.compose.runtime.LaunchedEffect(key1 = Unit) {
-        kotlinx.coroutines.delay(1300)
+      androidx.compose.runtime.LaunchedEffect(Unit) {
+        kotlinx.coroutines.delay(1500)
         navController.navigate(Screen.Home.route) {
           popUpTo(Screen.Splash.route) { inclusive = true }
         }
