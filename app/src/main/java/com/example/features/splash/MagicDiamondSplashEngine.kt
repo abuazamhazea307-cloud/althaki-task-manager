@@ -69,6 +69,17 @@ fun MagicDiamondSplashEngine() {
         label = "hoverOffset"
     )
 
+    // Dynamic light sweep factor (passes from left to right over the diamond)
+    val lightSweepFactor by infiniteTransition.animateFloat(
+        initialValue = -1.8f,
+        targetValue = 1.8f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 3200, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "lightSweep"
+    )
+
     Surface(
         modifier = Modifier
             .fillMaxSize()
@@ -90,7 +101,8 @@ fun MagicDiamondSplashEngine() {
                 DiamondGeometricModel(
                     pulseScale = pulseScale,
                     rotationY = rotationY,
-                    rotationX = rotationX
+                    rotationX = rotationX,
+                    lightSweepFactor = lightSweepFactor
                 )
             }
 
@@ -114,7 +126,8 @@ fun MagicDiamondSplashEngine() {
 private fun DiamondGeometricModel(
     pulseScale: Float,
     rotationY: Float,
-    rotationX: Float
+    rotationX: Float,
+    lightSweepFactor: Float
 ) {
     Canvas(
         modifier = Modifier
@@ -286,6 +299,16 @@ private fun DiamondGeometricModel(
             // Extreme specular reflection for bright glints
             val specular = max(0f, dot).pow(14f)
 
+            // Dynamic light sweep passing across the face from left to right
+            val faceCenterX = (p1.x + p2.x + p3.x) / 3f
+            val normalizedX = (faceCenterX - centerX) / (scale.coerceAtLeast(1f))
+            val sweepDist = abs(normalizedX - lightSweepFactor)
+            val sweepShine = if (sweepDist < 0.22f) {
+                (1.0f - sweepDist / 0.22f) * 0.45f
+            } else {
+                0f
+            }
+
             // Dynamic ambient/diffuse shading intensity
             val intensity = 0.35f + 0.65f * diffuse
 
@@ -301,9 +324,10 @@ private fun DiamondGeometricModel(
             val shadedStart = applyIntensity(colorStart, intensity)
             val shadedEnd = applyIntensity(colorEnd, intensity)
 
-            // Blend in pure white light reflection according to specular factor
-            val finalStart = interpolateColor(shadedStart, Color.White, specular)
-            val finalEnd = interpolateColor(shadedEnd, Color.White, specular)
+            // Blend in pure white light reflection according to specular factor and sweepShine
+            val totalHighlight = (specular + sweepShine).coerceIn(0f, 1f)
+            val finalStart = interpolateColor(shadedStart, Color.White, totalHighlight)
+            val finalEnd = interpolateColor(shadedEnd, Color.White, totalHighlight)
 
             drawPath(
                 path = path,
