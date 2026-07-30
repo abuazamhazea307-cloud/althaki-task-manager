@@ -48,7 +48,7 @@ class SplashActivity : ComponentActivity() {
                 ) {
                     Diamond3DRenderer(
                         modifier = Modifier
-                            .size(320.dp)
+                            .size(240.dp)
                     )
 
                     Spacer(modifier = Modifier.height(32.dp))
@@ -75,11 +75,12 @@ fun Diamond3DRenderer(modifier: Modifier = Modifier) {
         }
     }
 
-    val tableRadius = 0.42f
+    // Classic Diamond Brilliant Cut Proportions
+    val tableRadius = 0.50f
     val girdleRadius = 0.95f
-    val tableY = 0.45f
-    val girdleY = 0.1f
-    val culetY = -0.75f
+    val tableY = 0.35f
+    val girdleY = 0.08f
+    val culetY = -0.78f
 
     // Vertices definition
     val vertices = remember {
@@ -163,6 +164,21 @@ fun Diamond3DRenderer(modifier: Modifier = Modifier) {
             PointF(px, py)
         }
 
+        // Draw soft professional halo glow around/behind the jewel
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(
+                    Color(0x2EFFFFFF),
+                    Color(0x0F00E5FF),
+                    Color.Transparent
+                ),
+                center = androidx.compose.ui.geometry.Offset(centerX, centerY),
+                radius = scale * 1.6f
+            ),
+            radius = scale * 1.6f,
+            center = androidx.compose.ui.geometry.Offset(centerX, centerY)
+        )
+
         // Calculate face normals and average Z for depth sorting (Painter's Algorithm)
         val sortedFacetsWithDepth = facets.map { facet ->
             // Depth is average Z of rotated vertices
@@ -223,10 +239,16 @@ fun Diamond3DRenderer(modifier: Modifier = Modifier) {
             val spec = nz.pow(16) // Shiny highlights aligned with viewer
             val specSweep = dotSweep.pow(24) // Extra bright sweep highlights
 
+            // Dynamic chromatic dispersion (realistic diamond rainbow fire)
+            val dispersion = abs(sin(nx * 3.5f + ny * 3.5f + t * 0.0015f))
+            val fireR = 0.12f * sin(dispersion * PI.toFloat()).coerceIn(0f, 1f)
+            val fireG = 0.10f * sin((dispersion + 0.33f) * PI.toFloat()).coerceIn(0f, 1f)
+            val fireB = 0.15f * sin((dispersion + 0.66f) * PI.toFloat()).coerceIn(0f, 1f)
+
             // Combine components for gorgeous, vibrant gemstone lighting
-            val r = (0.05f + 0.60f * dot1 + 0.10f * dot2 + 0.05f * dot3 + spec * 0.35f + specSweep * 0.40f).coerceIn(0f, 1f)
-            val g = (0.08f + 0.60f * dot1 + 0.65f * dot2 + 0.10f * dot3 + spec * 0.35f + specSweep * 0.45f).coerceIn(0f, 1f)
-            val b = (0.22f + 0.60f * dot1 + 0.35f * dot2 + 0.85f * dot3 + spec * 0.45f + specSweep * 0.45f).coerceIn(0f, 1f)
+            val r = (0.05f + 0.55f * dot1 + 0.10f * dot2 + 0.05f * dot3 + spec * 0.30f + specSweep * 0.40f + fireR).coerceIn(0f, 1f)
+            val g = (0.08f + 0.55f * dot1 + 0.60f * dot2 + 0.10f * dot3 + spec * 0.30f + specSweep * 0.45f + fireG).coerceIn(0f, 1f)
+            val b = (0.22f + 0.55f * dot1 + 0.30f * dot2 + 0.80f * dot3 + spec * 0.40f + specSweep * 0.45f + fireB).coerceIn(0f, 1f)
 
             // Dynamic transparency (light facing are more opaque, back faces are beautiful translucent refractions)
             val alpha = (0.50f + 0.25f * dot1 + specSweep * 0.20f).coerceIn(0.2f, 0.95f)
@@ -252,6 +274,44 @@ fun Diamond3DRenderer(modifier: Modifier = Modifier) {
 
             drawPath(path = path, color = fillColor)
             drawPath(path = path, color = strokeColor, style = Stroke(width = 1.dp.toPx()))
+        }
+
+        // Draw smooth animated sparkle/glimmer stars at the table vertices facing the viewer
+        for (i in 0..7) {
+            val zCoord = rotatedVertices[i].z
+            if (zCoord > 0.15f) {
+                // Each vertex sparkles at a different phase
+                val vertexPhase = (t + i * 750) % 2500
+                // Sparkle only flares up briefly for 600ms out of 2500ms
+                if (vertexPhase < 600) {
+                    val intensity = sin((vertexPhase / 600f) * PI.toFloat())
+                    val pt = projectedVertices[i]
+                    
+                    val sparkleSize = 12.dp.toPx() * intensity
+                    val glowRadius = 7.dp.toPx() * intensity
+
+                    // Draw outer glow
+                    drawCircle(
+                        color = Color(0x75FFFFFF),
+                        radius = glowRadius,
+                        center = androidx.compose.ui.geometry.Offset(pt.x, pt.y)
+                    )
+                    
+                    // Draw sparkle cross
+                    drawLine(
+                        color = Color.White,
+                        start = androidx.compose.ui.geometry.Offset(pt.x - sparkleSize, pt.y),
+                        end = androidx.compose.ui.geometry.Offset(pt.x + sparkleSize, pt.y),
+                        strokeWidth = 1.2.dp.toPx()
+                    )
+                    drawLine(
+                        color = Color.White,
+                        start = androidx.compose.ui.geometry.Offset(pt.x, pt.y - sparkleSize),
+                        end = androidx.compose.ui.geometry.Offset(pt.x, pt.y + sparkleSize),
+                        strokeWidth = 1.2.dp.toPx()
+                    )
+                }
+            }
         }
     }
 }
