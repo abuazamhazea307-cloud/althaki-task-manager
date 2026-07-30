@@ -225,19 +225,6 @@ fun TasksScreen(navController: NavController) {
         )
         NavigationBarItem(
           selected = false,
-          modifier = Modifier.testTag("nav_tab_tomorrow_tasks"),
-          onClick = {
-            navController.navigate(Screen.TomorrowTasks.route) {
-              popUpTo(Screen.Home.route) { saveState = true }
-              launchSingleTop = true
-              restoreState = true
-            }
-          },
-          icon = { Icon(Icons.Default.Event, contentDescription = stringResource(R.string.tomorrow_tasks)) },
-          label = { Text(stringResource(R.string.tomorrow_tasks), style = MaterialTheme.typography.labelSmall) }
-        )
-        NavigationBarItem(
-          selected = false,
           modifier = Modifier.testTag("nav_tab_settings"),
           onClick = {
             navController.navigate(Screen.Settings.route) {
@@ -658,34 +645,36 @@ fun TaskRow(
       horizontalArrangement = Arrangement.spacedBy(14.dp)
     ) {
       // Checkbox
-      Box(
-        modifier = Modifier
-          .size(24.dp)
-          .clip(taskShape6)
-          .background(
-            if (task.isCompleted) MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
-            else Color.Transparent
-          )
-          .border(
-            width = 1.5.dp,
-            color = if (task.isCompleted) {
-              MaterialTheme.colorScheme.primary
-            } else if (isPending) {
-              if (isSystemInDarkTheme()) colorGreenDark else colorGreenLight
-            } else {
-              MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
-            },
-            shape = taskShape6
-          )
-          .clickable { onToggleComplete(task) }
-          .testTag("task_checkbox_${task.id}"),
-        contentAlignment = Alignment.Center
-      ) {
-        if (task.isCompleted) {
-          Text(
-            text = "✅",
-            fontSize = 12.sp
-          )
+      if (task.taskDay != "tomorrow") {
+        Box(
+          modifier = Modifier
+            .size(24.dp)
+            .clip(taskShape6)
+            .background(
+              if (task.isCompleted) MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
+              else Color.Transparent
+            )
+            .border(
+              width = 1.5.dp,
+              color = if (task.isCompleted) {
+                MaterialTheme.colorScheme.primary
+              } else if (isPending) {
+                if (isSystemInDarkTheme()) colorGreenDark else colorGreenLight
+              } else {
+                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
+              },
+              shape = taskShape6
+            )
+            .clickable { onToggleComplete(task) }
+            .testTag("task_checkbox_${task.id}"),
+          contentAlignment = Alignment.Center
+        ) {
+          if (task.isCompleted) {
+            Text(
+              text = "✅",
+              fontSize = 12.sp
+            )
+          }
         }
       }
 
@@ -713,8 +702,6 @@ fun TaskRow(
               },
               textDecoration = if (task.isCompleted) TextDecoration.LineThrough else TextDecoration.None
             ),
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f).testTag("task_title_${task.id}")
           )
 

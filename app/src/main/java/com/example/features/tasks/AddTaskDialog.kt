@@ -174,7 +174,7 @@ fun AddTaskDialog(
             .fillMaxWidth()
             .focusRequester(focusRequester)
             .testTag("task_title_input"),
-          singleLine = true,
+          singleLine = false,
           shape = RoundedCornerShape(12.dp),
           colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = MaterialTheme.colorScheme.primary,
@@ -497,23 +497,6 @@ fun AddTaskDialog(
             }
           }
         }
-
-        // Description Input field
-        OutlinedTextField(
-          value = description,
-          onValueChange = { description = it },
-          label = { Text(stringResource(R.string.input_desc_label), style = MaterialTheme.typography.bodyLarge) },
-          placeholder = { Text(stringResource(R.string.input_desc_placeholder), style = MaterialTheme.typography.bodyLarge) },
-          modifier = Modifier
-            .fillMaxWidth()
-            .height(110.dp)
-            .testTag("task_description_input"),
-          shape = RoundedCornerShape(12.dp),
-          colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = MaterialTheme.colorScheme.primary,
-            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
-          )
-        )
 
         Spacer(modifier = Modifier.height(12.dp))
 

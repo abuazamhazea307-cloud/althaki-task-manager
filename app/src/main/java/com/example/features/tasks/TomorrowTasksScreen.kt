@@ -185,19 +185,6 @@ fun TomorrowTasksScreen(navController: NavController) {
           label = { Text(stringResource(R.string.home), style = MaterialTheme.typography.labelSmall) }
         )
         NavigationBarItem(
-          selected = false,
-          modifier = Modifier.testTag("nav_tab_tasks"),
-          onClick = {
-            navController.navigate(Screen.Tasks.route) {
-              popUpTo(Screen.Home.route) { saveState = true }
-              launchSingleTop = true
-              restoreState = true
-            }
-          },
-          icon = { Icon(Icons.Default.CheckCircle, contentDescription = stringResource(R.string.today_tasks)) },
-          label = { Text(stringResource(R.string.today_tasks), style = MaterialTheme.typography.labelSmall) }
-        )
-        NavigationBarItem(
           selected = true,
           modifier = Modifier.testTag("nav_tab_tomorrow_tasks"),
           onClick = { /* Already on Tomorrow Tasks */ },
