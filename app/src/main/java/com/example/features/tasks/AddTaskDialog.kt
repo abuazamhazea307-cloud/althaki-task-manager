@@ -195,7 +195,7 @@ fun AddTaskDialog(
           modifier = Modifier.fillMaxWidth(),
           horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-          val dayOptions = listOf("today", "tomorrow")
+          val dayOptions = if (defaultTaskDay == "today") listOf("today") else listOf("tomorrow")
           dayOptions.forEach { dayOption ->
             val isSelected = selectedTaskDay == dayOption
             val chipBg = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)
