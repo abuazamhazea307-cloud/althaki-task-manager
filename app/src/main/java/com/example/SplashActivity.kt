@@ -28,11 +28,53 @@ class SplashActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            // Keep on screen for 2000ms, then launch MainActivity
+            val totalDuration = 3600L
+            val fadeInDuration = 1000L
+            val fadeOutDuration = 1000L
+
+            var elapsedMs by remember { mutableLongStateOf(0L) }
+            var rotationAngle by remember { mutableFloatStateOf(0f) }
+
             LaunchedEffect(Unit) {
-                delay(2000)
+                var lastTime = withFrameMillis { it }
+                val startTime = lastTime
+                while (elapsedMs < totalDuration) {
+                    withFrameMillis { frameTime ->
+                        val dt = (frameTime - lastTime) / 1000f
+                        lastTime = frameTime
+                        val currentElapsed = frameTime - startTime
+                        elapsedMs = currentElapsed
+
+                        // Speed starts at 0 and reaches 1 at fadeInDuration (1000ms)
+                        val speedFactor = (currentElapsed.toFloat() / fadeInDuration).coerceIn(0f, 1f)
+                        val baseSpeed = 0.65f // Beautiful, slow luxurious spin speed
+                        rotationAngle += baseSpeed * speedFactor * dt
+                    }
+                }
+                
+                // Transition to MainActivity
                 startActivity(Intent(this@SplashActivity, MainActivity::class.java))
+                if (android.os.Build.VERSION.SDK_INT >= 34) {
+                    overrideActivityTransition(
+                        android.app.Activity.OVERRIDE_TRANSITION_OPEN,
+                        android.R.anim.fade_in,
+                        android.R.anim.fade_out
+                    )
+                } else {
+                    @Suppress("DEPRECATION")
+                    overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
+                }
                 finish()
+            }
+
+            // Calculate current fade progress
+            val fadeProgress = when {
+                elapsedMs < fadeInDuration -> elapsedMs.toFloat() / fadeInDuration
+                elapsedMs > totalDuration - fadeOutDuration -> {
+                    val elapsedInFadeOut = elapsedMs - (totalDuration - fadeOutDuration)
+                    (1f - (elapsedInFadeOut.toFloat() / fadeOutDuration)).coerceIn(0f, 1f)
+                }
+                else -> 1f
             }
 
             Box(
@@ -47,6 +89,9 @@ class SplashActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize()
                 ) {
                     Diamond3DRenderer(
+                        fadeProgress = fadeProgress,
+                        elapsedMs = elapsedMs,
+                        rotationAngle = rotationAngle,
                         modifier = Modifier
                             .size(240.dp)
                     )
@@ -54,6 +99,7 @@ class SplashActivity : ComponentActivity() {
                     Spacer(modifier = Modifier.height(32.dp))
 
                     TaskManagerLogo(
+                        fadeProgress = fadeProgress,
                         modifier = Modifier
                             .size(100.dp)
                     )
@@ -64,17 +110,12 @@ class SplashActivity : ComponentActivity() {
 }
 
 @Composable
-fun Diamond3DRenderer(modifier: Modifier = Modifier) {
-    val timeMs = remember { mutableStateOf(0L) }
-    LaunchedEffect(Unit) {
-        val startTime = withFrameMillis { it }
-        while (true) {
-            withFrameMillis { frameTime ->
-                timeMs.value = frameTime - startTime
-            }
-        }
-    }
-
+fun Diamond3DRenderer(
+    fadeProgress: Float,
+    elapsedMs: Long,
+    rotationAngle: Float,
+    modifier: Modifier = Modifier
+) {
     // Classic Diamond Brilliant Cut Proportions
     val tableRadius = 0.50f
     val girdleRadius = 0.95f
@@ -130,9 +171,9 @@ fun Diamond3DRenderer(modifier: Modifier = Modifier) {
         val centerY = height / 2f
         val cameraD = 3.0f
 
-        val t = timeMs.value
-        // Very slow Y-axis rotation
-        val angleY = (t % 10000) / 10000f * 2f * PI.toFloat()
+        val t = elapsedMs
+        // Slow Y-axis rotation driven externally
+        val angleY = rotationAngle
         // Constant slight X-axis tilt (so we look down at the beautiful facets)
         val angleX = -0.32f
 
@@ -164,18 +205,35 @@ fun Diamond3DRenderer(modifier: Modifier = Modifier) {
             PointF(px, py)
         }
 
-        // Draw soft professional halo glow around/behind the jewel
+        // --- ENHANCED GLOW SYSTEM (Dynamic Soft Bloom) ---
+        // Layer 1: Core soft bright glow behind the jewel
         drawCircle(
             brush = Brush.radialGradient(
                 colors = listOf(
-                    Color(0x2EFFFFFF),
-                    Color(0x0F00E5FF),
+                    Color(1f, 1f, 1f, 0.25f * fadeProgress),
+                    Color(0x00FFFFFF)
+                ),
+                center = androidx.compose.ui.geometry.Offset(centerX, centerY),
+                radius = scale * 0.90f
+            ),
+            radius = scale * 0.90f,
+            center = androidx.compose.ui.geometry.Offset(centerX, centerY)
+        )
+
+        // Layer 2: Magical turquoise & sapphire breathing/pulsing ambient bloom
+        val pulse = sin(elapsedMs * 0.003f) * 0.10f
+        val outerGlowRadius = scale * (1.6f + pulse)
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(
+                    Color(0x2800E5FF).copy(alpha = 0.22f * fadeProgress),
+                    Color(0x101565C0).copy(alpha = 0.10f * fadeProgress),
                     Color.Transparent
                 ),
                 center = androidx.compose.ui.geometry.Offset(centerX, centerY),
-                radius = scale * 1.6f
+                radius = outerGlowRadius
             ),
-            radius = scale * 1.6f,
+            radius = outerGlowRadius,
             center = androidx.compose.ui.geometry.Offset(centerX, centerY)
         )
 
@@ -235,30 +293,30 @@ fun Diamond3DRenderer(modifier: Modifier = Modifier) {
             val dot3 = abs(nx * l3x + ny * l3y + nz * l3z)
             val dotSweep = abs(nx * lsx + ny * lsy + nz * lsz)
 
-            // Specular reflections
-            val spec = nz.pow(16) // Shiny highlights aligned with viewer
-            val specSweep = dotSweep.pow(24) // Extra bright sweep highlights
+            // Specular reflections (Increased power and brightness)
+            val spec = nz.coerceIn(0f, 1f).pow(20) * 0.40f * fadeProgress
+            val specSweep = dotSweep.coerceIn(0f, 1f).pow(24) * 0.60f * fadeProgress
 
-            // Dynamic chromatic dispersion (realistic diamond rainbow fire)
-            val dispersion = abs(sin(nx * 3.5f + ny * 3.5f + t * 0.0015f))
-            val fireR = 0.12f * sin(dispersion * PI.toFloat()).coerceIn(0f, 1f)
-            val fireG = 0.10f * sin((dispersion + 0.33f) * PI.toFloat()).coerceIn(0f, 1f)
-            val fireB = 0.15f * sin((dispersion + 0.66f) * PI.toFloat()).coerceIn(0f, 1f)
+            // Dynamic chromatic dispersion (Highly enhanced realistic diamond rainbow fire)
+            val dispersion = abs(sin(nx * 4.0f + ny * 4.0f + t * 0.002f))
+            val fireR = 0.20f * sin(dispersion * PI.toFloat()).coerceIn(0f, 1f) * fadeProgress
+            val fireG = 0.14f * sin((dispersion + 0.33f) * PI.toFloat()).coerceIn(0f, 1f) * fadeProgress
+            val fireB = 0.25f * sin((dispersion + 0.66f) * PI.toFloat()).coerceIn(0f, 1f) * fadeProgress
 
             // Combine components for gorgeous, vibrant gemstone lighting
-            val r = (0.05f + 0.55f * dot1 + 0.10f * dot2 + 0.05f * dot3 + spec * 0.30f + specSweep * 0.40f + fireR).coerceIn(0f, 1f)
-            val g = (0.08f + 0.55f * dot1 + 0.60f * dot2 + 0.10f * dot3 + spec * 0.30f + specSweep * 0.45f + fireG).coerceIn(0f, 1f)
-            val b = (0.22f + 0.55f * dot1 + 0.30f * dot2 + 0.80f * dot3 + spec * 0.40f + specSweep * 0.45f + fireB).coerceIn(0f, 1f)
+            val r = (0.04f + 0.50f * dot1 + 0.08f * dot2 + 0.04f * dot3 + spec + specSweep + fireR).coerceIn(0f, 1f)
+            val g = (0.06f + 0.50f * dot1 + 0.55f * dot2 + 0.08f * dot3 + spec + specSweep + fireG).coerceIn(0f, 1f)
+            val b = (0.20f + 0.50f * dot1 + 0.25f * dot2 + 0.75f * dot3 + spec + specSweep + fireB).coerceIn(0f, 1f)
 
-            // Dynamic transparency (light facing are more opaque, back faces are beautiful translucent refractions)
-            val alpha = (0.50f + 0.25f * dot1 + specSweep * 0.20f).coerceIn(0.2f, 0.95f)
+            // Dynamic transparency (gently fading in and out with fadeProgress)
+            val alpha = ((0.52f + 0.22f * dot1 + specSweep * 0.20f) * fadeProgress).coerceIn(0f, 1f)
 
             val fillColor = Color(r, g, b, alpha)
             val strokeColor = Color(
-                (0.85f + specSweep * 0.15f).coerceIn(0f, 1f),
                 (0.92f + specSweep * 0.08f).coerceIn(0f, 1f),
+                (0.96f + specSweep * 0.04f).coerceIn(0f, 1f),
                 1.0f,
-                (0.20f + specSweep * 0.45f).coerceIn(0f, 1f)
+                ((0.15f + specSweep * 0.55f + 0.10f * fadeProgress) * fadeProgress).coerceIn(0f, 1f)
             )
 
             // Draw facet path
@@ -276,55 +334,95 @@ fun Diamond3DRenderer(modifier: Modifier = Modifier) {
             drawPath(path = path, color = strokeColor, style = Stroke(width = 1.dp.toPx()))
         }
 
-        // Draw smooth animated sparkle/glimmer stars at the table vertices facing the viewer
+        // --- ENHANCED SPARKLES SYSTEM ---
+        // 1. Sparkles at the diamond table vertices (flaring up and down)
         for (i in 0..7) {
             val zCoord = rotatedVertices[i].z
-            if (zCoord > 0.15f) {
+            if (zCoord > 0.18f) {
                 // Each vertex sparkles at a different phase
-                val vertexPhase = (t + i * 750) % 2500
-                // Sparkle only flares up briefly for 600ms out of 2500ms
-                if (vertexPhase < 600) {
-                    val intensity = sin((vertexPhase / 600f) * PI.toFloat())
+                val vertexPhase = (t + i * 850) % 2400
+                // Sparkle flares up briefly for 550ms
+                if (vertexPhase < 550) {
+                    val intensity = sin((vertexPhase / 550f) * PI.toFloat()) * fadeProgress
                     val pt = projectedVertices[i]
                     
-                    val sparkleSize = 12.dp.toPx() * intensity
-                    val glowRadius = 7.dp.toPx() * intensity
+                    val sparkleSize = 9.dp.toPx() * intensity
+                    val glowRadius = 5.dp.toPx() * intensity
 
                     // Draw outer glow
                     drawCircle(
-                        color = Color(0x75FFFFFF),
+                        color = Color(0x8AFFFFFF).copy(alpha = 0.50f * intensity),
                         radius = glowRadius,
                         center = androidx.compose.ui.geometry.Offset(pt.x, pt.y)
                     )
                     
                     // Draw sparkle cross
                     drawLine(
-                        color = Color.White,
+                        color = Color.White.copy(alpha = intensity),
                         start = androidx.compose.ui.geometry.Offset(pt.x - sparkleSize, pt.y),
                         end = androidx.compose.ui.geometry.Offset(pt.x + sparkleSize, pt.y),
-                        strokeWidth = 1.2.dp.toPx()
+                        strokeWidth = 1.0.dp.toPx()
                     )
                     drawLine(
-                        color = Color.White,
+                        color = Color.White.copy(alpha = intensity),
                         start = androidx.compose.ui.geometry.Offset(pt.x, pt.y - sparkleSize),
                         end = androidx.compose.ui.geometry.Offset(pt.x, pt.y + sparkleSize),
-                        strokeWidth = 1.2.dp.toPx()
+                        strokeWidth = 1.0.dp.toPx()
                     )
                 }
+            }
+        }
+
+        // 2. Floating Micro Star Dust/Sparkles (magical ambience surrounding the diamond)
+        val backgroundSparkles = listOf(
+            PointF(-0.75f, 0.45f),
+            PointF(0.85f, 0.35f),
+            PointF(-0.65f, -0.40f),
+            PointF(0.70f, -0.55f),
+            PointF(-0.25f, 0.85f),
+            PointF(0.35f, -0.75f)
+        )
+        
+        backgroundSparkles.forEachIndexed { idx, pt3d ->
+            val particlePhase = (elapsedMs + idx * 600) % 1800
+            val particleIntensity = sin((particlePhase / 1800f) * PI.toFloat()) * fadeProgress
+            
+            if (particleIntensity > 0.05f) {
+                val px = centerX + pt3d.x * scale * 1.45f
+                val py = centerY - pt3d.y * scale * 1.45f
+                
+                val size = 4.dp.toPx() * particleIntensity
+                
+                val particlePath = Path().apply {
+                    moveTo(px, py - size)
+                    lineTo(px + size / 2f, py)
+                    lineTo(px, py + size)
+                    lineTo(px - size / 2f, py)
+                    close()
+                }
+                drawPath(path = particlePath, color = Color.White.copy(alpha = 0.85f * particleIntensity))
+                drawCircle(
+                    color = Color(0x3000E5FF).copy(alpha = particleIntensity),
+                    radius = size * 1.5f,
+                    center = androidx.compose.ui.geometry.Offset(px, py)
+                )
             }
         }
     }
 }
 
 @Composable
-fun TaskManagerLogo(modifier: Modifier = Modifier) {
+fun TaskManagerLogo(
+    fadeProgress: Float,
+    modifier: Modifier = Modifier
+) {
     Canvas(modifier = modifier) {
         val w = size.width
         val h = size.height
 
         // 1. Draw glowing background blur behind the logo
         drawCircle(
-            color = Color(0x1200E5FF),
+            color = Color(0.0f, 0.90f, 1.0f, 0.07f * fadeProgress),
             radius = w * 0.45f,
             center = androidx.compose.ui.geometry.Offset(w / 2f, h / 2f)
         )
@@ -350,7 +448,10 @@ fun TaskManagerLogo(modifier: Modifier = Modifier) {
 
         // Glassmorphic paper gradient fill
         val paperGradient = Brush.linearGradient(
-            colors = listOf(Color(0x1EFFFFFF), Color(0x06FFFFFF)),
+            colors = listOf(
+                Color(1f, 1f, 1f, 0.12f * fadeProgress),
+                Color(1f, 1f, 1f, 0.03f * fadeProgress)
+            ),
             start = androidx.compose.ui.geometry.Offset(px0, py0),
             end = androidx.compose.ui.geometry.Offset(px1, py1)
         )
@@ -358,7 +459,11 @@ fun TaskManagerLogo(modifier: Modifier = Modifier) {
 
         // Border stroke gradient
         val borderGradient = Brush.linearGradient(
-            colors = listOf(Color(0x40FFFFFF), Color(0x1800E5FF), Color(0x101565C0)),
+            colors = listOf(
+                Color(1f, 1f, 1f, 0.25f * fadeProgress),
+                Color(0.0f, 0.90f, 1.0f, 0.12f * fadeProgress),
+                Color(0.08f, 0.40f, 0.75f, 0.08f * fadeProgress)
+            ),
             start = androidx.compose.ui.geometry.Offset(px0, py0),
             end = androidx.compose.ui.geometry.Offset(px1, py1)
         )
@@ -371,8 +476,8 @@ fun TaskManagerLogo(modifier: Modifier = Modifier) {
             lineTo(foldX, py1)
             close()
         }
-        drawPath(path = foldPath, color = Color(0x28FFFFFF))
-        drawPath(path = foldPath, color = Color(0x50FFFFFF), style = Stroke(width = 1.dp.toPx()))
+        drawPath(path = foldPath, color = Color(1f, 1f, 1f, 0.16f * fadeProgress))
+        drawPath(path = foldPath, color = Color(1f, 1f, 1f, 0.32f * fadeProgress), style = Stroke(width = 1.dp.toPx()))
 
         // 4. Draw elegant blank horizontal ruled lines (minimalist task sheet)
         val linesCount = 4
@@ -385,7 +490,10 @@ fun TaskManagerLogo(modifier: Modifier = Modifier) {
             val ly = linesYRange + i * linesSpacing
             // Ruled line brush
             val lineBrush = Brush.linearGradient(
-                colors = listOf(Color(0x25FFFFFF), Color(0x05FFFFFF)),
+                colors = listOf(
+                    Color(1f, 1f, 1f, 0.15f * fadeProgress),
+                    Color(1f, 1f, 1f, 0.03f * fadeProgress)
+                ),
                 start = androidx.compose.ui.geometry.Offset(w * lineStartPercent, ly),
                 end = androidx.compose.ui.geometry.Offset(w * lineEndPercent, ly)
             )
@@ -408,18 +516,21 @@ fun TaskManagerLogo(modifier: Modifier = Modifier) {
         // Layer A: Outer broad glowing halo
         drawPath(
             path = checkPath,
-            color = Color(0x0E00E5FF),
+            color = Color(0.0f, 0.90f, 1.0f, 0.06f * fadeProgress),
             style = Stroke(width = 14.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round)
         )
         // Layer B: Medium glowing halo
         drawPath(
             path = checkPath,
-            color = Color(0x2E00E5FF),
+            color = Color(0.0f, 0.90f, 1.0f, 0.20f * fadeProgress),
             style = Stroke(width = 8.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round)
         )
         // Layer C: Core bright neon checkmark
         val checkGradient = Brush.linearGradient(
-            colors = listOf(Color(0xFFE0F7FA), Color(0xFF00E5FF)),
+            colors = listOf(
+                Color(0xFFE0F7FA).copy(alpha = fadeProgress),
+                Color(0xFF00E5FF).copy(alpha = fadeProgress)
+            ),
             start = androidx.compose.ui.geometry.Offset(w * 0.32f, h * 0.50f),
             end = androidx.compose.ui.geometry.Offset(w * 0.72f, h * 0.32f)
         )
