@@ -15,7 +15,6 @@ import androidx.core.content.ContextCompat
 import androidx.navigation.compose.rememberNavController
 import androidx.lifecycle.lifecycleScope
 import androidx.compose.ui.draw.drawWithContent
-import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import kotlinx.coroutines.launch
 import com.example.features.tasks.createNotificationChannel
 import com.example.navigation.NavGraph
@@ -39,7 +38,6 @@ class MainActivity : ComponentActivity() {
 
   override fun onCreate(savedInstanceState: Bundle?) {
     com.example.debug.StartupTracer.mark("MAIN_ACTIVITY_ONCREATE_BEGIN")
-    val splashScreen = installSplashScreen()
     super.onCreate(savedInstanceState)
     val startTime = System.currentTimeMillis()
 
