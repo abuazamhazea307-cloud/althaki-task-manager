@@ -261,6 +261,28 @@ fun HomeScreen(navController: NavController) {
             horizontalArrangement = Arrangement.Center,
             modifier = Modifier.fillMaxWidth()
           ) {
+            Text(
+              text = "الذكي",
+              style = MaterialTheme.typography.headlineMedium.copy(
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+                fontSize = 22.sp
+              )
+            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Text(
+              text = "|",
+              style = MaterialTheme.typography.headlineMedium.copy(
+                fontWeight = FontWeight.Light,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                fontSize = 24.sp
+              )
+            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+
             // Task Manager Logo: Sheet of paper + checkmark
             SmallTaskManagerLogo(
               modifier = Modifier.size(32.dp)
