@@ -1,12 +1,14 @@
 package com.example.features.tasks
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -229,68 +231,171 @@ fun AddTaskDialog(
           }
         }
 
-        // Task Start Time Input
-        Box(
-          modifier = Modifier.fillMaxWidth()
+        // Task Start Time Input & AM/PM Indicator
+        Row(
+          modifier = Modifier.fillMaxWidth(),
+          verticalAlignment = Alignment.CenterVertically,
+          horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-          OutlinedTextField(
-            value = startTime,
-            onValueChange = {},
-            readOnly = true,
-            enabled = true,
-            label = { Text(stringResource(R.string.label_start_time), style = MaterialTheme.typography.bodyLarge) },
-            placeholder = { Text(stringResource(R.string.placeholder_start_time), style = MaterialTheme.typography.bodyLarge) },
-            trailingIcon = {
-              if (startTime.isNotBlank()) {
-                IconButton(
-                  onClick = {
-                    startTime = ""
-                    enableReminder = false
-                    // Cancel any active reminder for this task directly if editing
-                    taskToEdit?.let {
-                      com.example.features.tasks.ReminderScheduler.cancelReminder(context, it.id)
-                    }
-                  },
-                  modifier = Modifier.testTag("clear_start_time_button")
-                ) {
-                  Icon(
-                    imageVector = Icons.Default.Close,
-                    contentDescription = "Clear start time",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                  )
-                }
-              } else {
-                IconButton(
-                  onClick = { showTimePickerDialog = true },
-                  modifier = Modifier.testTag("open_time_picker_button")
-                ) {
-                  Icon(
-                    imageVector = Icons.Default.AccessTime,
-                    contentDescription = stringResource(R.string.label_start_time),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                  )
-                }
-              }
-            },
-            modifier = Modifier
-              .fillMaxWidth()
-              .testTag("task_start_time_input"),
-            shape = RoundedCornerShape(12.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-              focusedTextColor = MaterialTheme.colorScheme.onSurface,
-              unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-              focusedBorderColor = MaterialTheme.colorScheme.primary,
-              unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
-            )
-          )
-
-          // Clickable overlay covering the field except the trailing icon (on the right)
           Box(
+            modifier = Modifier.weight(1f)
+          ) {
+            OutlinedTextField(
+              value = startTime,
+              onValueChange = {},
+              readOnly = true,
+              enabled = true,
+              label = { Text(stringResource(R.string.label_start_time), style = MaterialTheme.typography.bodyLarge) },
+              placeholder = { Text(stringResource(R.string.placeholder_start_time), style = MaterialTheme.typography.bodyLarge) },
+              trailingIcon = {
+                if (startTime.isNotBlank()) {
+                  IconButton(
+                    onClick = {
+                      startTime = ""
+                      enableReminder = false
+                      // Cancel any active reminder for this task directly if editing
+                      taskToEdit?.let {
+                        com.example.features.tasks.ReminderScheduler.cancelReminder(context, it.id)
+                      }
+                    },
+                    modifier = Modifier.testTag("clear_start_time_button")
+                  ) {
+                    Icon(
+                      imageVector = Icons.Default.Close,
+                      contentDescription = "Clear start time",
+                      tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                  }
+                } else {
+                  IconButton(
+                    onClick = { showTimePickerDialog = true },
+                    modifier = Modifier.testTag("open_time_picker_button")
+                  ) {
+                    Icon(
+                      imageVector = Icons.Default.AccessTime,
+                      contentDescription = stringResource(R.string.label_start_time),
+                      tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                  }
+                }
+              },
+              modifier = Modifier
+                .fillMaxWidth()
+                .testTag("task_start_time_input"),
+              shape = RoundedCornerShape(12.dp),
+              colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+              )
+            )
+
+            // Clickable overlay covering the field except the trailing icon (on the right)
+            Box(
+              modifier = Modifier
+                .matchParentSize()
+                .padding(end = 56.dp)
+                .clickable { showTimePickerDialog = true }
+            )
+          }
+
+          // Arabic AM/PM Indicator
+          val isAmSelected = startTime.isNotBlank() && (startTime.contains("AM", ignoreCase = true) || startTime.contains("صباح", ignoreCase = true))
+          val isPmSelected = startTime.isNotBlank() && (startTime.contains("PM", ignoreCase = true) || startTime.contains("مساء", ignoreCase = true))
+
+          Column(
             modifier = Modifier
-              .matchParentSize()
-              .padding(end = 56.dp)
-              .clickable { showTimePickerDialog = true }
-          )
+              .width(100.dp)
+              .height(56.dp)
+              .background(
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.04f),
+                shape = RoundedCornerShape(12.dp)
+              )
+              .padding(4.dp),
+            verticalArrangement = Arrangement.spacedBy(2.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+          ) {
+            // "صباحاً"
+            val amBg = if (isAmSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f) else Color.Transparent
+            val amBorderColor = if (isAmSelected) MaterialTheme.colorScheme.primary else Color.Transparent
+            val amTextColor = if (isAmSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+            val amWeight = if (isAmSelected) FontWeight.SemiBold else FontWeight.Normal
+
+            Box(
+              contentAlignment = Alignment.Center,
+              modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(8.dp))
+                .background(amBg)
+                .then(
+                  if (isAmSelected) {
+                    Modifier.border(1.dp, amBorderColor, RoundedCornerShape(8.dp))
+                  } else {
+                    Modifier
+                  }
+                )
+                .clickable(enabled = startTime.isNotBlank()) {
+                  if (startTime.isNotBlank()) {
+                    val clean = startTime.trim()
+                    if (clean.contains("PM", ignoreCase = true)) {
+                      startTime = clean.replace("PM", "AM", ignoreCase = true)
+                    } else if (clean.contains("مساء", ignoreCase = true)) {
+                      startTime = clean.replace("مساءً", "صباحاً").replace("مساء", "صباح")
+                    }
+                  }
+                }
+            ) {
+              Text(
+                text = "صباحاً",
+                color = amTextColor,
+                fontWeight = amWeight,
+                fontSize = 12.sp,
+                style = MaterialTheme.typography.bodyMedium
+              )
+            }
+
+            // "مساءً"
+            val pmBg = if (isPmSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f) else Color.Transparent
+            val pmBorderColor = if (isPmSelected) MaterialTheme.colorScheme.primary else Color.Transparent
+            val pmTextColor = if (isPmSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+            val pmWeight = if (isPmSelected) FontWeight.SemiBold else FontWeight.Normal
+
+            Box(
+              contentAlignment = Alignment.Center,
+              modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(8.dp))
+                .background(pmBg)
+                .then(
+                  if (isPmSelected) {
+                    Modifier.border(1.dp, pmBorderColor, RoundedCornerShape(8.dp))
+                  } else {
+                    Modifier
+                  }
+                )
+                .clickable(enabled = startTime.isNotBlank()) {
+                  if (startTime.isNotBlank()) {
+                    val clean = startTime.trim()
+                    if (clean.contains("AM", ignoreCase = true)) {
+                      startTime = clean.replace("AM", "PM", ignoreCase = true)
+                    } else if (clean.contains("صباح", ignoreCase = true)) {
+                      startTime = clean.replace("صباحاً", "مساءً").replace("صباح", "مساء")
+                    }
+                  }
+                }
+            ) {
+              Text(
+                text = "مساءً",
+                color = pmTextColor,
+                fontWeight = pmWeight,
+                fontSize = 12.sp,
+                style = MaterialTheme.typography.bodyMedium
+              )
+            }
+          }
         }
 
         if (startTime.isNotBlank()) {
