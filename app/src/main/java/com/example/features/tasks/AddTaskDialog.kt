@@ -306,36 +306,25 @@ fun AddTaskDialog(
 
           Column(
             modifier = Modifier
-              .width(100.dp)
+              .width(90.dp)
               .height(56.dp)
               .background(
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.04f),
                 shape = RoundedCornerShape(12.dp)
               )
-              .padding(4.dp),
-            verticalArrangement = Arrangement.spacedBy(2.dp),
+              .padding(vertical = 4.dp),
+            verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
           ) {
             // "صباحاً"
-            val amBg = if (isAmSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f) else Color.Transparent
-            val amBorderColor = if (isAmSelected) MaterialTheme.colorScheme.primary else Color.Transparent
-            val amTextColor = if (isAmSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-            val amWeight = if (isAmSelected) FontWeight.SemiBold else FontWeight.Normal
+            val amTextColor = if (isAmSelected) MaterialTheme.colorScheme.primary else Color.Gray
+            val amWeight = if (isAmSelected) FontWeight.SemiBold else FontWeight.Medium
 
             Box(
               contentAlignment = Alignment.Center,
               modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(8.dp))
-                .background(amBg)
-                .then(
-                  if (isAmSelected) {
-                    Modifier.border(1.dp, amBorderColor, RoundedCornerShape(8.dp))
-                  } else {
-                    Modifier
-                  }
-                )
                 .clickable(enabled = startTime.isNotBlank()) {
                   if (startTime.isNotBlank()) {
                     val clean = startTime.trim()
@@ -351,31 +340,20 @@ fun AddTaskDialog(
                 text = "صباحاً",
                 color = amTextColor,
                 fontWeight = amWeight,
-                fontSize = 12.sp,
-                style = MaterialTheme.typography.bodyMedium
+                fontSize = 16.sp,
+                style = MaterialTheme.typography.bodyLarge
               )
             }
 
             // "مساءً"
-            val pmBg = if (isPmSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f) else Color.Transparent
-            val pmBorderColor = if (isPmSelected) MaterialTheme.colorScheme.primary else Color.Transparent
-            val pmTextColor = if (isPmSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-            val pmWeight = if (isPmSelected) FontWeight.SemiBold else FontWeight.Normal
+            val pmTextColor = if (isPmSelected) MaterialTheme.colorScheme.primary else Color.Gray
+            val pmWeight = if (isPmSelected) FontWeight.SemiBold else FontWeight.Medium
 
             Box(
               contentAlignment = Alignment.Center,
               modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(8.dp))
-                .background(pmBg)
-                .then(
-                  if (isPmSelected) {
-                    Modifier.border(1.dp, pmBorderColor, RoundedCornerShape(8.dp))
-                  } else {
-                    Modifier
-                  }
-                )
                 .clickable(enabled = startTime.isNotBlank()) {
                   if (startTime.isNotBlank()) {
                     val clean = startTime.trim()
@@ -391,8 +369,8 @@ fun AddTaskDialog(
                 text = "مساءً",
                 color = pmTextColor,
                 fontWeight = pmWeight,
-                fontSize = 12.sp,
-                style = MaterialTheme.typography.bodyMedium
+                fontSize = 16.sp,
+                style = MaterialTheme.typography.bodyLarge
               )
             }
           }
