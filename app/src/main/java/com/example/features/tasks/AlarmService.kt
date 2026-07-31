@@ -82,12 +82,12 @@ class AlarmService : Service() {
             if (!com.example.features.settings.ReminderSettingsManager.continuousAlarm) {
                 val timeoutMs = com.example.features.settings.ReminderSettingsManager.alarmTimeout * 1000L
                 timeoutRunnable = Runnable {
-                    stopAlarm()
+                    stopAlarm(markCompleted = false)
                 }
                 handler.postDelayed(timeoutRunnable!!, timeoutMs)
             }
         } else if (action == ACTION_STOP) {
-            stopAlarm()
+            stopAlarm(markCompleted = true)
         } else if (action == ACTION_SNOOZE) {
             snoozeAlarm()
         }
@@ -118,7 +118,7 @@ class AlarmService : Service() {
             notificationManager.createNotificationChannel(channel)
         }
 
-        // Full Screen Intent to AlarmActivity
+        // Full Screen Intent to AlarmActivity (used when background/locked)
         val fullScreenIntent = Intent(this, AlarmActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             putExtra(EXTRA_TASK_ID, taskId)
@@ -140,7 +140,7 @@ class AlarmService : Service() {
             pendingIntentFlags
         )
 
-        // Stop Intent
+        // Stop Intent (Mark Task as Completed)
         val stopIntent = Intent(this, AlarmService::class.java).apply {
             action = ACTION_STOP
         }
@@ -151,7 +151,7 @@ class AlarmService : Service() {
             pendingIntentFlags
         )
 
-        // Snooze Intent
+        // Snooze Intent (Snooze 5 minutes)
         val snoozeIntent = Intent(this, AlarmService::class.java).apply {
             action = ACTION_SNOOZE
         }
@@ -162,21 +162,26 @@ class AlarmService : Service() {
             pendingIntentFlags
         )
 
-        val showHeadsUp = com.example.features.settings.ReminderSettingsManager.reminderNotification
+        val isAppInForeground = com.example.MyApplication.isAppInForeground
 
         val notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.mipmap.ic_launcher)
-            .setContentTitle(getString(R.string.reminder_notif_title))
-            .setContentText("$taskTitle ($taskStartTime)")
-            .setPriority(if (showHeadsUp) NotificationCompat.PRIORITY_MAX else NotificationCompat.PRIORITY_LOW)
+            .setContentTitle(taskTitle)
+            .setContentText(taskStartTime)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setContentIntent(fullScreenPendingIntent)
             .setOngoing(true)
-            .setAutoCancel(false)
-            .addAction(R.drawable.ic_alarm, getString(R.string.alarm_stop_btn), stopPendingIntent)
-            .addAction(R.drawable.ic_alarm, getString(R.string.alarm_snooze_btn), snoozePendingIntent)
+            .setAutoCancel(true)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .addAction(R.drawable.ic_alarm, "✅ تم التنفيذ", stopPendingIntent)
+            .addAction(R.drawable.ic_alarm, "⏰ تأجيل 5 دقائق", snoozePendingIntent)
 
-        if (showHeadsUp) {
+        if (isAppInForeground) {
+            // App is open: show beautiful Compose-based floating overlay, do NOT launch activity
+            AlarmNotificationManager.showAlert(taskId, taskTitle, taskStartTime)
+        } else {
+            // App is closed: use full screen intent to display floating heads-up and wake up screen
             notificationBuilder.setFullScreenIntent(fullScreenPendingIntent, true)
         }
 
@@ -190,7 +195,7 @@ class AlarmService : Service() {
             startForeground(NOTIFICATION_ID, notificationBuilder.build())
         }
 
-        if (!showHeadsUp) {
+        if (!isAppInForeground && !com.example.features.settings.ReminderSettingsManager.reminderNotification) {
             try {
                 startActivity(fullScreenIntent)
             } catch (e: Exception) {
@@ -266,7 +271,13 @@ class AlarmService : Service() {
         }
     }
 
-    private fun stopAlarm() {
+    private fun stopAlarm(markCompleted: Boolean = true) {
+        if (markCompleted) {
+            currentTaskId?.let { taskId ->
+                markTaskAsCompleted(this, taskId)
+            }
+        }
+        AlarmNotificationManager.dismissAlert()
         cleanup()
         val closeIntent = Intent("com.example.ALARM_DISMISSED")
         sendBroadcast(closeIntent)
@@ -279,12 +290,30 @@ class AlarmService : Service() {
         val taskStartTime = currentTaskStartTime ?: ""
         val ringtoneUriStr = currentRingtoneUri
 
-        ReminderScheduler.scheduleSnooze(this, taskId, taskTitle, taskStartTime, ringtoneUriStr)
+        ReminderScheduler.scheduleSnooze(this, taskId, taskTitle, taskStartTime, ringtoneUriStr, snoozeMin = 5)
 
+        AlarmNotificationManager.dismissAlert()
         cleanup()
         val closeIntent = Intent("com.example.ALARM_DISMISSED")
         sendBroadcast(closeIntent)
         stopSelf()
+    }
+
+    private fun markTaskAsCompleted(context: Context, taskId: String) {
+        try {
+            val store = TaskLocalStore(context)
+            val tasks = store.loadTasks() ?: emptyList()
+            val updatedTasks = tasks.map {
+                if (it.id == taskId) {
+                    it.copy(isCompleted = true, completedAt = System.currentTimeMillis())
+                } else {
+                    it
+                }
+            }
+            store.saveTasks(updatedTasks)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     private fun cleanup() {

@@ -149,7 +149,8 @@ object ReminderScheduler {
         taskId: String,
         taskTitle: String,
         taskStartTime: String,
-        ringtoneUriStr: String?
+        ringtoneUriStr: String?,
+        snoozeMin: Int = 5
     ) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(context, ReminderReceiver::class.java).apply {
@@ -173,7 +174,6 @@ object ReminderScheduler {
             pendingIntentFlags
         )
 
-        val snoozeMin = com.example.features.settings.ReminderSettingsManager.defaultSnoozeDuration
         val alarmTime = System.currentTimeMillis() + snoozeMin * 60 * 1000
 
         try {
