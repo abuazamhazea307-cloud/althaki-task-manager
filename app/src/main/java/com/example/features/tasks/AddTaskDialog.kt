@@ -36,6 +36,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TimePickerDefaults
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
@@ -611,10 +612,48 @@ fun AddTaskDialog(
             is24Hour = false
           )
 
-          TimePicker(
-            state = timePickerState,
-            modifier = Modifier.testTag("time_picker")
+          val customTimePickerColors = TimePickerDefaults.colors(
+            periodSelectorUnselectedContainerColor = MaterialTheme.colorScheme.surface,
+            periodSelectorSelectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+            periodSelectorUnselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+            periodSelectorSelectedContentColor = MaterialTheme.colorScheme.primary,
+            periodSelectorBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
+            
+            clockDialColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+            clockDialSelectedContentColor = Color.White,
+            clockDialUnselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            selectorColor = MaterialTheme.colorScheme.primary,
+            containerColor = MaterialTheme.colorScheme.surface,
+            timeSelectorUnselectedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+            timeSelectorUnselectedContentColor = MaterialTheme.colorScheme.onSurface,
+            timeSelectorSelectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+            timeSelectorSelectedContentColor = MaterialTheme.colorScheme.primary
           )
+
+          val localTypography = MaterialTheme.typography.copy(
+            labelMedium = MaterialTheme.typography.labelMedium.copy(
+              fontWeight = FontWeight.SemiBold
+            ),
+            labelLarge = MaterialTheme.typography.labelLarge.copy(
+              fontWeight = FontWeight.SemiBold
+            ),
+            bodyLarge = MaterialTheme.typography.bodyLarge.copy(
+              fontWeight = FontWeight.SemiBold
+            ),
+            bodyMedium = MaterialTheme.typography.bodyMedium.copy(
+              fontWeight = FontWeight.SemiBold
+            )
+          )
+
+          MaterialTheme(
+            typography = localTypography
+          ) {
+            TimePicker(
+              state = timePickerState,
+              colors = customTimePickerColors,
+              modifier = Modifier.testTag("time_picker")
+            )
+          }
 
           Row(
             modifier = Modifier.fillMaxWidth(),

@@ -162,28 +162,21 @@ class AlarmService : Service() {
             pendingIntentFlags
         )
 
-        val isAppInForeground = com.example.MyApplication.isAppInForeground
-
         val notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.mipmap.ic_launcher)
             .setContentTitle(taskTitle)
             .setContentText(taskStartTime)
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setPriority(NotificationCompat.PRIORITY_MAX)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setContentIntent(fullScreenPendingIntent)
+            .setFullScreenIntent(fullScreenPendingIntent, true)
             .setOngoing(true)
             .setAutoCancel(true)
+            .setDefaults(NotificationCompat.DEFAULT_ALL)
+            .setVibrate(longArrayOf(0, 250, 250, 250))
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .addAction(R.drawable.ic_alarm, "✅ تم التنفيذ", stopPendingIntent)
             .addAction(R.drawable.ic_alarm, "⏰ تأجيل 5 دقائق", snoozePendingIntent)
-
-        if (isAppInForeground) {
-            // App is open: show beautiful Compose-based floating overlay, do NOT launch activity
-            AlarmNotificationManager.showAlert(taskId, taskTitle, taskStartTime)
-        } else {
-            // App is closed: use full screen intent to display floating heads-up and wake up screen
-            notificationBuilder.setFullScreenIntent(fullScreenPendingIntent, true)
-        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             startForeground(
@@ -195,7 +188,7 @@ class AlarmService : Service() {
             startForeground(NOTIFICATION_ID, notificationBuilder.build())
         }
 
-        if (!isAppInForeground && !com.example.features.settings.ReminderSettingsManager.reminderNotification) {
+        if (!com.example.MyApplication.isAppInForeground && !com.example.features.settings.ReminderSettingsManager.reminderNotification) {
             try {
                 startActivity(fullScreenIntent)
             } catch (e: Exception) {
