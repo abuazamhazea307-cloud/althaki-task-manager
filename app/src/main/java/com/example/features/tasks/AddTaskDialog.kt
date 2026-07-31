@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -42,6 +43,16 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePickerDefaults
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberTimePickerState
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -609,145 +620,146 @@ fun AddTaskDialog(
             )
           )
 
-          val timePickerState = rememberTimePickerState(
-            initialHour = 12,
-            initialMinute = 0,
-            is24Hour = false
-          )
-
-          val customTimePickerColors = TimePickerDefaults.colors(
-            periodSelectorUnselectedContainerColor = Color.Transparent,
-            periodSelectorSelectedContainerColor = Color.Transparent,
-            periodSelectorUnselectedContentColor = Color.Transparent,
-            periodSelectorSelectedContentColor = Color.Transparent,
-            periodSelectorBorderColor = Color.Transparent,
-            
-            clockDialColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-            clockDialSelectedContentColor = Color.White,
-            clockDialUnselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            selectorColor = MaterialTheme.colorScheme.primary,
-            containerColor = MaterialTheme.colorScheme.surface,
-            timeSelectorUnselectedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-            timeSelectorUnselectedContentColor = MaterialTheme.colorScheme.onSurface,
-            timeSelectorSelectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
-            timeSelectorSelectedContentColor = MaterialTheme.colorScheme.primary
-          )
-
-          val localTypography = MaterialTheme.typography.copy(
-            labelMedium = MaterialTheme.typography.labelMedium.copy(
-              fontWeight = FontWeight.SemiBold
-            ),
-            labelLarge = MaterialTheme.typography.labelLarge.copy(
-              fontWeight = FontWeight.SemiBold
-            ),
-            bodyLarge = MaterialTheme.typography.bodyLarge.copy(
-              fontWeight = FontWeight.SemiBold
-            ),
-            bodyMedium = MaterialTheme.typography.bodyMedium.copy(
-              fontWeight = FontWeight.SemiBold
-            )
-          )
-
-          Box(
-            modifier = Modifier.wrapContentSize(),
-            contentAlignment = Alignment.Center
-          ) {
-            MaterialTheme(
-              typography = localTypography
-            ) {
-              TimePicker(
-                state = timePickerState,
-                colors = customTimePickerColors,
-                modifier = Modifier.testTag("time_picker")
-              )
-            }
-
-            // Custom AM/PM overlay to replace "ص" and "م"
-            val isPm = timePickerState.hour >= 12
-            val isAm = !isPm
-
-            // Track user interaction for AM/PM highlighting
-            var hasInteracted by remember { mutableStateOf(startTime.isNotBlank()) }
-            val initialIsPm = remember { isPm }
-            val initialHour = remember { timePickerState.hour }
-            val initialMinute = remember { timePickerState.minute }
-
-            // If the period or hour/minute changes, the user has interacted!
-            if (timePickerState.hour != initialHour || timePickerState.minute != initialMinute || isPm != initialIsPm) {
-              hasInteracted = true
-            }
-
-            val amSelected = hasInteracted && isAm
-            val pmSelected = hasInteracted && isPm
-
-            // Beautiful clear neutral/default colors
-            val defaultTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-            val defaultBgColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.04f)
-            val defaultBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
-
-            // Highlighted colors
-            val highlightTextColor = MaterialTheme.colorScheme.primary
-            val highlightBgColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
-            val highlightBorderColor = MaterialTheme.colorScheme.primary
-
-            Column(
-              modifier = Modifier
-                .align(Alignment.TopStart)
-                .padding(start = 2.dp, top = 2.dp) // Offset to align precisely on top of the invisible standard AM/PM selector
-                .width(54.dp)
-                .height(80.dp),
-              verticalArrangement = Arrangement.spacedBy(4.dp),
-              horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-              // "صباحاً" Box
-              val amTextColor = if (amSelected) highlightTextColor else defaultTextColor
-              val amBgColor = if (amSelected) highlightBgColor else defaultBgColor
-              val amBorderColor = if (amSelected) highlightBorderColor else defaultBorderColor
-              val amWeight = if (amSelected) FontWeight.Bold else FontWeight.SemiBold
-
-              Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                  .weight(1f)
-                  .fillMaxWidth()
-                  .clip(RoundedCornerShape(8.dp))
-                  .background(amBgColor)
-                  .border(1.dp, amBorderColor, RoundedCornerShape(8.dp))
-              ) {
-                Text(
-                  text = "صباحاً",
-                  color = amTextColor,
-                  fontSize = 15.sp,
-                  fontWeight = amWeight,
-                  style = MaterialTheme.typography.bodyLarge
-                )
+          // Parse existing startTime if any to initialize state
+          val parsedTime = remember(startTime) {
+            if (startTime.isNotBlank()) {
+              val parts = startTime.trim().split(" ")
+              if (parts.size >= 2) {
+                val timeParts = parts[0].split(":")
+                val h = timeParts.getOrNull(0) ?: ""
+                val m = timeParts.getOrNull(1) ?: ""
+                val ampm = parts[1].uppercase()
+                Triple(h, m, ampm)
+              } else {
+                Triple("", "", null)
               }
+            } else {
+              Triple("", "", null)
+            }
+          }
 
-              // "مساءً" Box
-              val pmTextColor = if (pmSelected) highlightTextColor else defaultTextColor
-              val pmBgColor = if (pmSelected) highlightBgColor else defaultBgColor
-              val pmBorderColor = if (pmSelected) highlightBorderColor else defaultBorderColor
-              val pmWeight = if (pmSelected) FontWeight.Bold else FontWeight.SemiBold
+          var enteredHour by remember { mutableStateOf(parsedTime.first) }
+          var enteredMinute by remember { mutableStateOf(parsedTime.second) }
+          var selectedAmPm by remember { mutableStateOf<String?>(parsedTime.third) }
 
-              Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                  .weight(1f)
-                  .fillMaxWidth()
-                  .clip(RoundedCornerShape(8.dp))
-                  .background(pmBgColor)
-                  .border(1.dp, pmBorderColor, RoundedCornerShape(8.dp))
+          CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+            Row(
+              modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 12.dp),
+              horizontalArrangement = Arrangement.Center,
+              verticalAlignment = Alignment.CenterVertically
+            ) {
+              // 1. Hour Box
+              TimePartInput(
+                value = enteredHour,
+                onValueChange = { newValue ->
+                  val clean = newValue.filter { it.isDigit() }
+                  if (clean.length <= 2) {
+                    val num = clean.toIntOrNull()
+                    if (num == null || num in 1..12) {
+                      enteredHour = clean
+                    }
+                  }
+                },
+                placeholder = "12",
+                modifier = Modifier.testTag("time_picker_hour_input")
+              )
+
+              // 2. Colon separator
+              Text(
+                text = ":",
+                style = TextStyle(
+                  fontSize = 36.sp,
+                  fontWeight = FontWeight.Bold,
+                  color = MaterialTheme.colorScheme.onSurface
+                ),
+                modifier = Modifier.padding(horizontal = 12.dp)
+              )
+
+              // 3. Minute Box
+              TimePartInput(
+                value = enteredMinute,
+                onValueChange = { newValue ->
+                  val clean = newValue.filter { it.isDigit() }
+                  if (clean.length <= 2) {
+                    val num = clean.toIntOrNull()
+                    if (num == null || num in 0..59) {
+                      enteredMinute = clean
+                    }
+                  }
+                },
+                placeholder = "00",
+                modifier = Modifier.testTag("time_picker_minute_input")
+              )
+
+              // 4. Spacer gap before buttons
+              Spacer(modifier = Modifier.width(20.dp))
+
+              // 5. AM/PM vertical selector (صباحاً / مساءً)
+              Column(
+                modifier = Modifier.width(100.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
               ) {
-                Text(
-                  text = "مساءً",
-                  color = pmTextColor,
-                  fontSize = 15.sp,
-                  fontWeight = pmWeight,
-                  style = MaterialTheme.typography.bodyLarge
-                )
+                val amSelected = selectedAmPm == "AM"
+                val pmSelected = selectedAmPm == "PM"
+
+                // Unselected background: Dark slate. Selected: Blue.
+                val unselectedBg = Color(0xFF374151)
+                val selectedBg = Color(0xFF2196F3)
+
+                // "صباحاً" Button
+                Box(
+                  contentAlignment = Alignment.Center,
+                  modifier = Modifier
+                    .fillMaxWidth()
+                    .height(44.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(if (amSelected) selectedBg else unselectedBg)
+                    .border(2.dp, Color.White, RoundedCornerShape(12.dp))
+                    .clickable {
+                      selectedAmPm = "AM"
+                    }
+                    .testTag("time_picker_am_btn")
+                ) {
+                  Text(
+                    text = "صباحاً",
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp
+                  )
+                }
+
+                // "مساءً" Button
+                Box(
+                  contentAlignment = Alignment.Center,
+                  modifier = Modifier
+                    .fillMaxWidth()
+                    .height(44.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(if (pmSelected) selectedBg else unselectedBg)
+                    .border(2.dp, Color.White, RoundedCornerShape(12.dp))
+                    .clickable {
+                      selectedAmPm = "PM"
+                    }
+                    .testTag("time_picker_pm_btn")
+                ) {
+                  Text(
+                    text = "مساءً",
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp
+                  )
+                }
               }
             }
           }
+
+          // Validation to ensure manual selection is complete
+          val isValidHour = enteredHour.toIntOrNull()?.let { it in 1..12 } ?: false
+          val isValidMinute = enteredMinute.toIntOrNull()?.let { it in 0..59 } ?: false
+          val isSelectionComplete = isValidHour && isValidMinute && (selectedAmPm != null)
 
           Row(
             modifier = Modifier.fillMaxWidth(),
@@ -766,25 +778,27 @@ fun AddTaskDialog(
             Spacer(modifier = Modifier.width(8.dp))
             Button(
               onClick = {
-                val hour = timePickerState.hour
-                val minute = timePickerState.minute
-                val amPm = if (hour >= 12) "PM" else "AM"
-                val displayHour = when {
-                  hour == 0 -> 12
-                  hour > 12 -> hour - 12
-                  else -> hour
+                if (isSelectionComplete) {
+                  val h = enteredHour.toIntOrNull() ?: 12
+                  val m = enteredMinute.toIntOrNull() ?: 0
+                  val formattedMinute = String.format(Locale.US, "%02d", m)
+                  val amPm = selectedAmPm ?: "AM"
+                  startTime = "$h:$formattedMinute $amPm"
+                  showTimePickerDialog = false
                 }
-                val formattedMinute = String.format(Locale.US, "%02d", minute)
-                startTime = "$displayHour:$formattedMinute $amPm"
-                showTimePickerDialog = false
               },
+              enabled = isSelectionComplete,
+              colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+                disabledContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
+              ),
               modifier = Modifier.testTag("time_picker_confirm_btn")
             ) {
               Text(
                 text = stringResource(R.string.btn_save),
                 style = MaterialTheme.typography.bodyLarge.copy(
                   fontWeight = FontWeight.Bold,
-                  color = Color.White
+                  color = if (isSelectionComplete) Color.White else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
                 )
               )
             }
@@ -809,4 +823,70 @@ fun getRingtoneName(context: android.content.Context, uriString: String?): Strin
   } catch (e: Exception) {
     context.getString(R.string.ringtone_default)
   }
+}
+
+@Composable
+fun TimePartInput(
+  value: String,
+  onValueChange: (String) -> Unit,
+  placeholder: String,
+  modifier: Modifier = Modifier
+) {
+  var isFocused by remember { mutableStateOf(false) }
+
+  BasicTextField(
+    value = value,
+    onValueChange = { newValue ->
+      val clean = newValue.filter { it.isDigit() }
+      if (clean.length <= 2) {
+        onValueChange(clean)
+      }
+    },
+    textStyle = TextStyle(
+      textAlign = TextAlign.Center,
+      fontWeight = FontWeight.Bold,
+      fontSize = 32.sp,
+      color = MaterialTheme.colorScheme.onSurface
+    ),
+    keyboardOptions = KeyboardOptions(
+      keyboardType = KeyboardType.Number,
+      imeAction = ImeAction.Done
+    ),
+    singleLine = true,
+    decorationBox = { innerTextField ->
+      Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+          .fillMaxSize()
+          .background(
+            color = if (isFocused) MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
+                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.04f),
+            shape = RoundedCornerShape(12.dp)
+          )
+          .border(
+            width = if (isFocused) 2.dp else 1.dp,
+            color = if (isFocused) MaterialTheme.colorScheme.primary
+                    else MaterialTheme.colorScheme.outline.copy(alpha = 0.4f),
+            shape = RoundedCornerShape(12.dp)
+          )
+      ) {
+        if (value.isEmpty()) {
+          Text(
+            text = placeholder,
+            style = TextStyle(
+              textAlign = TextAlign.Center,
+              color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
+              fontWeight = FontWeight.Bold,
+              fontSize = 32.sp
+            )
+          )
+        }
+        innerTextField()
+      }
+    },
+    modifier = modifier
+      .width(75.dp)
+      .height(72.dp)
+      .onFocusChanged { isFocused = it.isFocused }
+  )
 }
