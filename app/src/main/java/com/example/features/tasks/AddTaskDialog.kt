@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -231,149 +232,68 @@ fun AddTaskDialog(
           }
         }
 
-        // Task Start Time Input & AM/PM Indicator
-        Row(
-          modifier = Modifier.fillMaxWidth(),
-          verticalAlignment = Alignment.CenterVertically,
-          horizontalArrangement = Arrangement.spacedBy(12.dp)
+        // Task Start Time Input
+        Box(
+          modifier = Modifier.fillMaxWidth()
         ) {
-          Box(
-            modifier = Modifier.weight(1f)
-          ) {
-            OutlinedTextField(
-              value = startTime,
-              onValueChange = {},
-              readOnly = true,
-              enabled = true,
-              label = { Text(stringResource(R.string.label_start_time), style = MaterialTheme.typography.bodyLarge) },
-              placeholder = { Text(stringResource(R.string.placeholder_start_time), style = MaterialTheme.typography.bodyLarge) },
-              trailingIcon = {
-                if (startTime.isNotBlank()) {
-                  IconButton(
-                    onClick = {
-                      startTime = ""
-                      enableReminder = false
-                      // Cancel any active reminder for this task directly if editing
-                      taskToEdit?.let {
-                        com.example.features.tasks.ReminderScheduler.cancelReminder(context, it.id)
-                      }
-                    },
-                    modifier = Modifier.testTag("clear_start_time_button")
-                  ) {
-                    Icon(
-                      imageVector = Icons.Default.Close,
-                      contentDescription = "Clear start time",
-                      tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                  }
-                } else {
-                  IconButton(
-                    onClick = { showTimePickerDialog = true },
-                    modifier = Modifier.testTag("open_time_picker_button")
-                  ) {
-                    Icon(
-                      imageVector = Icons.Default.AccessTime,
-                      contentDescription = stringResource(R.string.label_start_time),
-                      tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                  }
+          OutlinedTextField(
+            value = startTime,
+            onValueChange = {},
+            readOnly = true,
+            enabled = true,
+            label = { Text(stringResource(R.string.label_start_time), style = MaterialTheme.typography.bodyLarge) },
+            placeholder = { Text(stringResource(R.string.placeholder_start_time), style = MaterialTheme.typography.bodyLarge) },
+            trailingIcon = {
+              if (startTime.isNotBlank()) {
+                IconButton(
+                  onClick = {
+                    startTime = ""
+                    enableReminder = false
+                    // Cancel any active reminder for this task directly if editing
+                    taskToEdit?.let {
+                      com.example.features.tasks.ReminderScheduler.cancelReminder(context, it.id)
+                    }
+                  },
+                  modifier = Modifier.testTag("clear_start_time_button")
+                ) {
+                  Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Clear start time",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                  )
                 }
-              },
-              modifier = Modifier
-                .fillMaxWidth()
-                .testTag("task_start_time_input"),
-              shape = RoundedCornerShape(12.dp),
-              colors = OutlinedTextFieldDefaults.colors(
-                focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
-              )
-            )
-
-            // Clickable overlay covering the field except the trailing icon (on the right)
-            Box(
-              modifier = Modifier
-                .matchParentSize()
-                .padding(end = 56.dp)
-                .clickable { showTimePickerDialog = true }
-            )
-          }
-
-          // Arabic AM/PM Indicator
-          val isAmSelected = startTime.isNotBlank() && (startTime.contains("AM", ignoreCase = true) || startTime.contains("صباح", ignoreCase = true))
-          val isPmSelected = startTime.isNotBlank() && (startTime.contains("PM", ignoreCase = true) || startTime.contains("مساء", ignoreCase = true))
-
-          Column(
+              } else {
+                IconButton(
+                  onClick = { showTimePickerDialog = true },
+                  modifier = Modifier.testTag("open_time_picker_button")
+                ) {
+                  Icon(
+                    imageVector = Icons.Default.AccessTime,
+                    contentDescription = stringResource(R.string.label_start_time),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                  )
+                }
+              }
+            },
             modifier = Modifier
-              .width(90.dp)
-              .height(56.dp)
-              .background(
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.04f),
-                shape = RoundedCornerShape(12.dp)
-              )
-              .padding(vertical = 4.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-          ) {
-            // "صباحاً"
-            val amTextColor = if (isAmSelected) MaterialTheme.colorScheme.primary else Color.Gray
-            val amWeight = if (isAmSelected) FontWeight.SemiBold else FontWeight.Medium
+              .fillMaxWidth()
+              .testTag("task_start_time_input"),
+            shape = RoundedCornerShape(12.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+              focusedTextColor = MaterialTheme.colorScheme.onSurface,
+              unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+              focusedBorderColor = MaterialTheme.colorScheme.primary,
+              unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+            )
+          )
 
-            Box(
-              contentAlignment = Alignment.Center,
-              modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .clickable(enabled = startTime.isNotBlank()) {
-                  if (startTime.isNotBlank()) {
-                    val clean = startTime.trim()
-                    if (clean.contains("PM", ignoreCase = true)) {
-                      startTime = clean.replace("PM", "AM", ignoreCase = true)
-                    } else if (clean.contains("مساء", ignoreCase = true)) {
-                      startTime = clean.replace("مساءً", "صباحاً").replace("مساء", "صباح")
-                    }
-                  }
-                }
-            ) {
-              Text(
-                text = "صباحاً",
-                color = amTextColor,
-                fontWeight = amWeight,
-                fontSize = 16.sp,
-                style = MaterialTheme.typography.bodyLarge
-              )
-            }
-
-            // "مساءً"
-            val pmTextColor = if (isPmSelected) MaterialTheme.colorScheme.primary else Color.Gray
-            val pmWeight = if (isPmSelected) FontWeight.SemiBold else FontWeight.Medium
-
-            Box(
-              contentAlignment = Alignment.Center,
-              modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .clickable(enabled = startTime.isNotBlank()) {
-                  if (startTime.isNotBlank()) {
-                    val clean = startTime.trim()
-                    if (clean.contains("AM", ignoreCase = true)) {
-                      startTime = clean.replace("AM", "PM", ignoreCase = true)
-                    } else if (clean.contains("صباح", ignoreCase = true)) {
-                      startTime = clean.replace("صباحاً", "مساءً").replace("صباح", "مساء")
-                    }
-                  }
-                }
-            ) {
-              Text(
-                text = "مساءً",
-                color = pmTextColor,
-                fontWeight = pmWeight,
-                fontSize = 16.sp,
-                style = MaterialTheme.typography.bodyLarge
-              )
-            }
-          }
+          // Clickable overlay covering the field except the trailing icon (on the right)
+          Box(
+            modifier = Modifier
+              .matchParentSize()
+              .padding(end = 56.dp)
+              .clickable { showTimePickerDialog = true }
+          )
         }
 
         if (startTime.isNotBlank()) {
@@ -696,11 +616,11 @@ fun AddTaskDialog(
           )
 
           val customTimePickerColors = TimePickerDefaults.colors(
-            periodSelectorUnselectedContainerColor = MaterialTheme.colorScheme.surface,
-            periodSelectorSelectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
-            periodSelectorUnselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-            periodSelectorSelectedContentColor = MaterialTheme.colorScheme.primary,
-            periodSelectorBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
+            periodSelectorUnselectedContainerColor = Color.Transparent,
+            periodSelectorSelectedContainerColor = Color.Transparent,
+            periodSelectorUnselectedContentColor = Color.Transparent,
+            periodSelectorSelectedContentColor = Color.Transparent,
+            periodSelectorBorderColor = Color.Transparent,
             
             clockDialColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
             clockDialSelectedContentColor = Color.White,
@@ -728,14 +648,105 @@ fun AddTaskDialog(
             )
           )
 
-          MaterialTheme(
-            typography = localTypography
+          Box(
+            modifier = Modifier.wrapContentSize(),
+            contentAlignment = Alignment.Center
           ) {
-            TimePicker(
-              state = timePickerState,
-              colors = customTimePickerColors,
-              modifier = Modifier.testTag("time_picker")
-            )
+            MaterialTheme(
+              typography = localTypography
+            ) {
+              TimePicker(
+                state = timePickerState,
+                colors = customTimePickerColors,
+                modifier = Modifier.testTag("time_picker")
+              )
+            }
+
+            // Custom AM/PM overlay to replace "ص" and "م"
+            val isPm = timePickerState.hour >= 12
+            val isAm = !isPm
+
+            // Track user interaction for AM/PM highlighting
+            var hasInteracted by remember { mutableStateOf(startTime.isNotBlank()) }
+            val initialIsPm = remember { isPm }
+            val initialHour = remember { timePickerState.hour }
+            val initialMinute = remember { timePickerState.minute }
+
+            // If the period or hour/minute changes, the user has interacted!
+            if (timePickerState.hour != initialHour || timePickerState.minute != initialMinute || isPm != initialIsPm) {
+              hasInteracted = true
+            }
+
+            val amSelected = hasInteracted && isAm
+            val pmSelected = hasInteracted && isPm
+
+            // Beautiful clear neutral/default colors
+            val defaultTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+            val defaultBgColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.04f)
+            val defaultBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
+
+            // Highlighted colors
+            val highlightTextColor = MaterialTheme.colorScheme.primary
+            val highlightBgColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+            val highlightBorderColor = MaterialTheme.colorScheme.primary
+
+            Column(
+              modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(start = 2.dp, top = 2.dp) // Offset to align precisely on top of the invisible standard AM/PM selector
+                .width(54.dp)
+                .height(80.dp),
+              verticalArrangement = Arrangement.spacedBy(4.dp),
+              horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+              // "صباحاً" Box
+              val amTextColor = if (amSelected) highlightTextColor else defaultTextColor
+              val amBgColor = if (amSelected) highlightBgColor else defaultBgColor
+              val amBorderColor = if (amSelected) highlightBorderColor else defaultBorderColor
+              val amWeight = if (amSelected) FontWeight.Bold else FontWeight.SemiBold
+
+              Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                  .weight(1f)
+                  .fillMaxWidth()
+                  .clip(RoundedCornerShape(8.dp))
+                  .background(amBgColor)
+                  .border(1.dp, amBorderColor, RoundedCornerShape(8.dp))
+              ) {
+                Text(
+                  text = "صباحاً",
+                  color = amTextColor,
+                  fontSize = 15.sp,
+                  fontWeight = amWeight,
+                  style = MaterialTheme.typography.bodyLarge
+                )
+              }
+
+              // "مساءً" Box
+              val pmTextColor = if (pmSelected) highlightTextColor else defaultTextColor
+              val pmBgColor = if (pmSelected) highlightBgColor else defaultBgColor
+              val pmBorderColor = if (pmSelected) highlightBorderColor else defaultBorderColor
+              val pmWeight = if (pmSelected) FontWeight.Bold else FontWeight.SemiBold
+
+              Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                  .weight(1f)
+                  .fillMaxWidth()
+                  .clip(RoundedCornerShape(8.dp))
+                  .background(pmBgColor)
+                  .border(1.dp, pmBorderColor, RoundedCornerShape(8.dp))
+              ) {
+                Text(
+                  text = "مساءً",
+                  color = pmTextColor,
+                  fontSize = 15.sp,
+                  fontWeight = pmWeight,
+                  style = MaterialTheme.typography.bodyLarge
+                )
+              }
+            }
           }
 
           Row(
