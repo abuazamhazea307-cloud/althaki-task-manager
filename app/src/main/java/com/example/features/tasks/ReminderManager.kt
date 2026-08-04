@@ -296,10 +296,92 @@ class ReminderReceiver : BroadcastReceiver() {
     }
 
     private fun dismissNotification(context: Context, taskId: String) {
+        AlarmSoundPlayer.stop()
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.cancel(taskId.hashCode())
         AlarmNotificationManager.dismissAlert()
         com.example.features.settings.ReminderSettingsManager.clearSnoozeCount(context, taskId)
+    }
+}
+
+/**
+ * Singleton sound and vibration player for alarms without requiring a Foreground Service.
+ */
+object AlarmSoundPlayer {
+    private var mediaPlayer: android.media.MediaPlayer? = null
+    private var vibrator: android.os.Vibrator? = null
+    private val handler = android.os.Handler(android.os.Looper.getMainLooper())
+    private var timeoutRunnable: Runnable? = null
+
+    fun start(context: Context, ringtoneUriStr: String?) {
+        stop()
+        try {
+            val uri = getNotificationSoundUri(context, ringtoneUriStr)
+            mediaPlayer = android.media.MediaPlayer().apply {
+                setDataSource(context, uri)
+                setAudioAttributes(
+                    android.media.AudioAttributes.Builder()
+                        .setUsage(android.media.AudioAttributes.USAGE_ALARM)
+                        .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                        .build()
+                )
+                isLooping = true
+                prepare()
+                start()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        if (com.example.features.settings.ReminderSettingsManager.alarmVibration) {
+            try {
+                vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    val vibratorManager = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as android.os.VibratorManager
+                    vibratorManager.defaultVibrator
+                } else {
+                    @Suppress("DEPRECATION")
+                    context.getSystemService(Context.VIBRATOR_SERVICE) as android.os.Vibrator
+                }
+                val pattern = longArrayOf(0, 500, 250, 500)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    vibrator?.vibrate(android.os.VibrationEffect.createWaveform(pattern, 0))
+                } else {
+                    @Suppress("DEPRECATION")
+                    vibrator?.vibrate(pattern, 0)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+
+        val timeoutSec = com.example.features.settings.ReminderSettingsManager.alarmTimeout
+        if (timeoutSec > 0) {
+            val runnable = Runnable { stop() }
+            timeoutRunnable = runnable
+            handler.postDelayed(runnable, timeoutSec * 1000L)
+        }
+    }
+
+    fun stop() {
+        timeoutRunnable?.let { handler.removeCallbacks(it) }
+        timeoutRunnable = null
+
+        try {
+            mediaPlayer?.stop()
+            mediaPlayer?.release()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            mediaPlayer = null
+        }
+
+        try {
+            vibrator?.cancel()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            vibrator = null
+        }
     }
 }
 
@@ -340,6 +422,9 @@ fun showReminderNotification(
     val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
     val channelId = "task_reminders_channel"
     val soundUri = getNotificationSoundUri(context, ringtoneUriStr)
+
+    // Start continuous ringtone and vibration
+    AlarmSoundPlayer.start(context, ringtoneUriStr)
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
         val channelName = context.getString(R.string.reminder_channel_name)
@@ -428,7 +513,10 @@ fun showReminderNotification(
         .addAction(R.drawable.ic_alarm, "✅ تم التنفيذ", completePendingIntent)
         .addAction(R.drawable.ic_alarm, "⏰ تأجيل 5 دقائق", snoozePendingIntent)
 
-    notificationManager.notify(taskId.hashCode(), builder.build())
+    val notification = builder.build()
+    notification.flags = notification.flags or android.app.Notification.FLAG_INSISTENT
+
+    notificationManager.notify(taskId.hashCode(), notification)
 
     AlarmNotificationManager.showAlert(taskId, taskTitle, taskStartTime)
 }

@@ -81,6 +81,8 @@ class AlarmActivity : ComponentActivity() {
         val taskStartTime = intent.getStringExtra("task_start_time") ?: ""
         val ringtoneUri = intent.getStringExtra("ringtone_uri")
 
+        AlarmSoundPlayer.start(this, ringtoneUri)
+
         setContent {
             MyApplicationTheme {
                 val maxSnooze = com.example.features.settings.ReminderSettingsManager.maxSnoozeCount
@@ -92,6 +94,7 @@ class AlarmActivity : ComponentActivity() {
                     taskStartTime = taskStartTime,
                     showSnoozeButton = showSnoozeButton,
                     onStopClick = {
+                        AlarmSoundPlayer.stop()
                         val completeIntent = Intent(this, ReminderReceiver::class.java).apply {
                             action = "com.example.ACTION_COMPLETE"
                             putExtra("task_id", taskId)
@@ -100,6 +103,7 @@ class AlarmActivity : ComponentActivity() {
                         finish()
                     },
                     onSnoozeClick = {
+                        AlarmSoundPlayer.stop()
                         com.example.features.settings.ReminderSettingsManager.incrementSnoozeCount(this, taskId)
                         val snoozeIntent = Intent(this, ReminderReceiver::class.java).apply {
                             action = "com.example.ACTION_SNOOZE"
@@ -117,6 +121,7 @@ class AlarmActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
+        AlarmSoundPlayer.stop()
         try {
             unregisterReceiver(alarmDismissReceiver)
         } catch (e: Exception) {
