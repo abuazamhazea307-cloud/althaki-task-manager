@@ -347,8 +347,17 @@ object AlarmSoundPlayer {
                 if (vibratorObj.hasVibrator()) {
                     vibrator = vibratorObj
                     val pattern = longArrayOf(0, 800, 500, 800)
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        vibrator?.vibrate(android.os.VibrationEffect.createWaveform(pattern, 0))
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        val vibrationAttributes = android.os.VibrationAttributes.Builder()
+                            .setUsage(android.os.VibrationAttributes.USAGE_ALARM)
+                            .build()
+                        vibrator?.vibrate(android.os.VibrationEffect.createWaveform(pattern, 0), vibrationAttributes)
+                    } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        val audioAttributes = android.media.AudioAttributes.Builder()
+                            .setUsage(android.media.AudioAttributes.USAGE_ALARM)
+                            .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                            .build()
+                        vibrator?.vibrate(android.os.VibrationEffect.createWaveform(pattern, 0), audioAttributes)
                     } else {
                         @Suppress("DEPRECATION")
                         vibrator?.vibrate(pattern, 0)
