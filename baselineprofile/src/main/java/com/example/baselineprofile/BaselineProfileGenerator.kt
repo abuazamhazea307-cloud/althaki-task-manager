@@ -19,14 +19,14 @@ class BaselineProfileGenerator {
 
     @Test
     fun generate() = baselineRule.collect(
-        packageName = "com.aistudio.alzhakitaskmanager.qpxmwl",
+        packageName = "com.alzhaki.taskmanager",
         includeInStartupProfile = true
     ) {
         // App startup
         pressHome()
         startActivityAndWait()
 
-        val pName = "com.aistudio.alzhakitaskmanager.qpxmwl"
+        val pName = "com.alzhaki.taskmanager"
 
         // Helper to wait and retrieve an object
         fun waitForObject(by: androidx.test.uiautomator.BySelector, desc: String, timeout: Long = 5000): UiObject2 {
