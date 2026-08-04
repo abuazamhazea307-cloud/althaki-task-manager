@@ -258,8 +258,9 @@ class ReminderReceiver : BroadcastReceiver() {
             val taskTitle = intent.getStringExtra("task_title") ?: return
             val taskStartTime = intent.getStringExtra("task_start_time") ?: ""
             val ringtoneUri = intent.getStringExtra("ringtone_uri")
+            val snoozeMin = intent.getIntExtra("snooze_duration", com.example.features.settings.ReminderSettingsManager.defaultSnoozeDuration)
 
-            ReminderScheduler.scheduleSnooze(context, taskId, taskTitle, taskStartTime, ringtoneUri, snoozeMin = 5)
+            ReminderScheduler.scheduleSnooze(context, taskId, taskTitle, taskStartTime, ringtoneUri, snoozeMin = snoozeMin)
             dismissNotification(context, taskId)
             context.sendBroadcast(Intent("com.example.ALARM_DISMISSED"))
         } else if (action == Intent.ACTION_BOOT_COMPLETED ||
@@ -315,10 +316,11 @@ object AlarmSoundPlayer {
 
     fun start(context: Context, ringtoneUriStr: String?) {
         stop()
+        val appContext = context.applicationContext
         try {
-            val uri = getNotificationSoundUri(context, ringtoneUriStr)
+            val uri = getNotificationSoundUri(appContext, ringtoneUriStr)
             mediaPlayer = android.media.MediaPlayer().apply {
-                setDataSource(context, uri)
+                setDataSource(appContext, uri)
                 setAudioAttributes(
                     android.media.AudioAttributes.Builder()
                         .setUsage(android.media.AudioAttributes.USAGE_ALARM)
@@ -335,19 +337,22 @@ object AlarmSoundPlayer {
 
         if (com.example.features.settings.ReminderSettingsManager.alarmVibration) {
             try {
-                vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    val vibratorManager = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as android.os.VibratorManager
+                val vibratorObj = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    val vibratorManager = appContext.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as android.os.VibratorManager
                     vibratorManager.defaultVibrator
                 } else {
                     @Suppress("DEPRECATION")
-                    context.getSystemService(Context.VIBRATOR_SERVICE) as android.os.Vibrator
+                    appContext.getSystemService(Context.VIBRATOR_SERVICE) as android.os.Vibrator
                 }
-                val pattern = longArrayOf(0, 500, 250, 500)
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    vibrator?.vibrate(android.os.VibrationEffect.createWaveform(pattern, 0))
-                } else {
-                    @Suppress("DEPRECATION")
-                    vibrator?.vibrate(pattern, 0)
+                if (vibratorObj.hasVibrator()) {
+                    vibrator = vibratorObj
+                    val pattern = longArrayOf(0, 800, 500, 800)
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        vibrator?.vibrate(android.os.VibrationEffect.createWaveform(pattern, 0))
+                    } else {
+                        @Suppress("DEPRECATION")
+                        vibrator?.vibrate(pattern, 0)
+                    }
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -420,8 +425,14 @@ fun showReminderNotification(
     ringtoneUriStr: String?
 ) {
     val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-    val channelId = "task_reminders_channel"
-    val soundUri = getNotificationSoundUri(context, ringtoneUriStr)
+    val channelId = "task_reminders_silent_channel_v3"
+
+    // Remove old notification channel that played default notification sound
+    try {
+        notificationManager.deleteNotificationChannel("task_reminders_channel")
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
 
     // Start continuous ringtone and vibration
     AlarmSoundPlayer.start(context, ringtoneUriStr)
@@ -429,19 +440,12 @@ fun showReminderNotification(
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
         val channelName = context.getString(R.string.reminder_channel_name)
         val channelDesc = context.getString(R.string.reminder_channel_desc)
-        val audioAttributes = android.media.AudioAttributes.Builder()
-            .setUsage(android.media.AudioAttributes.USAGE_ALARM)
-            .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SONIFICATION)
-            .build()
 
         val channel = NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_HIGH).apply {
             description = channelDesc
             enableLights(true)
-            enableVibration(com.example.features.settings.ReminderSettingsManager.alarmVibration)
-            if (com.example.features.settings.ReminderSettingsManager.alarmVibration) {
-                vibrationPattern = longArrayOf(0, 500, 250, 500)
-            }
-            setSound(soundUri, audioAttributes)
+            enableVibration(false) // Continuous vibration managed by AlarmSoundPlayer
+            setSound(null, null)   // Continuous long ringtone managed by AlarmSoundPlayer
             setBypassDnd(true)
             lockscreenVisibility = android.app.Notification.VISIBILITY_PUBLIC
         }
@@ -482,18 +486,19 @@ fun showReminderNotification(
         pendingFlags
     )
 
-    // Snooze Intent
-    val snoozeIntent = Intent(context, ReminderReceiver::class.java).apply {
-        action = "com.example.ACTION_SNOOZE"
+    // Snooze Action Activity Intent
+    val snoozeActivityIntent = Intent(context, AlarmActivity::class.java).apply {
+        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
         putExtra("task_id", taskId)
         putExtra("task_title", taskTitle)
         putExtra("task_start_time", taskStartTime)
         putExtra("ringtone_uri", ringtoneUriStr)
+        putExtra("show_snooze_dialog", true)
     }
-    val snoozePendingIntent = PendingIntent.getBroadcast(
+    val snoozePendingIntent = PendingIntent.getActivity(
         context,
         taskId.hashCode() + 200,
-        snoozeIntent,
+        snoozeActivityIntent,
         pendingFlags
     )
 
@@ -507,11 +512,11 @@ fun showReminderNotification(
         .setFullScreenIntent(fullScreenPendingIntent, true)
         .setAutoCancel(true)
         .setOngoing(false)
-        .setSound(soundUri)
-        .setVibrate(if (com.example.features.settings.ReminderSettingsManager.alarmVibration) longArrayOf(0, 500, 250, 500) else null)
+        .setSound(null)
+        .setVibrate(null)
         .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
         .addAction(R.drawable.ic_alarm, "✅ تم التنفيذ", completePendingIntent)
-        .addAction(R.drawable.ic_alarm, "⏰ تأجيل 5 دقائق", snoozePendingIntent)
+        .addAction(R.drawable.ic_alarm, "⏰ تأجيل", snoozePendingIntent)
 
     val notification = builder.build()
     notification.flags = notification.flags or android.app.Notification.FLAG_INSISTENT

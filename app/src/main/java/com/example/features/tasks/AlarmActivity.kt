@@ -12,6 +12,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -83,11 +84,15 @@ class AlarmActivity : ComponentActivity() {
 
         AlarmSoundPlayer.start(this, ringtoneUri)
 
+        val initialShowSnooze = intent.getBooleanExtra("show_snooze_dialog", false)
+
         setContent {
             MyApplicationTheme {
                 val maxSnooze = com.example.features.settings.ReminderSettingsManager.maxSnoozeCount
                 val snoozeCount = com.example.features.settings.ReminderSettingsManager.getSnoozeCount(this, taskId)
                 val showSnoozeButton = maxSnooze == -1 || snoozeCount < maxSnooze
+
+                var showSnoozeDialog by remember { mutableStateOf(initialShowSnooze) }
 
                 AlarmScreen(
                     taskTitle = taskTitle,
@@ -103,25 +108,82 @@ class AlarmActivity : ComponentActivity() {
                         finish()
                     },
                     onSnoozeClick = {
-                        AlarmSoundPlayer.stop()
-                        com.example.features.settings.ReminderSettingsManager.incrementSnoozeCount(this, taskId)
-                        val snoozeIntent = Intent(this, ReminderReceiver::class.java).apply {
-                            action = "com.example.ACTION_SNOOZE"
-                            putExtra("task_id", taskId)
-                            putExtra("task_title", taskTitle)
-                            putExtra("task_start_time", taskStartTime)
-                            putExtra("ringtone_uri", ringtoneUri)
-                        }
-                        sendBroadcast(snoozeIntent)
-                        finish()
+                        showSnoozeDialog = true
                     }
                 )
+
+                if (showSnoozeDialog) {
+                    val defaultSnooze = com.example.features.settings.ReminderSettingsManager.defaultSnoozeDuration
+                    var selectedDuration by remember { mutableStateOf(defaultSnooze) }
+                    val snoozeOptions = listOf(5, 10, 15, 30)
+
+                    AlertDialog(
+                        onDismissRequest = { showSnoozeDialog = false },
+                        title = {
+                            Text(
+                                text = "مدة الغفوة",
+                                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+                            )
+                        },
+                        text = {
+                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                snoozeOptions.forEach { duration ->
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clickable { selectedDuration = duration }
+                                            .padding(vertical = 6.dp)
+                                    ) {
+                                        RadioButton(
+                                            selected = (selectedDuration == duration),
+                                            onClick = { selectedDuration = duration }
+                                        )
+                                        Spacer(modifier = Modifier.width(12.dp))
+                                        Text(
+                                            text = "$duration دقائق",
+                                            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium)
+                                        )
+                                    }
+                                }
+                            }
+                        },
+                        confirmButton = {
+                            TextButton(
+                                onClick = {
+                                    showSnoozeDialog = false
+                                    AlarmSoundPlayer.stop()
+                                    com.example.features.settings.ReminderSettingsManager.incrementSnoozeCount(this, taskId)
+                                    val snoozeIntent = Intent(this, ReminderReceiver::class.java).apply {
+                                        action = "com.example.ACTION_SNOOZE"
+                                        putExtra("task_id", taskId)
+                                        putExtra("task_title", taskTitle)
+                                        putExtra("task_start_time", taskStartTime)
+                                        putExtra("ringtone_uri", ringtoneUri)
+                                        putExtra("snooze_duration", selectedDuration)
+                                    }
+                                    sendBroadcast(snoozeIntent)
+                                    finish()
+                                }
+                            ) {
+                                Text("تأكيد الغفوة", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = { showSnoozeDialog = false }) {
+                                Text("إلغاء")
+                            }
+                        }
+                    )
+                }
             }
         }
     }
 
     override fun onDestroy() {
-        AlarmSoundPlayer.stop()
+        if (isFinishing) {
+            AlarmSoundPlayer.stop()
+        }
         try {
             unregisterReceiver(alarmDismissReceiver)
         } catch (e: Exception) {

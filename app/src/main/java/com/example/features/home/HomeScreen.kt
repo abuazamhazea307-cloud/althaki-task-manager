@@ -291,7 +291,7 @@ fun HomeScreen(navController: NavController) {
             Spacer(modifier = Modifier.width(10.dp))
             
             Text(
-              text = stringResource(R.string.app_name),
+              text = stringResource(R.string.about_app_name),
               style = MaterialTheme.typography.headlineMedium.copy(
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
