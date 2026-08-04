@@ -76,9 +76,10 @@ class AlarmActivity : ComponentActivity() {
             registerReceiver(alarmDismissReceiver, filter)
         }
 
-        val taskId = intent.getStringExtra(AlarmService.EXTRA_TASK_ID) ?: ""
-        val taskTitle = intent.getStringExtra(AlarmService.EXTRA_TASK_TITLE) ?: "Task Reminder"
-        val taskStartTime = intent.getStringExtra(AlarmService.EXTRA_TASK_START_TIME) ?: ""
+        val taskId = intent.getStringExtra("task_id") ?: ""
+        val taskTitle = intent.getStringExtra("task_title") ?: "Task Reminder"
+        val taskStartTime = intent.getStringExtra("task_start_time") ?: ""
+        val ringtoneUri = intent.getStringExtra("ringtone_uri")
 
         setContent {
             MyApplicationTheme {
@@ -91,19 +92,23 @@ class AlarmActivity : ComponentActivity() {
                     taskStartTime = taskStartTime,
                     showSnoozeButton = showSnoozeButton,
                     onStopClick = {
-                        com.example.features.settings.ReminderSettingsManager.clearSnoozeCount(this, taskId)
-                        val stopIntent = Intent(this, AlarmService::class.java).apply {
-                            action = AlarmService.ACTION_STOP
+                        val completeIntent = Intent(this, ReminderReceiver::class.java).apply {
+                            action = "com.example.ACTION_COMPLETE"
+                            putExtra("task_id", taskId)
                         }
-                        startService(stopIntent)
+                        sendBroadcast(completeIntent)
                         finish()
                     },
                     onSnoozeClick = {
                         com.example.features.settings.ReminderSettingsManager.incrementSnoozeCount(this, taskId)
-                        val snoozeIntent = Intent(this, AlarmService::class.java).apply {
-                            action = AlarmService.ACTION_SNOOZE
+                        val snoozeIntent = Intent(this, ReminderReceiver::class.java).apply {
+                            action = "com.example.ACTION_SNOOZE"
+                            putExtra("task_id", taskId)
+                            putExtra("task_title", taskTitle)
+                            putExtra("task_start_time", taskStartTime)
+                            putExtra("ringtone_uri", ringtoneUri)
                         }
-                        startService(snoozeIntent)
+                        sendBroadcast(snoozeIntent)
                         finish()
                     }
                 )

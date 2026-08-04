@@ -246,20 +246,22 @@ class ReminderReceiver : BroadcastReceiver() {
                 return
             }
 
-            // Start AlarmService to trigger persistent notification, sound, vibration, and full-screen intent
-            val serviceIntent = Intent(context, AlarmService::class.java).apply {
-                this.action = AlarmService.ACTION_START
-                putExtra(AlarmService.EXTRA_TASK_ID, taskId)
-                putExtra(AlarmService.EXTRA_TASK_TITLE, taskTitle)
-                putExtra(AlarmService.EXTRA_TASK_START_TIME, taskStartTime)
-                putExtra(AlarmService.EXTRA_RINGTONE_URI, ringtoneUri)
-            }
+            // Directly post high-importance notification with sound, vibration, and actions
+            showReminderNotification(context, taskId, taskTitle, taskStartTime, ringtoneUri)
+        } else if (action == "com.example.ACTION_COMPLETE") {
+            val taskId = intent.getStringExtra("task_id") ?: return
+            markTaskAsCompleted(context, taskId)
+            dismissNotification(context, taskId)
+            context.sendBroadcast(Intent("com.example.ALARM_DISMISSED"))
+        } else if (action == "com.example.ACTION_SNOOZE") {
+            val taskId = intent.getStringExtra("task_id") ?: return
+            val taskTitle = intent.getStringExtra("task_title") ?: return
+            val taskStartTime = intent.getStringExtra("task_start_time") ?: ""
+            val ringtoneUri = intent.getStringExtra("ringtone_uri")
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                context.startForegroundService(serviceIntent)
-            } else {
-                context.startService(serviceIntent)
-            }
+            ReminderScheduler.scheduleSnooze(context, taskId, taskTitle, taskStartTime, ringtoneUri, snoozeMin = 5)
+            dismissNotification(context, taskId)
+            context.sendBroadcast(Intent("com.example.ALARM_DISMISSED"))
         } else if (action == Intent.ACTION_BOOT_COMPLETED ||
             action == Intent.ACTION_MY_PACKAGE_REPLACED ||
             action == Intent.ACTION_TIME_CHANGED ||
@@ -275,4 +277,158 @@ class ReminderReceiver : BroadcastReceiver() {
             }
         }
     }
+
+    private fun markTaskAsCompleted(context: Context, taskId: String) {
+        try {
+            val store = TaskLocalStore(context)
+            val tasks = store.loadTasks() ?: emptyList()
+            val updatedTasks = tasks.map {
+                if (it.id == taskId) {
+                    it.copy(isCompleted = true, completedAt = System.currentTimeMillis())
+                } else {
+                    it
+                }
+            }
+            store.saveTasks(updatedTasks)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    private fun dismissNotification(context: Context, taskId: String) {
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.cancel(taskId.hashCode())
+        AlarmNotificationManager.dismissAlert()
+        com.example.features.settings.ReminderSettingsManager.clearSnoozeCount(context, taskId)
+    }
+}
+
+/**
+ * Utility to get sound URI for notification.
+ */
+fun getNotificationSoundUri(context: Context, customUriStr: String?): android.net.Uri {
+    if (!customUriStr.isNullOrBlank()) {
+        try {
+            return android.net.Uri.parse(customUriStr)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+    val defaultSettingStr = com.example.features.settings.ReminderSettingsManager.defaultAlarmSound
+    if (!defaultSettingStr.isNullOrBlank()) {
+        try {
+            return android.net.Uri.parse(defaultSettingStr)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+    return android.media.RingtoneManager.getDefaultUri(android.media.RingtoneManager.TYPE_ALARM)
+        ?: android.media.RingtoneManager.getDefaultUri(android.media.RingtoneManager.TYPE_NOTIFICATION)
+        ?: android.media.RingtoneManager.getDefaultUri(android.media.RingtoneManager.TYPE_RINGTONE)
+}
+
+/**
+ * Directly posts a high-priority Heads-Up Notification with actions for complete and snooze.
+ */
+fun showReminderNotification(
+    context: Context,
+    taskId: String,
+    taskTitle: String,
+    taskStartTime: String,
+    ringtoneUriStr: String?
+) {
+    val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    val channelId = "task_reminders_channel"
+    val soundUri = getNotificationSoundUri(context, ringtoneUriStr)
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        val channelName = context.getString(R.string.reminder_channel_name)
+        val channelDesc = context.getString(R.string.reminder_channel_desc)
+        val audioAttributes = android.media.AudioAttributes.Builder()
+            .setUsage(android.media.AudioAttributes.USAGE_ALARM)
+            .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SONIFICATION)
+            .build()
+
+        val channel = NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_HIGH).apply {
+            description = channelDesc
+            enableLights(true)
+            enableVibration(com.example.features.settings.ReminderSettingsManager.alarmVibration)
+            if (com.example.features.settings.ReminderSettingsManager.alarmVibration) {
+                vibrationPattern = longArrayOf(0, 500, 250, 500)
+            }
+            setSound(soundUri, audioAttributes)
+            setBypassDnd(true)
+            lockscreenVisibility = android.app.Notification.VISIBILITY_PUBLIC
+        }
+        notificationManager.createNotificationChannel(channel)
+    }
+
+    // Full Screen Intent to AlarmActivity
+    val fullScreenIntent = Intent(context, AlarmActivity::class.java).apply {
+        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        putExtra("task_id", taskId)
+        putExtra("task_title", taskTitle)
+        putExtra("task_start_time", taskStartTime)
+        putExtra("ringtone_uri", ringtoneUriStr)
+    }
+
+    val pendingFlags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+    } else {
+        PendingIntent.FLAG_UPDATE_CURRENT
+    }
+
+    val fullScreenPendingIntent = PendingIntent.getActivity(
+        context,
+        taskId.hashCode(),
+        fullScreenIntent,
+        pendingFlags
+    )
+
+    // Complete Intent
+    val completeIntent = Intent(context, ReminderReceiver::class.java).apply {
+        action = "com.example.ACTION_COMPLETE"
+        putExtra("task_id", taskId)
+    }
+    val completePendingIntent = PendingIntent.getBroadcast(
+        context,
+        taskId.hashCode() + 100,
+        completeIntent,
+        pendingFlags
+    )
+
+    // Snooze Intent
+    val snoozeIntent = Intent(context, ReminderReceiver::class.java).apply {
+        action = "com.example.ACTION_SNOOZE"
+        putExtra("task_id", taskId)
+        putExtra("task_title", taskTitle)
+        putExtra("task_start_time", taskStartTime)
+        putExtra("ringtone_uri", ringtoneUriStr)
+    }
+    val snoozePendingIntent = PendingIntent.getBroadcast(
+        context,
+        taskId.hashCode() + 200,
+        snoozeIntent,
+        pendingFlags
+    )
+
+    val builder = NotificationCompat.Builder(context, channelId)
+        .setSmallIcon(R.mipmap.ic_launcher)
+        .setContentTitle(taskTitle)
+        .setContentText(if (taskStartTime.isNotBlank()) taskStartTime else context.getString(R.string.nav_tasks))
+        .setPriority(NotificationCompat.PRIORITY_MAX)
+        .setCategory(NotificationCompat.CATEGORY_ALARM)
+        .setContentIntent(fullScreenPendingIntent)
+        .setFullScreenIntent(fullScreenPendingIntent, true)
+        .setAutoCancel(true)
+        .setOngoing(false)
+        .setSound(soundUri)
+        .setVibrate(if (com.example.features.settings.ReminderSettingsManager.alarmVibration) longArrayOf(0, 500, 250, 500) else null)
+        .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+        .addAction(R.drawable.ic_alarm, "✅ تم التنفيذ", completePendingIntent)
+        .addAction(R.drawable.ic_alarm, "⏰ تأجيل 5 دقائق", snoozePendingIntent)
+
+    notificationManager.notify(taskId.hashCode(), builder.build())
+
+    AlarmNotificationManager.showAlert(taskId, taskTitle, taskStartTime)
 }
